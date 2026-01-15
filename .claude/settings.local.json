@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir:*)",
+      "Bash(npm install)",
+      "Bash(timeout 10 npm start)",
+      "Bash(pgrep:*)",
+      "Bash(npm install:*)",
+      "Bash(git remote:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
