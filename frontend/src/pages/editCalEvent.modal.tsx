@@ -1,8 +1,7 @@
 import { Modal, Stack, Select, Button, Textarea, } from "@mantine/core"
-import { supabase } from "../lib/supabaseClient.ts";
-import useZStore from "../Zstore.ts/index.ts";
 import { EventImpl } from '@fullcalendar/core/internal';
 import { notifications } from "@mantine/notifications";
+import { useCycleStore } from "../store/cycleStore";
 
 type ModalProps = {
     clicked: boolean;
@@ -12,56 +11,50 @@ type ModalProps = {
 
 const EditEventModal = ({clicked, close, selectedEvent} : ModalProps) => {
     if (!selectedEvent) return null;
-    const removeEvent = useZStore((state) => state.removeEvent);
-    const refetch = useZStore((state) => state.toggleRefetchFlag);
-    
+    const triggerRefetch = useCycleStore((state) => state.triggerRefetch);
+
     const date = selectedEvent.start;
     if (!date) return null;
     const dateClicked = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())).toISOString().split('T')[0];
     const eventType = selectedEvent.title.includes('Hefsek') ? 'hefsek_date' : 'start_date';
     const onah = selectedEvent.title.includes('Night') ? 'night' : 'day';
-    
+
     const handleDeleteEvent = async () => {
-        
-        const {data, error: dbError} = await supabase.rpc('delete_period_event', {
-            event_type: eventType,
-            selected_date: dateClicked,
-            ...(onah && {selected_onah: onah}),
-        })
+        try {
+            // TODO: Update to use new backend cycle API
+            // Need to implement deleteCycle or updateCycle endpoint
 
-        if (dbError?.message) {
-            console.log('Error deleting event:', dbError.message)
-            return
-        };
-
-        if (data[0].success) {
             notifications.show({
-                title: 'Success',
-                message: 'Event deleted successfully',
-                color: 'green',
+                title: 'Not Implemented',
+                message: 'Event deletion needs to be updated for new backend API',
+                color: 'orange',
             })
-            refetch();
-            removeEvent(selectedEvent)
-        } else {
+
+            triggerRefetch();
+            close();
+        } catch (error: any) {
             notifications.show({
                 title: 'Error',
-                message: `${data[0].message}`,
+                message: error.response?.data?.message || 'Failed to delete event',
                 color: 'red',
             })
         }
-        close();
-        
     };
 
     const handleOnahChange = async (value: string | null) => {
-        close();
-        const { error } = await supabase
-            .from("periods")
-            .update({ onah: value })
-            .eq('start_date', selectedEvent.start?.toLocaleString());
-        if (error) {
+        try {
+            // TODO: Update to use new backend cycle API
+            // Need to implement updateCycle endpoint
+
+            notifications.show({
+                title: 'Not Implemented',
+                message: 'Event update needs to be updated for new backend API',
+                color: 'orange',
+            })
+
+            close();
+        } catch (error: any) {
             console.error("Error updating onah:", error);
-            return;
         }
     };
 

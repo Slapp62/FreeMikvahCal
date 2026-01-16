@@ -6,7 +6,18 @@
       "Bash(timeout 10 npm start)",
       "Bash(pgrep:*)",
       "Bash(npm install:*)",
-      "Bash(git remote:*)"
+      "Bash(git remote:*)",
+      "Bash(npm run dev:*)",
+      "Bash(node:*)",
+      "Bash(for file in models/*.js)",
+      "Bash(do node -c \"$file\")",
+      "Bash(echo:*)",
+      "Bash(done)",
+      "Bash(for file in services/*.js controllers/*.js)",
+      "Bash(timeout 10 npm run dev:*)",
+      "Bash(timeout 8 npm run dev:*)",
+      "Bash(\"C:\\Users\\simch\\Documents\\Coding\\freeMikvahCal\\frontend\\.env\")",
+      "Bash(npm uninstall:*)"
     ],
     "deny": [],
     "ask": []

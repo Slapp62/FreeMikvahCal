@@ -10,24 +10,36 @@ import { LightDarkToggle } from './LightDarkToggle'
 //import { Logo } from './Logo';
 import clsx from 'clsx';
 import { Link, useNavigate } from 'react-router-dom';
-import useStore from '../../Zstore.ts';
+import { useUserStore } from '../../store/userStore';
+import { useCycleStore } from '../../store/cycleStore';
+import { logout } from '../../services/authApi';
 import { IconSettings } from '@tabler/icons-react';
 
-  
+
   export function Header() {
     const logo = '../../../public/logo-v1.png';
-    const user = useStore((state) => state.user);
-    const clearUser = useStore((state) => state.clearUser);
+    const user = useUserStore((state) => state.user);
+    const clearUser = useUserStore((state) => state.clearUser);
+    const clearCycles = useCycleStore((state) => state.clearCycles);
     const jumpTo = useNavigate();
     const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] = useDisclosure(false);
     const { colorScheme } = useMantineColorScheme();
-  
+
     const logoutHandler = async () => {
-        sessionStorage.removeItem('token');
-        clearUser();
-        jumpTo('/');
+        try {
+            await logout();
+            clearUser();
+            clearCycles();
+            jumpTo('/');
+        } catch (error) {
+            console.error('Logout error:', error);
+            // Clear locally even if API call fails
+            clearUser();
+            clearCycles();
+            jumpTo('/');
+        }
     }
-    
+
     console.log('user', user);
     
     return (

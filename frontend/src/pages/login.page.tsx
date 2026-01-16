@@ -10,56 +10,57 @@ import {
   TextInput,
   Title,
 } from '@mantine/core';
-import classes from './login.module.css';
-import { notifications } from '@mantine/notifications';
-import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { userAuthApi } from '../services/localApi';
-import useZStore from '../Zstore.ts';
+import { useForm } from 'react-hook-form';
+import { joiResolver } from '@hookform/resolvers/joi';
+import { notifications } from '@mantine/notifications';
+import { login } from '../services/authApi';
+import { useUserStore } from '../store/userStore';
+import { loginSchema } from '../validationRules/authSchemas';
+import classes from './login.module.css';
+
+type LoginFormValues = {
+  email: string;
+  password: string;
+};
 
 export function LoginPage() {
-    const jumpTo = useNavigate();
-    const [isLoading, setIsLoading] = useState(false);
-    const setUser = useZStore((state) => state.setUser);
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const setUser = useUserStore((state) => state.setUser);
 
-    type LoginValues = {
-        email: string;
-        password: string;
+  const { register, handleSubmit, formState: { errors } } = useForm<LoginFormValues>({
+    mode: 'onBlur',
+    resolver: joiResolver(loginSchema),
+  });
+
+  const onSubmit = async (formData: LoginFormValues) => {
+    setIsLoading(true);
+
+    try {
+      const response = await login(formData);
+
+      setUser(response.user);
+
+      notifications.show({
+        title: 'Welcome back!',
+        message: 'You have successfully logged in',
+        color: 'green',
+      });
+
+      navigate('/calendar');
+    } catch (error: any) {
+      console.error('Login error:', error);
+      notifications.show({
+        title: 'Login failed',
+        message: error.response?.data?.message || error.message || 'Please check your credentials and try again',
+        color: 'red',
+      });
+    } finally {
+      setIsLoading(false);
     }
-    
-    const {register, handleSubmit, formState: {errors}} = useForm<LoginValues>(
-        {
-            mode: 'onChange',
-        }
-    );
-    
-    const onSubmit = async (formData : LoginValues) => {
-        setIsLoading(true);
-        try {
-            const response = await userAuthApi.login(formData);
-            
-            sessionStorage.setItem('token', response.token)
-            setUser(response.user)
-
-            setIsLoading(false);
-            notifications.show({
-                title: 'Success signing up',
-                message: 'You have successfully logged in',
-                color: 'green',
-            })
-
-            jumpTo('/calendar');
-        } catch (error : any) {
-            setIsLoading(false);
-            console.error('Sign-in Error:', error);
-            notifications.show({
-                title: 'Error signing in',
-                message: error.message,
-                color: 'red',
-            });
-        }
-    }  
+  };  
     
   return (
     <Container size={420} my={40}>
@@ -67,63 +68,44 @@ export function LoginPage() {
         Welcome back!
       </Title>
 
-      <Text className={classes.subtitle}>
-        Do not have an account yet? <Anchor>Create account</Anchor>
+      <Text c="dimmed" size="sm" ta="center" mt={5}>
+        Do not have an account yet?{' '}
+        <Anchor component={Link} to="/register" size="sm">
+          Create account
+        </Anchor>
       </Text>
-    
-    <form onSubmit={handleSubmit(onSubmit)}>
-        <Paper withBorder shadow="sm" p={22} mt={30} radius="md">
-        
-        <TextInput
-          label="Email"
-          placeholder="you@mantine.dev"
-          required
-          error={errors.email?.message}
-          {...register("email", {
-                required: "Email is required",
-                pattern: {
-                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                    message: "Invalid email format"  
-                }
-            }
-          )}
-        />
 
-        <PasswordInput
-          label="Password"
-          placeholder="Your password"
-          required
-          type="password"
-          error={errors.password?.message}
-          {...register("password", {
-                required: "Password is required",
-                minLength: {
-                    value: 8,
-                    message: "Must be at least 8 characters"
-                },
-                pattern: {
-                    value: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/,
-                    message: "Must contain at least one letter and one number"
-                }
-            })}
-        />
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <Paper withBorder shadow="md" p={30} mt={30} radius="md">
+          <TextInput
+            label="Email"
+            placeholder="your@email.com"
+            required
+            error={errors.email?.message}
+            {...register('email')}
+          />
 
-        <Group justify="space-between" mt="lg">
+          <PasswordInput
+            label="Password"
+            placeholder="Your password"
+            required
+            mt="md"
+            error={errors.password?.message}
+            {...register('password')}
+          />
+
+          <Group justify="space-between" mt="lg">
             <Checkbox label="Remember me" />
-            <Anchor component="button" size="sm">
-            Forgot password?
+            <Anchor component="button" type="button" size="sm">
+              Forgot password?
             </Anchor>
-        </Group>
+          </Group>
 
-        <Button 
-            type="submit" 
-            fullWidth mt="xl" 
-            radius="md"
-            loading={isLoading}
-        > Sign in </Button>
-        
+          <Button type="submit" fullWidth mt="xl" loading={isLoading}>
+            Sign in
+          </Button>
         </Paper>
-    </form>
+      </form>
     </Container>
   );
 }

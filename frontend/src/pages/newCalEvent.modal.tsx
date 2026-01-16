@@ -1,16 +1,15 @@
 import { Modal, Tabs } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import PeriodEventForm from './periodEventForm.tsx';
-import useZStore from '../Zstore.ts/index.ts';
 
 type ModalProps = {
     clicked: boolean;
     close: () => void;
+    dateClicked: string;
 };
 
-function CalendarEventModal({clicked, close} : ModalProps) {
+function CalendarEventModal({clicked, close, dateClicked} : ModalProps) {
     const [closeOutside, setCloseOutside] = useState(false);
-    const dateClicked = useZStore((state) => state.dateClicked);
 
     useEffect(() => {
         if (clicked){
@@ -46,8 +45,9 @@ function CalendarEventModal({clicked, close} : ModalProps) {
                 </Tabs.List>
 
                 <Tabs.Panel value="period">
-                    <PeriodEventForm 
+                    <PeriodEventForm
                         close={close}
+                        dateClicked={dateClicked}
                     />
                 </Tabs.Panel>
 

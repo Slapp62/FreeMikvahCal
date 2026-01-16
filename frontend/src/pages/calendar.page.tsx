@@ -7,7 +7,6 @@ import './calendar.css';
 import CalendarEventModal from './newCalEvent.modal.tsx';
 import { useState } from 'react';
 import useLoadEvents from '../hooks/useLoadEvents.ts';
-import useZStore from '../Zstore.ts/index.ts';
 import EditEventModal from './editCalEvent.modal.tsx';
 import { EventImpl } from '@fullcalendar/core/internal';
 import { useMediaQuery } from '@mantine/hooks';
@@ -15,7 +14,7 @@ import { useMediaQuery } from '@mantine/hooks';
 export default function CalendarPage() {
     const isMobile = useMediaQuery('(max-width: 700px)');
     const events = useLoadEvents();
-    const setClickedDate = useZStore((state) => state.setClickedDate);
+    const [clickedDate, setClickedDate] = useState<string>('');
     
     // New Event Modal
     const [newEventModalOpened, setNewEventModalOpened] = useState(false);
@@ -67,9 +66,10 @@ export default function CalendarPage() {
             <Box>☀️ Onah is during the day </Box>
             <Box>🌙 Onah is at night</Box>
         </Group>
-        <CalendarEventModal 
-            clicked={newEventModalOpened} 
-            close={closeNewEventModal} 
+        <CalendarEventModal
+            clicked={newEventModalOpened}
+            close={closeNewEventModal}
+            dateClicked={clickedDate}
         /> 
 
         <EditEventModal

@@ -1,8 +1,8 @@
 import { Button, Select, Stack, Textarea } from "@mantine/core"
-import { supabase } from "../lib/supabaseClient"
 import { notifications } from "@mantine/notifications"
 import { Controller, useForm } from "react-hook-form"
-import useZStore from "../Zstore.ts"
+import { useCycleStore } from "../store/cycleStore"
+import { createCycle } from "../services/cycleApi"
 
 type PeriodEventValues = {
     eventType?: 'start_date' | 'hefsek_date';
@@ -10,45 +10,36 @@ type PeriodEventValues = {
     notes?: string;
 }
 
-const PeriodEventForm = ({close} : {close: () => void}) => {
-    const refetch = useZStore((state) => state.toggleRefetchFlag);
-    const dateClicked = useZStore((state) => state.dateClicked);
-    const { register, handleSubmit, watch, control, formState: { errors : formErrors } } = useForm<PeriodEventValues>(); 
+const PeriodEventForm = ({close, dateClicked} : {close: () => void; dateClicked: string}) => {
+    const triggerRefetch = useCycleStore((state) => state.triggerRefetch);
+    const { register, handleSubmit, watch, control, formState: { errors : formErrors } } = useForm<PeriodEventValues>();
     const eventType = watch('eventType')
     const onSubmit = async (formData : PeriodEventValues) => {
-        
-        const {data, error : dbError} = await supabase.rpc('new_period_event', {
-            event_type: formData.eventType,
-            selected_date: dateClicked,
-            ...(formData.onah && {selected_onah: formData.onah}),
-            ...(formData.notes && {entered_notes: formData.notes}),
-        })
-        
-        if (dbError?.message) {
-            console.log('error adding period:', dbError.message)
-            return
-        };
+        try {
+            // TODO: Update to use new backend cycle API structure
+            // The new API expects: niddahStartDate, hefsekTaharaDate, mikvahDate
+            // This needs to be refactored to match the new data model
 
-        if (formErrors.root?.message) {
-            console.log('error with form handling', formErrors.root.message);
-            return
-        };
-
-        if (data[0].success) {
             notifications.show({
-                title: 'Success',
-                message: 'Event added successfully',
-                color: 'green',
+                title: 'Not Implemented',
+                message: 'Cycle creation needs to be updated for new backend API',
+                color: 'orange',
             })
-            refetch();
-        } else {
+
+            // Placeholder for new API call:
+            // if (formData.eventType === 'start_date') {
+            //     await createCycle({ niddahStartDate: dateClicked });
+            // }
+
+            triggerRefetch();
+            close();
+        } catch (error: any) {
             notifications.show({
                 title: 'Error',
-                message: `${data[0].message}`,
+                message: error.response?.data?.message || 'Failed to create event',
                 color: 'red',
             })
         }
-        close();
     }
 
     return (
