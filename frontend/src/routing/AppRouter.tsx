@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { Layout } from './Layout';
 import RouteGuard from './RouteGuard';
 import HomePage from '../pages/home.page';
@@ -8,50 +8,43 @@ import RegisterPage from '../pages/register.page';
 import PageNotFound from '../pages/404.page';
 import CalendarPage from '../pages/calendar.page';
 
-const router = createBrowserRouter([
-  {
-    path: '/',
-    element: <Layout />,
-    children: [
-      { index: true, element: <HomePage /> },
-      { path: 'about', element: <AboutPage /> },
-
-      // Auth routes (redirect to home if already logged in)
-      {
-        path: 'register',
-        element: (
-          <RouteGuard requireNoAuth>
-            <RegisterPage />
-          </RouteGuard>
-        ),
-      },
-      {
-        path: 'login',
-        element: (
-          <RouteGuard requireNoAuth>
-            <LoginPage />
-          </RouteGuard>
-        ),
-      },
-
-      // Protected routes
-      {
-        path: 'calendar',
-        element: (
-          <RouteGuard requireAuth>
-            <CalendarPage />
-          </RouteGuard>
-        ),
-      },
-
-      { path: '*', element: <PageNotFound /> },
-    ],
-  },
-],
-  {
-    basename: '/',
-  });
-
 export function AppRouter() {
-  return <RouterProvider router={router} />;
+  return (
+    <Routes>
+      <Route path="/" element={<Layout />}>
+        <Route index element={<HomePage />} />
+        <Route path="about" element={<AboutPage />} />
+
+        {/* Auth routes - accessible only to non-authenticated users */}
+        <Route
+          path="register"
+          element={
+            <RouteGuard permission="non-user">
+              <RegisterPage />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path="login"
+          element={
+            <RouteGuard permission="non-user">
+              <LoginPage />
+            </RouteGuard>
+          }
+        />
+
+        {/* Protected routes - accessible only to authenticated users */}
+        <Route
+          path="calendar"
+          element={
+            <RouteGuard permission="user">
+              <CalendarPage />
+            </RouteGuard>
+          }
+        />
+
+        <Route path="*" element={<PageNotFound />} />
+      </Route>
+    </Routes>
+  );
 }

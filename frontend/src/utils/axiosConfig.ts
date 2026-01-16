@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { useUserStore } from '../store/userStore';
+import { useCycleStore } from '../store/cycleStore';
 
 // Get API base URL from environment or use default
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
@@ -10,19 +12,11 @@ const axiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 5000, // 5 second timeout - fail fast if backend unavailable
+  timeout: 10000, // 10 second timeout
 });
 
-// Request interceptor
-axiosInstance.interceptors.request.use(
-  (config) => {
-    // You can add auth tokens here if needed later
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+// Track if we're currently handling a 401 to prevent multiple redirects
+let isHandling401 = false;
 
 // Response interceptor for error handling
 axiosInstance.interceptors.response.use(
@@ -30,12 +24,32 @@ axiosInstance.interceptors.response.use(
   (error) => {
     if (error.response) {
       const { status } = error.response;
+      const url = error.config?.url || '';
 
       // Handle session expiration (401 Unauthorized)
       if (status === 401) {
-        // Session expired or user not authenticated
-        console.log('Session expired or unauthorized');
-        // This will be handled by sessionManager
+        // Don't handle 401s for login/register/session endpoints
+        const isAuthEndpoint = url.includes('/auth/login') ||
+                              url.includes('/auth/register') ||
+                              url.includes('/auth/session');
+
+        if (!isAuthEndpoint && !isHandling401) {
+          isHandling401 = true;
+
+          console.log('Session expired - logging out');
+
+          // Clear all stores
+          useUserStore.getState().clearUser();
+          useCycleStore.getState().clearCycles();
+
+          // Navigate to login using window.location
+          window.location.href = '/login?session=expired';
+
+          // Reset flag after a delay
+          setTimeout(() => {
+            isHandling401 = false;
+          }, 1000);
+        }
       }
 
       // Handle server errors

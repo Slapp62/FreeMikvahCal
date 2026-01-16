@@ -21,10 +21,8 @@ export interface User {
 interface UserState {
   user: User | null;
   isAuthenticated: boolean;
-  isLoading: boolean;
   setUser: (user: User) => void;
   clearUser: () => void;
-  setLoading: (loading: boolean) => void;
   updateUser: (updates: Partial<User>) => void;
 }
 
@@ -33,21 +31,14 @@ export const useUserStore = create<UserState>()(
     (set) => ({
       user: null,
       isAuthenticated: false,
-      isLoading: true,
-      setUser: (user) => set({ user, isAuthenticated: true, isLoading: false }),
-      clearUser: () => set({ user: null, isAuthenticated: false, isLoading: false }),
-      setLoading: (isLoading) => set({ isLoading }),
+      setUser: (user) => set({ user, isAuthenticated: true }),
+      clearUser: () => set({ user: null, isAuthenticated: false }),
       updateUser: (updates) => set((state) => ({
         user: state.user ? { ...state.user, ...updates } : null
       })),
     }),
     {
       name: 'user-storage',
-      // Only persist user and isAuthenticated, NOT isLoading
-      partialize: (state) => ({
-        user: state.user,
-        isAuthenticated: state.isAuthenticated,
-      }),
     }
   )
 );

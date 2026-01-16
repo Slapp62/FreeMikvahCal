@@ -10,13 +10,10 @@ import {
   TextInput,
   Title,
 } from '@mantine/core';
-import { Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { joiResolver } from '@hookform/resolvers/joi';
-import { notifications } from '@mantine/notifications';
-import { login } from '../services/authApi';
-import { useUserStore } from '../store/userStore';
+import { useAuth } from '../hooks/useAuth';
 import { loginSchema } from '../validationRules/authSchemas';
 import classes from './login.module.css';
 
@@ -26,9 +23,7 @@ type LoginFormValues = {
 };
 
 export function LoginPage() {
-  const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
-  const setUser = useUserStore((state) => state.setUser);
+  const { login, isLoading } = useAuth();
 
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormValues>({
     mode: 'onBlur',
@@ -36,30 +31,7 @@ export function LoginPage() {
   });
 
   const onSubmit = async (formData: LoginFormValues) => {
-    setIsLoading(true);
-
-    try {
-      const response = await login(formData);
-
-      setUser(response.user);
-
-      notifications.show({
-        title: 'Welcome back!',
-        message: 'You have successfully logged in',
-        color: 'green',
-      });
-
-      navigate('/calendar');
-    } catch (error: any) {
-      console.error('Login error:', error);
-      notifications.show({
-        title: 'Login failed',
-        message: error.response?.data?.message || error.message || 'Please check your credentials and try again',
-        color: 'red',
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    await login(formData);
   };  
     
   return (

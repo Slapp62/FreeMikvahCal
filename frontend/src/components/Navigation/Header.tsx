@@ -9,39 +9,19 @@ import classes from './Header.module.css';
 import { LightDarkToggle } from './LightDarkToggle'
 //import { Logo } from './Logo';
 import clsx from 'clsx';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useUserStore } from '../../store/userStore';
-import { useCycleStore } from '../../store/cycleStore';
-import { logout } from '../../services/authApi';
+import { useAuth } from '../../hooks/useAuth';
 import { IconSettings } from '@tabler/icons-react';
 
 
   export function Header() {
     const logo = '../../../public/logo-v1.png';
     const user = useUserStore((state) => state.user);
-    const clearUser = useUserStore((state) => state.clearUser);
-    const clearCycles = useCycleStore((state) => state.clearCycles);
-    const jumpTo = useNavigate();
+    const { logout: logoutHandler } = useAuth();
     const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] = useDisclosure(false);
     const { colorScheme } = useMantineColorScheme();
 
-    const logoutHandler = async () => {
-        try {
-            await logout();
-            clearUser();
-            clearCycles();
-            jumpTo('/');
-        } catch (error) {
-            console.error('Logout error:', error);
-            // Clear locally even if API call fails
-            clearUser();
-            clearCycles();
-            jumpTo('/');
-        }
-    }
-
-    console.log('user', user);
-    
     return (
       <Box className={clsx(classes.navbarTop)}>
         <header className={clsx(colorScheme === 'light' ? classes.navbarLight : classes.navbarDark, classes.header)}>

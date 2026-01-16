@@ -1,6 +1,5 @@
-import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
   Anchor,
   Autocomplete,
@@ -19,7 +18,7 @@ import {
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { register as registerUser } from '../services/authApi';
-import { useUserStore } from '../store/userStore';
+import { useAuth } from '../hooks/useAuth';
 import locations from '../data/locations';
 
 type RegisterFormValues = {
@@ -41,9 +40,7 @@ type RegisterFormValues = {
 };
 
 const RegisterPage = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const setUser = useUserStore((state) => state.setUser);
-  const navigate = useNavigate();
+  const { register: registerAuth, isLoading } = useAuth();
 
   const { register, control, handleSubmit, watch, formState: { errors } } = useForm<RegisterFormValues>({
     mode: 'onBlur',
@@ -67,8 +64,6 @@ const RegisterPage = () => {
   });
 
   const onSubmit = async (formData: RegisterFormValues) => {
-    setIsLoading(true);
-
     const selectedLocation = locations.find((loc) => loc.value === formData.location);
 
     if (!selectedLocation) {
@@ -77,49 +72,27 @@ const RegisterPage = () => {
         message: 'Please select a valid location',
         color: 'red',
       });
-      setIsLoading(false);
       return;
     }
 
-    try {
-      const response = await registerUser({
-        email: formData.email,
-        password: formData.password,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        location: {
-          city: selectedLocation.value,
-          geonameId: selectedLocation.geonameId,
-          lat: selectedLocation.lat,
-          lng: selectedLocation.lng,
-          timezone: selectedLocation.timezone || 'UTC',
+    await registerAuth({
+      email: formData.email,
+      password: formData.password,
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      location: {
+        city: selectedLocation.value,
+        geonameId: selectedLocation.geonameId,
+        lat: selectedLocation.lat,
+        lng: selectedLocation.lng,
+        timezone: selectedLocation.timezone || 'UTC',
+      },
+      consents: {
+        dataProcessing: {
+          granted: formData.dataProcessingConsent,
         },
-        consents: {
-          dataProcessing: {
-            granted: formData.dataProcessingConsent,
-          },
-        },
-      });
-
-      setUser(response.user);
-
-      notifications.show({
-        title: 'Welcome to FreeMikvahCal!',
-        message: 'Your account has been created successfully',
-        color: 'green',
-      });
-
-      navigate('/calendar');
-    } catch (error: any) {
-      console.error('Registration error:', error);
-      notifications.show({
-        title: 'Registration failed',
-        message: error.response?.data?.message || error.message || 'Please check your information and try again',
-        color: 'red',
-      });
-    } finally {
-      setIsLoading(false);
-    }
+      },
+    });
   };
 
 
