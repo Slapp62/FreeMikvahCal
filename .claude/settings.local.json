@@ -17,7 +17,22 @@
       "Bash(timeout 10 npm run dev:*)",
       "Bash(timeout 8 npm run dev:*)",
       "Bash(\"C:\\Users\\simch\\Documents\\Coding\\freeMikvahCal\\frontend\\.env\")",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(where:*)",
+      "Bash(timeout 15 npm run dev:*)",
+      "Bash(timeout 3 echo:*)",
+      "Bash(net start:*)",
+      "Bash(cat:*)",
+      "Bash(tree:*)",
+      "Bash(findstr:*)",
+      "Bash(netstat:*)",
+      "Bash(taskkill /F /PID 13248)",
+      "Bash(taskkill //F //PID 13248)",
+      "Bash(timeout 5 echo:*)",
+      "Bash(timeout 60 echo:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)"
     ],
     "deny": [],
     "ask": []

@@ -3,7 +3,15 @@
  * Throws an error if any required variable is missing
  */
 const validateEnv = () => {
-  const required = ['MONGO_URI', 'SESSION_SECRET'];
+  const required = ['SESSION_SECRET'];
+
+  // Check for environment-specific MongoDB URI
+  const isProduction = process.env.NODE_ENV === 'production';
+  const mongoVar = isProduction ? 'MONGO_ATLAS_URI' : 'MONGO_LOCAL_URI';
+
+  if (!process.env[mongoVar]) {
+    required.push(mongoVar);
+  }
 
   const missing = required.filter(varName => !process.env[varName]);
 

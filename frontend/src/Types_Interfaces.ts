@@ -22,8 +22,8 @@ export interface IRegister {
 export interface ICalendarEvent {
     id: string,
     title: string,
-    start: any,
-    groupID?: any
+    start: string | Date,
+    groupID?: string
     className?: string
     allDay?: boolean
 }

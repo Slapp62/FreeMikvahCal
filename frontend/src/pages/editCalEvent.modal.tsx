@@ -1,7 +1,9 @@
-import { Modal, Stack, Select, Button, Textarea, } from "@mantine/core"
+import { Modal, Stack, Button, Textarea, Text } from "@mantine/core"
 import { EventImpl } from '@fullcalendar/core/internal';
 import { notifications } from "@mantine/notifications";
 import { useCycleStore } from "../store/cycleStore";
+import { deleteCycle, updateCycle } from "../services/cycleApi";
+import { useState } from "react";
 
 type ModalProps = {
     clicked: boolean;
@@ -11,78 +13,115 @@ type ModalProps = {
 
 const EditEventModal = ({clicked, close, selectedEvent} : ModalProps) => {
     if (!selectedEvent) return null;
-    const triggerRefetch = useCycleStore((state) => state.triggerRefetch);
 
-    const date = selectedEvent.start;
-    if (!date) return null;
-    const dateClicked = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())).toISOString().split('T')[0];
-    const eventType = selectedEvent.title.includes('Hefsek') ? 'hefsek_date' : 'start_date';
-    const onah = selectedEvent.title.includes('Night') ? 'night' : 'day';
+    const deleteCycleFromStore = useCycleStore((state) => state.deleteCycle);
+    const updateCycleInStore = useCycleStore((state) => state.updateCycle);
+    const cycles = useCycleStore((state) => state.cycles);
 
-    const handleDeleteEvent = async () => {
+    // Extract cycle ID from event ID (format: {cycleId}-{eventType})
+    const eventId = selectedEvent.id || '';
+    const cycleId = selectedEvent.extendedProps?.groupID || eventId.split('-')[0];
+
+    // Find the cycle in the store
+    const cycle = cycles.find(c => c._id === cycleId);
+    const [notes, setNotes] = useState(cycle?.notes || '');
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+
+    const handleDeleteCycle = async () => {
+        if (!cycleId) return;
+
+        setIsDeleting(true);
         try {
-            // TODO: Update to use new backend cycle API
-            // Need to implement deleteCycle or updateCycle endpoint
+            await deleteCycle(cycleId);
+            deleteCycleFromStore(cycleId);
 
             notifications.show({
-                title: 'Not Implemented',
-                message: 'Event deletion needs to be updated for new backend API',
-                color: 'orange',
-            })
+                title: 'Success',
+                message: 'Cycle deleted successfully',
+                color: 'green',
+            });
 
-            triggerRefetch();
             close();
         } catch (error: any) {
             notifications.show({
                 title: 'Error',
-                message: error.response?.data?.message || 'Failed to delete event',
+                message: error.response?.data?.message || 'Failed to delete cycle',
                 color: 'red',
-            })
+            });
+        } finally {
+            setIsDeleting(false);
         }
     };
 
-    const handleOnahChange = async (value: string | null) => {
+    const handleUpdateNotes = async () => {
+        if (!cycleId) return;
+
+        setIsSaving(true);
         try {
-            // TODO: Update to use new backend cycle API
-            // Need to implement updateCycle endpoint
+            const result = await updateCycle(cycleId, { notes });
+            updateCycleInStore(cycleId, { notes });
 
             notifications.show({
-                title: 'Not Implemented',
-                message: 'Event update needs to be updated for new backend API',
-                color: 'orange',
-            })
+                title: 'Success',
+                message: 'Notes updated successfully',
+                color: 'green',
+            });
 
             close();
         } catch (error: any) {
-            console.error("Error updating onah:", error);
+            notifications.show({
+                title: 'Error',
+                message: error.response?.data?.message || 'Failed to update notes',
+                color: 'red',
+            });
+        } finally {
+            setIsSaving(false);
         }
     };
 
     return (
-        <Modal opened={clicked} onClose={close} title="Edit Event" centered size="xs">
+        <Modal opened={clicked} onClose={close} title="Edit Cycle" centered size="sm">
             <Stack>
-                <Textarea 
-                    label="Notes" 
-                    placeholder="Enter notes" 
+                <Text size="sm" c="dimmed">
+                    Event: {selectedEvent.title}
+                </Text>
+
+                <Textarea
+                    label="Notes"
+                    placeholder="Enter notes for this cycle"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    minRows={3}
                 />
 
-                <Select
-                    label="Change Onah"
-                    placeholder="Pick a new time"
-                    disabled={selectedEvent.title.includes('Hefsek') ? true : false }
-                    data={
-                        [
-                            { value: 'day', label: 'Before Sunset' },
-                            { value: 'night', label: 'After Sunset' },
-                        ]
-                    }
-                    onChange={handleOnahChange}
-                />
-                <Button color="red" onClick={handleDeleteEvent}>Delete Event</Button>
-                <Button variant="outline" onClick={close}>Cancel</Button>
+                <Button
+                    onClick={handleUpdateNotes}
+                    loading={isSaving}
+                    disabled={isDeleting}
+                >
+                    Save Notes
+                </Button>
+
+                <Button
+                    color="red"
+                    onClick={handleDeleteCycle}
+                    loading={isDeleting}
+                    disabled={isSaving}
+                >
+                    Delete Entire Cycle
+                </Button>
+
+                <Button
+                    variant="outline"
+                    onClick={close}
+                    disabled={isDeleting || isSaving}
+                >
+                    Cancel
+                </Button>
             </Stack>
         </Modal>
-    )
+    );
 }
 
 export default EditEventModal

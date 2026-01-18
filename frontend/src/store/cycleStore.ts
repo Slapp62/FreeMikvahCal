@@ -3,12 +3,24 @@ import { create } from 'zustand';
 export interface Cycle {
   _id: string;
   userId: string;
-  periodStart: string;
-  hefsekTahara?: string;
-  shivaNekiyimStart?: string;
+  niddahStartDate: string;
+  niddahStartOnah: 'day' | 'night';
+  hefsekTaharaDate?: string;
+  shivaNekiyimStartDate?: string;
   mikvahDate?: string;
-  periodEnd?: string;
+  status: 'niddah' | 'shiva_nekiyim' | 'completed';
+  cycleLength?: number;
+  haflagah?: number;
+  vestOnot?: {
+    yomHachodesh?: any;
+    ohrHachodesh?: any;
+    haflagah?: any;
+    onahBeinonit?: any;
+  };
+  bedikot?: any[];
   notes?: string;
+  privateNotes?: string;
+  calculatedInTimezone: string;
   createdAt: string;
   updatedAt: string;
 }

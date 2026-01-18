@@ -156,64 +156,9 @@ cycleSchema.index({ userId: 1, niddahStartDate: -1 });
 cycleSchema.index({ userId: 1, status: 1 });
 cycleSchema.index({ userId: 1, 'vestOnot.onahBeinonit': 1 });
 
-// PRE-SAVE HOOK: Calculate vest onot with timezone awareness
-cycleSchema.pre('save', async function(next) {
-  if (this.isNew || this.isModified('niddahStartDate') || this.isModified('mikvahDate')) {
-
-    // Get user's location for timezone-aware calculations
-    const Users = mongoose.model('Users');
-    const user = await Users.findById(this.userId).select('location');
-
-    if (!user || !user.location || !user.location.timezone) {
-      return next(new Error('User location/timezone not set. Cannot calculate vest onot.'));
-    }
-
-    const location = {
-      lat: user.location.lat,
-      lng: user.location.lng,
-      timezone: user.location.timezone
-    };
-
-    // Get Hebrew date info for niddah start (considering sunset)
-    const { getHebrewDateForTimestamp } = require('../utils/hebrewDateTime');
-    const hebrewInfo = getHebrewDateForTimestamp(this.niddahStartDate, location);
-
-    // Store timezone and sunset used for calculation
-    this.calculatedInTimezone = location.timezone;
-    this.niddahStartSunset = hebrewInfo.sunset;
-    this.niddahStartOnah = hebrewInfo.onah;
-
-    // Calculate cycle length
-    if (this.mikvahDate) {
-      this.cycleLength = Math.ceil(
-        (this.mikvahDate - this.niddahStartDate) / (1000 * 60 * 60 * 24)
-      );
-    }
-
-    // Get previous cycles for calculations
-    const previousCycles = await this.constructor
-      .find({
-        userId: this.userId,
-        _id: { $ne: this._id },
-        status: 'completed',
-        niddahStartDate: { $lt: this.niddahStartDate }
-      })
-      .sort({ niddahStartDate: -1 })
-      .limit(3)
-      .select('niddahStartDate cycleLength');
-
-    // Calculate haflagah
-    if (previousCycles.length > 0) {
-      const lastCycle = previousCycles[0];
-      this.haflagah = Math.ceil(
-        (this.niddahStartDate - lastCycle.niddahStartDate) / (1000 * 60 * 60 * 24)
-      );
-    }
-
-    // Calculate vest onot with timezone awareness
-    await this.calculateVestOnot(previousCycles, location);
-  }
-
+// PRE-SAVE HOOK: Update timestamp
+// NOTE: Business logic has been moved to service layer for better separation of concerns
+cycleSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
   next();
 });
@@ -247,8 +192,48 @@ cycleSchema.pre('validate', function(next) {
   next();
 });
 
+// STATIC METHOD: Calculate cycle metrics (cycle length, haflagah)
+// Pure calculation - no database queries
+cycleSchema.statics.calculateCycleMetrics = function(niddahStartDate, mikvahDate, lastCycle) {
+  const metrics = {
+    cycleLength: null,
+    haflagah: null
+  };
+
+  // Calculate cycle length
+  if (mikvahDate) {
+    metrics.cycleLength = Math.ceil(
+      (mikvahDate - niddahStartDate) / (1000 * 60 * 60 * 24)
+    );
+  }
+
+  // Calculate haflagah (interval from last cycle)
+  if (lastCycle && lastCycle.niddahStartDate) {
+    metrics.haflagah = Math.ceil(
+      (niddahStartDate - lastCycle.niddahStartDate) / (1000 * 60 * 60 * 24)
+    );
+  }
+
+  return metrics;
+};
+
+// STATIC METHOD: Determine niddah start onah and related info
+// Pure calculation - no database queries
+cycleSchema.statics.determineNiddahStartInfo = function(niddahStartDate, location) {
+  const { getHebrewDateForTimestamp } = require('../utils/hebrewDateTime');
+
+  const hebrewInfo = getHebrewDateForTimestamp(niddahStartDate, location);
+
+  return {
+    calculatedInTimezone: location.timezone,
+    niddahStartSunset: hebrewInfo.sunset,
+    niddahStartOnah: hebrewInfo.onah
+  };
+};
+
 // METHOD: Calculate vest onot with timezone awareness
-cycleSchema.methods.calculateVestOnot = async function(previousCycles, location) {
+// Pure calculation - requires previousCycles to be passed in (no database queries)
+cycleSchema.methods.calculateVestOnot = function(previousCycles, location) {
   const { HDate } = require('@hebcal/core');
   const { getVestInfo } = require('../utils/hebrewDateTime');
 
@@ -262,8 +247,13 @@ cycleSchema.methods.calculateVestOnot = async function(previousCycles, location)
 
   // 2. Yom Hachodesh - Same Hebrew date next month
   const startHDate = new HDate(this.niddahStartDate);
-  const nextMonth = startHDate.next();
-  const yomDate = nextMonth.greg();
+  const day = startHDate.getDate();
+  const month = startHDate.getMonth();
+  const year = startHDate.getFullYear();
+
+  // Create new date with same day number, next Hebrew month
+  const yomHachodeshshDate = new HDate(day, month + 1, year);
+  const yomDate = yomHachodeshshDate.greg();
   this.vestOnot.yomHachodesh = getVestInfo(yomDate, location, matchingOnah);
 
   // 3. Haflagah - Based on interval from last cycle
