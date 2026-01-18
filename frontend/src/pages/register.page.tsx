@@ -1,5 +1,6 @@
 import { Controller, useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import {
   Anchor,
   Autocomplete,
@@ -19,7 +20,7 @@ import {
 import { notifications } from '@mantine/notifications';
 import { register as registerUser } from '../services/authApi';
 import { useAuth } from '../hooks/useAuth';
-import locations from '../data/locations';
+import { searchLocations, Location } from '../services/locationApi';
 
 type RegisterFormValues = {
   firstName: string;
@@ -41,6 +42,8 @@ type RegisterFormValues = {
 
 const RegisterPage = () => {
   const { register: registerAuth, isLoading } = useAuth();
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [locationOptions, setLocationOptions] = useState<string[]>([]);
 
   const { register, control, handleSubmit, watch, formState: { errors } } = useForm<RegisterFormValues>({
     mode: 'onBlur',
@@ -62,6 +65,25 @@ const RegisterPage = () => {
       },
     },
   });
+
+  // Load initial locations on mount
+  useEffect(() => {
+    const loadLocations = async () => {
+      try {
+        const response = await searchLocations();
+        setLocations(response.locations);
+        setLocationOptions(response.locations.map(loc => loc.value));
+      } catch (error) {
+        console.error('Error loading locations:', error);
+        notifications.show({
+          title: 'Error',
+          message: 'Failed to load locations',
+          color: 'red',
+        });
+      }
+    };
+    loadLocations();
+  }, []);
 
   const onSubmit = async (formData: RegisterFormValues) => {
     const selectedLocation = locations.find((loc) => loc.value === formData.location);
@@ -196,10 +218,7 @@ const RegisterPage = () => {
                   placeholder="Start typing to search..."
                   required
                   error={errors.location?.message}
-                  data={locations.map((location) => ({
-                    label: location.value,
-                    value: location.value,
-                  }))}
+                  data={locationOptions}
                   {...field}
                 />
               )}

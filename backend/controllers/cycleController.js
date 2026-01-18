@@ -143,6 +143,31 @@ const getUpcomingVestOnot = async (req, res, next) => {
   }
 };
 
+/**
+ * Get calendar events
+ * GET /api/cycles/calendar-events
+ */
+const getCalendarEvents = async (req, res, next) => {
+  try {
+    const { limit, skip, status } = req.query;
+
+    const options = {
+      limit: limit ? parseInt(limit) : 50,
+      skip: skip ? parseInt(skip) : 0,
+      status
+    };
+
+    const events = await cycleService.getCalendarEvents(req.user._id, options);
+
+    res.status(200).json({
+      count: events.length,
+      events
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getUserCycles,
   createCycle,
@@ -151,5 +176,6 @@ module.exports = {
   deleteCycle,
   addBedika,
   getActiveCycle,
-  getUpcomingVestOnot
+  getUpcomingVestOnot,
+  getCalendarEvents
 };

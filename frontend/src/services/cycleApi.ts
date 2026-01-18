@@ -26,6 +26,20 @@ export interface UpdateCycleData {
   privateNotes?: string;
 }
 
+export interface AddBedikaData {
+  date: {
+    dateString: string;
+    timeString: string;
+  };
+  dayNumber: number; // 1-7
+  timeOfDay: 'morning' | 'evening' | 'both';
+  results?: {
+    morning?: 'clean' | 'questionable' | 'not_clean';
+    evening?: 'clean' | 'questionable' | 'not_clean';
+  };
+  notes?: string;
+}
+
 export interface CyclesResponse {
   count: number;
   cycles: Cycle[];
@@ -93,6 +107,26 @@ export const getUpcomingVestOnot = async (days: number = 30): Promise<any[]> => 
   return response.data.vestOnot;
 };
 
+/**
+ * Add bedika to a cycle
+ */
+export const addBedika = async (cycleId: string, data: AddBedikaData): Promise<{ message: string; cycle: Cycle }> => {
+  const response = await axiosInstance.post(`/cycles/${cycleId}/bedikot`, data);
+  return response.data;
+};
+
+/**
+ * Get calendar events (pre-formatted from server)
+ */
+export const getCalendarEvents = async (params?: {
+  limit?: number;
+  skip?: number;
+  status?: string;
+}): Promise<{ count: number; events: any[] }> => {
+  const response = await axiosInstance.get('/cycles/calendar-events', { params });
+  return response.data;
+};
+
 export default {
   getCycles,
   createCycle,
@@ -101,4 +135,6 @@ export default {
   deleteCycle,
   getActiveCycle,
   getUpcomingVestOnot,
+  addBedika,
+  getCalendarEvents,
 };

@@ -7,6 +7,7 @@ const { logDatabase } = require('../utils/logHelpers');
 
 /**
  * Create a new cycle (timezone-aware)
+ * Service orchestrates: fetches dependencies, calls model methods, constructs complete object
  * @param {String} userId - User ID
  * @param {Object} cycleData - { dateString, timeString, onah?, notes?, privateNotes? }
  * @returns {Object} - Created cycle
@@ -14,26 +15,94 @@ const { logDatabase } = require('../utils/logHelpers');
 const createCycle = async (userId, cycleData) => {
   const { dateString, timeString, onah, notes, privateNotes } = cycleData;
 
-  // Get user's timezone
+  // STEP 1: Fetch user and validate location
   const user = await Users.findById(userId).select('location');
-  if (!user || !user.location || !user.location.timezone) {
-    throwError(400, 'User timezone not set. Please update your profile location.');
+  if (!user) {
+    throwError(404, 'User not found');
+  }
+
+  if (!user.location || !user.location.timezone) {
+    throwError(400, 'Location not set. Please update your profile with city and timezone in Settings.');
   }
 
   const timezone = user.location.timezone;
 
-  // Convert user's local time to UTC
+  // Check if user has complete location data (timezone, lat, lng)
+  const hasCompleteLocation = user.location.lat != null && user.location.lng != null;
+
+  if (!hasCompleteLocation) {
+    console.warn(`User ${userId} missing lat/lng - vest onot calculations will be skipped`);
+  }
+
+  // STEP 2: Convert user's local time to UTC
   const niddahStartDate = createDateInTimezone(dateString, timeString, timezone);
 
-  // Create cycle (pre-save hook will calculate Hebrew dates and vest onot)
+  // STEP 3: Determine niddah start info (onah, sunset, timezone)
+  let niddahStartInfo;
+  if (hasCompleteLocation) {
+    const location = {
+      lat: user.location.lat,
+      lng: user.location.lng,
+      timezone: user.location.timezone
+    };
+    niddahStartInfo = Cycles.determineNiddahStartInfo(niddahStartDate, location);
+  } else {
+    // Safe defaults when location incomplete
+    niddahStartInfo = {
+      calculatedInTimezone: timezone,
+      niddahStartSunset: null,
+      niddahStartOnah: 'day' // Safe default
+    };
+  }
+
+  // STEP 4: Fetch previous cycles for calculations
+  let previousCycles = [];
+  if (hasCompleteLocation) {
+    previousCycles = await Cycles.find({
+      userId: userId,
+      status: 'completed',
+      niddahStartDate: { $lt: niddahStartDate }
+    })
+      .sort({ niddahStartDate: -1 })
+      .limit(3)
+      .select('niddahStartDate cycleLength');
+  }
+
+  // STEP 5: Calculate cycle metrics
+  const lastCycle = previousCycles.length > 0 ? previousCycles[0] : null;
+  const metrics = Cycles.calculateCycleMetrics(
+    niddahStartDate,
+    null, // mikvahDate not set yet
+    lastCycle
+  );
+
+  // STEP 6: Create cycle object with ALL required fields
   const cycle = new Cycles({
     userId,
     niddahStartDate,
     status: 'niddah',
     notes: notes || '',
-    privateNotes: privateNotes || ''
+    privateNotes: privateNotes || '',
+    // Required fields that were previously set in pre-save hook
+    calculatedInTimezone: niddahStartInfo.calculatedInTimezone,
+    niddahStartOnah: niddahStartInfo.niddahStartOnah,
+    niddahStartSunset: niddahStartInfo.niddahStartSunset,
+    // Optional metrics
+    haflagah: metrics.haflagah,
+    cycleLength: metrics.cycleLength
   });
 
+  // STEP 7: Calculate vest onot (if location complete)
+  if (hasCompleteLocation) {
+    const location = {
+      lat: user.location.lat,
+      lng: user.location.lng,
+      timezone: user.location.timezone
+    };
+    cycle.calculateVestOnot(previousCycles, location);
+  }
+
+  // STEP 8: Save (validation only, no business logic in hook)
   await cycle.save();
 
   logDatabase('create', 'Cycles', { userId, cycleId: cycle._id });
@@ -89,6 +158,7 @@ const getCycle = async (userId, cycleId) => {
 
 /**
  * Update a cycle (timezone-aware for date updates)
+ * Re-calculates vest onot when mikvahDate is updated
  * @param {String} userId - User ID
  * @param {String} cycleId - Cycle ID
  * @param {Object} updateData - Update data
@@ -111,6 +181,10 @@ const updateCycle = async (userId, cycleId, updateData) => {
     throwError(400, 'User timezone not set. Please update your profile location.');
   }
   const timezone = user.location.timezone;
+  const hasCompleteLocation = user.location.lat != null && user.location.lng != null;
+
+  // Track if we need to recalculate vest onot
+  let needsVestRecalculation = false;
 
   // Update dates (convert from user's timezone to UTC)
   if (updateData.hefsekTaharaDate) {
@@ -135,6 +209,15 @@ const updateCycle = async (userId, cycleId, updateData) => {
       updateData.mikvahDate.timeString,
       timezone
     );
+    needsVestRecalculation = true;
+
+    // Recalculate cycle length
+    const metrics = Cycles.calculateCycleMetrics(
+      cycle.niddahStartDate,
+      cycle.mikvahDate,
+      null
+    );
+    cycle.cycleLength = metrics.cycleLength;
   }
 
   // Update status
@@ -149,6 +232,28 @@ const updateCycle = async (userId, cycleId, updateData) => {
 
   if (updateData.privateNotes !== undefined) {
     cycle.privateNotes = updateData.privateNotes;
+  }
+
+  // Recalculate vest onot if needed
+  if (needsVestRecalculation && hasCompleteLocation) {
+    const location = {
+      lat: user.location.lat,
+      lng: user.location.lng,
+      timezone: user.location.timezone
+    };
+
+    // Fetch previous cycles again
+    const previousCycles = await Cycles.find({
+      userId: userId,
+      _id: { $ne: cycle._id },
+      status: 'completed',
+      niddahStartDate: { $lt: cycle.niddahStartDate }
+    })
+      .sort({ niddahStartDate: -1 })
+      .limit(3)
+      .select('niddahStartDate cycleLength');
+
+    cycle.calculateVestOnot(previousCycles, location);
   }
 
   await cycle.save();
@@ -296,6 +401,111 @@ const getUpcomingVestOnot = async (userId, daysAhead = 30) => {
   return upcomingVestOnot;
 };
 
+/**
+ * Get calendar events for user's cycles
+ * Converts cycles into pre-formatted calendar events
+ * @param {String} userId - User ID
+ * @param {Object} options - { limit, skip, status }
+ * @returns {Array} - Array of calendar events
+ */
+const getCalendarEvents = async (userId, options = {}) => {
+  // Reuse getUserCycles to get cycles with same filtering
+  const cycles = await getUserCycles(userId, options);
+
+  const events = [];
+
+  cycles.forEach((cycle) => {
+    // 1. Period Start Event (Niddah Start)
+    if (cycle.niddahStartDate) {
+      events.push({
+        id: `${cycle._id}-niddah`,
+        title: `Period Start (${cycle.niddahStartOnah})`,
+        start: cycle.niddahStartDate,
+        className: `niddah-start ${cycle.niddahStartOnah}`,
+        groupID: cycle._id,
+      });
+    }
+
+    // 2. Hefsek Tahara Event
+    if (cycle.hefsekTaharaDate) {
+      events.push({
+        id: `${cycle._id}-hefsek`,
+        title: 'Hefsek Tahara',
+        start: cycle.hefsekTaharaDate,
+        className: 'hefsek-tahara',
+        groupID: cycle._id,
+      });
+    }
+
+    // 3. Shiva Nekiyim Start Event
+    if (cycle.shivaNekiyimStartDate) {
+      events.push({
+        id: `${cycle._id}-shiva`,
+        title: 'Shiva Nekiyim Start',
+        start: cycle.shivaNekiyimStartDate,
+        className: 'shiva-nekiyim',
+        groupID: cycle._id,
+      });
+    }
+
+    // 4. Mikvah Date Event
+    if (cycle.mikvahDate) {
+      events.push({
+        id: `${cycle._id}-mikvah`,
+        title: 'Mikvah',
+        start: cycle.mikvahDate,
+        className: 'mikvah',
+        groupID: cycle._id,
+      });
+    }
+
+    // 5. Vest Onot Events
+    if (cycle.vestOnot) {
+      if (cycle.vestOnot.yomHachodesh?.date) {
+        events.push({
+          id: `${cycle._id}-yom`,
+          title: `Yom Hachodesh (${cycle.vestOnot.yomHachodesh.onah})`,
+          start: cycle.vestOnot.yomHachodesh.date,
+          className: `vest-onah yom-hachodesh ${cycle.vestOnot.yomHachodesh.onah}`,
+          groupID: cycle._id,
+        });
+      }
+
+      if (cycle.vestOnot.ohrHachodesh?.date) {
+        events.push({
+          id: `${cycle._id}-ohr`,
+          title: `Ohr Hachodesh (${cycle.vestOnot.ohrHachodesh.onah})`,
+          start: cycle.vestOnot.ohrHachodesh.date,
+          className: `vest-onah ohr-hachodesh ${cycle.vestOnot.ohrHachodesh.onah}`,
+          groupID: cycle._id,
+        });
+      }
+
+      if (cycle.vestOnot.haflagah?.date) {
+        events.push({
+          id: `${cycle._id}-haflagah`,
+          title: `Haflagah (${cycle.vestOnot.haflagah.onah})`,
+          start: cycle.vestOnot.haflagah.date,
+          className: `vest-onah haflagah ${cycle.vestOnot.haflagah.onah}`,
+          groupID: cycle._id,
+        });
+      }
+
+      if (cycle.vestOnot.onahBeinonit?.date) {
+        events.push({
+          id: `${cycle._id}-beinonit`,
+          title: `Onah Beinonit (${cycle.vestOnot.onahBeinonit.onah})`,
+          start: cycle.vestOnot.onahBeinonit.date,
+          className: `vest-onah onah-beinonit ${cycle.vestOnot.onahBeinonit.onah}`,
+          groupID: cycle._id,
+        });
+      }
+    }
+  });
+
+  return events;
+};
+
 module.exports = {
   createCycle,
   getUserCycles,
@@ -304,5 +514,6 @@ module.exports = {
   deleteCycle,
   addBedika,
   getActiveCycle,
-  getUpcomingVestOnot
+  getUpcomingVestOnot,
+  getCalendarEvents
 };

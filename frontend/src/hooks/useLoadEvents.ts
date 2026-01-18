@@ -1,41 +1,36 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useCycleStore } from "../store/cycleStore";
-import { getCycles } from "../services/cycleApi";
+import { getCycles, getCalendarEvents } from "../services/cycleApi";
 import { ICalendarEvent } from "../Types_Interfaces.ts";
 
 const useLoadEvents = () => {
     const refetchFlag = useCycleStore((state) => state.refetchFlag);
     const setCycles = useCycleStore((state) => state.setCycles);
+    const [events, setEvents] = useState<ICalendarEvent[]>([]);
 
+    // Fetch both cycles and events from API when refetchFlag changes
     useEffect(() => {
         const fetchEvents = async () => {
             try {
-                const response = await getCycles();
-                // Extract just the cycles array from the response
-                setCycles(response.cycles);
+                // Fetch pre-formatted calendar events from server
+                const eventsResponse = await getCalendarEvents();
+                setEvents(eventsResponse.events);
 
-                // TODO: Replace with actual cycle data mapping
-                // For now, returning empty array until we update the data structure
-                console.log('Cycles fetched:', response.cycles);
+                // Still fetch cycles for store (needed by forms and other components)
+                const cyclesResponse = await getCycles();
+                setCycles(cyclesResponse.cycles);
             } catch (error) {
-                console.error("Error fetching cycles:", error);
-                return;
+                console.error("Error fetching events:", error);
+                setEvents([]);
+                setCycles([]);
             }
-
-            // TODO: Map cycle data to calendar events
-            // The new backend uses a different data structure:
-            // - Cycles have niddahStartDate, hefsekTaharaDate, mikvahDate
-            // - Vest onot are nested in vestOnot object
-            // - Need to create ICalendarEvent objects from this structure
         }
 
         fetchEvents();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [refetchFlag]); // Only re-run when refetchFlag changes
+    }, [refetchFlag]);
 
-    // TODO: Return mapped calendar events from cycles
-    // For now returning empty array to prevent errors
-    return [] as ICalendarEvent[];
+    return events;
 }
 
 export default useLoadEvents

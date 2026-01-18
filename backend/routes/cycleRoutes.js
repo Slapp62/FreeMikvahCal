@@ -13,6 +13,9 @@ router.use(authenticateUser);
 // GET /api/cycles/active - Get active cycle (must be before /:id)
 router.get('/active', cycleController.getActiveCycle);
 
+// GET /api/cycles/calendar-events - Get calendar events (must be before /:id)
+router.get('/calendar-events', cycleController.getCalendarEvents);
+
 // GET /api/cycles/vest-onot/upcoming - Get upcoming vest onot
 router.get('/vest-onot/upcoming', cycleController.getUpcomingVestOnot);
 
