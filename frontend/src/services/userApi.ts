@@ -1,6 +1,12 @@
 import axiosInstance from '../utils/axiosConfig';
 import { User } from '../store/userStore';
 
+export interface HalachicPreferences {
+  ohrZaruah?: boolean;
+  kreisiUpleisi?: boolean;
+  chasamSofer?: boolean;
+}
+
 export interface UpdateUserData {
   firstName?: string;
   lastName?: string;
@@ -13,6 +19,7 @@ export interface UpdateUserData {
     lng?: number;
   };
   ethnicity?: 'ashkenazi' | 'sephardi' | 'teimani' | 'other' | null;
+  halachicPreferences?: HalachicPreferences;
 }
 
 export interface Preferences {

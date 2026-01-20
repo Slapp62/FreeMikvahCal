@@ -16,6 +16,7 @@ const EditEventModal = ({clicked, close, selectedEvent} : ModalProps) => {
 
     const deleteCycleFromStore = useCycleStore((state) => state.deleteCycle);
     const updateCycleInStore = useCycleStore((state) => state.updateCycle);
+    const triggerRefetch = useCycleStore((state) => state.triggerRefetch);
     const cycles = useCycleStore((state) => state.cycles);
 
     // Extract cycle ID from event ID (format: {cycleId}-{eventType})
@@ -42,6 +43,7 @@ const EditEventModal = ({clicked, close, selectedEvent} : ModalProps) => {
                 color: 'green',
             });
 
+            triggerRefetch();
             close();
         } catch (error: any) {
             notifications.show({
@@ -68,6 +70,7 @@ const EditEventModal = ({clicked, close, selectedEvent} : ModalProps) => {
                 color: 'green',
             });
 
+            triggerRefetch();
             close();
         } catch (error: any) {
             notifications.show({

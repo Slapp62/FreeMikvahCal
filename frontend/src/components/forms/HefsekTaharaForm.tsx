@@ -20,6 +20,7 @@ type Props = {
 
 const HefsekTaharaForm = ({ close, dateClicked }: Props) => {
     const updateCycleInStore = useCycleStore((state) => state.updateCycle);
+    const triggerRefetch = useCycleStore((state) => state.triggerRefetch);
     const [activeCycles, setActiveCycles] = useState<Cycle[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -72,6 +73,7 @@ const HefsekTaharaForm = ({ close, dateClicked }: Props) => {
                     dateString: dateClicked,
                     timeString: timeValue,
                 },
+                status: 'shiva_nekiyim',
                 notes: formData.notes,
             });
 
@@ -86,6 +88,7 @@ const HefsekTaharaForm = ({ close, dateClicked }: Props) => {
                 color: 'green',
             });
 
+            triggerRefetch();
             close();
         } catch (error: any) {
             notifications.show({
@@ -150,7 +153,6 @@ const HefsekTaharaForm = ({ close, dateClicked }: Props) => {
 
                 <Button
                     type='submit'
-                    color='pink'
                     fullWidth
                 >
                     Add Hefsek Tahara

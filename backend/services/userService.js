@@ -35,12 +35,12 @@ const updateUser = async (userId, updateData) => {
     'dateOfBirth',
     'location',
     'ethnicity',
-    'specialOnahs'
+    'halachicPreferences'
   ];
 
   allowedFields.forEach(field => {
     if (updateData[field] !== undefined) {
-      if (field === 'location' || field === 'specialOnahs') {
+      if (field === 'location' || field === 'halachicPreferences') {
         // Merge nested objects
         user[field] = { ...user[field], ...updateData[field] };
       } else {

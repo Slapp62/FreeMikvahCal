@@ -1,8 +1,11 @@
 const connectLocally = require('./mongoDB/connectLocally');
 const connectAtlas = require('./mongoDB/connectAtlas');
+const logger = require('../config/logger');
+const { logError } = require('../utils/logHelpers');
 
 const connectDB = async () => {
   const env = process.env.NODE_ENV || 'development';
+  const startTime = Date.now();
 
   try {
     if (env === 'production') {
@@ -10,9 +13,19 @@ const connectDB = async () => {
     } else {
       await connectLocally();
     }
-    console.log(`MongoDB connected successfully (${env})`);
+
+    const duration = Date.now() - startTime;
+    logger.info('MongoDB connected successfully', {
+      type: 'database',
+      environment: env,
+      connectionType: env === 'production' ? 'atlas' : 'local',
+      duration
+    });
   } catch (error) {
-    console.error('MongoDB connection error:', error);
+    logError(error, {
+      operation: 'database_connection',
+      environment: env
+    });
     process.exit(1);
   }
 };

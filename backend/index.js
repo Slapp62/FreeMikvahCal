@@ -4,13 +4,15 @@ const app = require('./app');
 const { connectDB } = require('./database/dbService');
 const logger = require('./config/logger');
 const { scheduleCycleCleanup } = require('./cronJobs/cycleCleanup');
-const { scheduleNotificationProcessing } = require('./cronJobs/notificationScheduler');
 
 // Validate environment variables before starting
 try {
   validateEnv();
 } catch (error) {
-  console.error('Environment validation failed:', error.message);
+  logger.error('Environment validation failed', {
+    type: 'error',
+    error: error.message
+  });
   process.exit(1);
 }
 
@@ -21,25 +23,32 @@ connectDB()
   .then(() => {
     // Start server after DB connection
     app.listen(PORT, () => {
-      logger.info(`Server running on port ${PORT}`);
-      console.log(`Server running on port ${PORT}`);
-      console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+      logger.info('Server started successfully', {
+        port: PORT,
+        environment: process.env.NODE_ENV || 'development',
+        nodeVersion: process.version
+      });
 
       // Start cron jobs
       scheduleCycleCleanup();
-      scheduleNotificationProcessing();
+      logger.info('Cron jobs initialized', { jobs: ['cycleCleanup'] });
     });
   })
   .catch((error) => {
-    logger.error('Failed to start server', { error: error.message });
-    console.error('Failed to start server:', error);
+    logger.error('Failed to start server', {
+      type: 'error',
+      error: error.message,
+      stack: error.stack
+    });
     process.exit(1);
   });
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
-  logger.error('Unhandled Promise Rejection', { error: err.message });
-  console.error('UNHANDLED REJECTION! Shutting down...');
-  console.error(err);
+  logger.error('Unhandled Promise Rejection', {
+    type: 'error',
+    error: err.message,
+    stack: err.stack
+  });
   process.exit(1);
 });

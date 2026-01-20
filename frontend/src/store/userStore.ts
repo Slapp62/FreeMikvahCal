@@ -13,6 +13,11 @@ export interface User {
     lng?: number;
   };
   ethnicity?: 'ashkenazi' | 'sephardi' | 'teimani' | 'other' | null;
+  halachicPreferences?: {
+    ohrZaruah: boolean;
+    kreisiUpleisi: boolean;
+    chasamSofer: boolean;
+  };
   profileComplete: boolean;
   onboardingCompleted: boolean;
   createdAt: string;

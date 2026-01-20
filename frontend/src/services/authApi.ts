@@ -9,6 +9,7 @@ export interface RegisterData {
   location: {
     city?: string;
     timezone: string;
+    geonameId?: number;
     lat?: number;
     lng?: number;
   };
@@ -16,6 +17,11 @@ export interface RegisterData {
     dataProcessing: {
       granted: boolean;
     };
+  };
+  halachicPreferences: {
+    ohrZaruah: boolean;
+    kreisiUpleisi: boolean;
+    chasamSofer: boolean;
   };
 }
 

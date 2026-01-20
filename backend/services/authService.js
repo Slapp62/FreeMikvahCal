@@ -12,7 +12,7 @@ const { logAuth } = require('../utils/logHelpers');
  * @returns {Object} - Created user (normalized)
  */
 const register = async (userData, metadata = {}) => {
-  const { email, password, firstName, lastName, location, consents } = userData;
+  const { email, password, firstName, lastName, location, consents, ethnicity, halachicPreferences } = userData;
 
   // Check if user already exists
   const existingUser = await Users.findOne({ email: email.toLowerCase() });
@@ -38,6 +38,8 @@ const register = async (userData, metadata = {}) => {
     lastName,
     location,
     consents: consentData,
+    ethnicity,
+    halachicPreferences,
     emailVerified: false,
     profileComplete: false,
     onboardingCompleted: false

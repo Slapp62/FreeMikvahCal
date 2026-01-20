@@ -19,9 +19,10 @@ const updateUserSchema = Joi.object({
 
   ethnicity: Joi.string().valid('ashkenazi', 'sephardi', 'teimani', 'other', null),
 
-  specialOnahs: Joi.object({
-    onatOhrZarua: Joi.boolean(),
-    beinonitOn31: Joi.boolean()
+  halachicPreferences: Joi.object({
+    ohrZaruah: Joi.boolean(),
+    kreisiUpleisi: Joi.boolean(),
+    chasamSofer: Joi.boolean()
   })
 }).min(1); // At least one field must be updated
 

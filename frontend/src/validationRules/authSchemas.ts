@@ -58,9 +58,10 @@ export const registerSchema = Joi.object({
   preferences: Joi.object({
     reminders: Joi.boolean().optional(),
   }).optional(),
-  special_onahs: Joi.object({
-    beinonit_30_31: Joi.boolean().optional(),
-    onat_ohr_zarua: Joi.boolean().optional(),
+  halachicPreferences: Joi.object({
+    ohrZaruah: Joi.boolean().optional(),
+    kreisiUpleisi: Joi.boolean().optional(),
+    chasamSofer: Joi.boolean().optional(),
   }).optional(),
 }).unknown(true);
 

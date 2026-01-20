@@ -18,6 +18,7 @@ type Props = {
 
 const PeriodStartForm = ({ close, dateClicked }: Props) => {
     const addCycle = useCycleStore((state) => state.addCycle);
+    const triggerRefetch = useCycleStore((state) => state.triggerRefetch);
     const { register, handleSubmit } = useForm<PeriodStartValues>({
         defaultValues: {
             time: '12:00',
@@ -42,6 +43,7 @@ const PeriodStartForm = ({ close, dateClicked }: Props) => {
                 color: 'green',
             });
 
+            triggerRefetch();
             close();
         } catch (error: any) {
             const errorMessage = error.response?.data?.message || 'Failed to create event';
@@ -87,7 +89,6 @@ const PeriodStartForm = ({ close, dateClicked }: Props) => {
 
                 <Button
                     type='submit'
-                    color='pink'
                     fullWidth
                 >
                     Add Period Start

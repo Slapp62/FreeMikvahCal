@@ -61,7 +61,6 @@ const OtherEventForm = ({ close, dateClicked }: Props) => {
 
                 <Button
                     type='submit'
-                    color='pink'
                     fullWidth
                 >
                     Save Event

@@ -1,7 +1,7 @@
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin, { DateClickArg } from '@fullcalendar/interaction';
-import { EventClickArg } from '@fullcalendar/core';
+import { EventClickArg, DayCellContentArg } from '@fullcalendar/core';
 import { Box, Group, Stack, Title, Text } from '@mantine/core';
 import './calendar.css';
 import CalendarEventModal from './newCalEvent.modal.tsx';
@@ -10,6 +10,7 @@ import useLoadEvents from '../hooks/useLoadEvents.ts';
 import EditEventModal from './editCalEvent.modal.tsx';
 import { EventImpl } from '@fullcalendar/core/internal';
 import { useMediaQuery } from '@mantine/hooks';
+import { getHebrewDateString } from '../utils/hebrewDates.ts';
 
 export default function CalendarPage() {
     const isMobile = useMediaQuery('(max-width: 700px)');
@@ -43,6 +44,16 @@ export default function CalendarPage() {
        setEventModalOpened(true);
     };
 
+    const renderDayCell = (arg: DayCellContentArg) => {
+        const hebrewDate = getHebrewDateString(arg.date, 'short');
+        return (
+            <div className="custom-day-cell">
+                <div className="gregorian-date">{arg.dayNumberText}</div>
+                <div className="hebrew-date">{hebrewDate}</div>
+            </div>
+        );
+    };
+
   return (
     <Stack className="calendar" w={isMobile ? '100%' : '80%'} mx='auto' align='center' justify='center'>
         <Title order={1} mt={10} ta='center'>Mikvah Calendar</Title>
@@ -56,16 +67,25 @@ export default function CalendarPage() {
             eventClick={handleEventClick}
             selectable={true}
             height='auto'
-            eventDisplay='auto'
+            eventDisplay='block'
             timeZone='local'
             displayEventTime={false}
+            dayCellContent={renderDayCell}
         />
-        <Group bd={'2px solid rgb(207, 207, 207)'} px={15} py={5}>
-            <Box>🩸 New Period </Box>
-            <Box>✅ New Hefsek </Box>
-            <Box>☀️ Onah is during the day </Box>
-            <Box>🌙 Onah is at night</Box>
-        </Group>
+        <Stack gap="xs" mt={20} mb={10}>
+            <Text fw={600} size="sm" ta="center">Event Types</Text>
+            <Group bd={'2px solid rgb(207, 207, 207)'} px={15} py={8} gap={isMobile ? 8 : 20} justify="center" wrap="wrap">
+                <Box>🩸 Period Start</Box>
+                <Box>✅ Hefsek Tahara</Box>
+                <Box>7️⃣ Shiva Nekiyim</Box>
+                <Box>🛁 Mikvah</Box>
+                <Box>📅 Veset HaChodesh</Box>
+                <Box>📏 Haflagah</Box>
+                <Box>🔄 Onah Beinonit</Box>
+                <Box>☀️ Day Onah</Box>
+                <Box>🌙 Night Onah</Box>
+            </Group>
+        </Stack>
         <CalendarEventModal
             clicked={newEventModalOpened}
             close={closeNewEventModal}

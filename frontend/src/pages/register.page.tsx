@@ -18,7 +18,6 @@ import {
   Title,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { register as registerUser } from '../services/authApi';
 import { useAuth } from '../hooks/useAuth';
 import { searchLocations, Location } from '../services/locationApi';
 
@@ -34,9 +33,10 @@ type RegisterFormValues = {
   preferences: {
     reminders: boolean;
   };
-  special_onahs: {
-    beinonit_30_31: boolean;
-    onat_ohr_zarua: boolean;
+  halachicPreferences: {
+    ohrZaruah: boolean;
+    kreisiUpleisi: boolean;
+    chasamSofer: boolean;
   };
 };
 
@@ -59,9 +59,10 @@ const RegisterPage = () => {
       preferences: {
         reminders: false,
       },
-      special_onahs: {
-        beinonit_30_31: false,
-        onat_ohr_zarua: false,
+      halachicPreferences: {
+        ohrZaruah: false,
+        kreisiUpleisi: false,
+        chasamSofer: false,
       },
     },
   });
@@ -113,6 +114,11 @@ const RegisterPage = () => {
         dataProcessing: {
           granted: formData.dataProcessingConsent,
         },
+      },
+      halachicPreferences: {
+        ohrZaruah: formData.halachicPreferences.ohrZaruah,
+        kreisiUpleisi: formData.halachicPreferences.kreisiUpleisi,
+        chasamSofer: formData.halachicPreferences.chasamSofer,
       },
     });
   };
@@ -252,10 +258,11 @@ const RegisterPage = () => {
             />
 
             <Group grow align="flex-start">
-              <Fieldset legend="Special Onahs">
+              <Fieldset legend="Halachic Preferences">
                 <Stack gap="xs">
-                  <Checkbox label="Onat Ohr Zarua" {...register('special_onahs.onat_ohr_zarua')} />
-                  <Checkbox label="Onah Beinonit on day 31" {...register('special_onahs.beinonit_30_31')} />
+                  <Checkbox label="Onat Ohr Zarua" description='Additional 12 hours separation preceding primary onah.'  {...register('halachicPreferences.ohrZaruah')} />
+                  <Checkbox label="Onat Chasam Sofer" description='Additional Onah Beinonit on day 31.' {...register('halachicPreferences.chasamSofer')} />
+                  <Checkbox label="Onat Kreisi U'Pleisi" description='Onah Beinonit on day 30 of 24 hours' {...register('halachicPreferences.kreisiUpleisi')} />
                 </Stack>
               </Fieldset>
 

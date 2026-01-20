@@ -13,6 +13,7 @@ const LoginPage = lazy(() => import('../pages/login.page').then(m => ({ default:
 const RegisterPage = lazy(() => import('../pages/register.page'));
 const PageNotFound = lazy(() => import('../pages/404.page'));
 const CalendarPage = lazy(() => import('../pages/calendar.page'));
+const EditUserSettings = lazy(() => import('../pages/editUserSettings.page'));
 
 export function AppRouter() {
   return (
@@ -57,6 +58,17 @@ export function AppRouter() {
             <Suspense fallback={<LoadingOverlay visible />}>
               <RouteGuard permission="user">
                 <CalendarPage />
+              </RouteGuard>
+            </Suspense>
+          }
+        />
+
+        <Route
+          path="settings"
+          element={
+            <Suspense fallback={<LoadingOverlay visible />}>
+              <RouteGuard permission="user">
+                <EditUserSettings />
               </RouteGuard>
             </Suspense>
           }

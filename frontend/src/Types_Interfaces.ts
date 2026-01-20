@@ -10,9 +10,10 @@ export interface IRegister {
         lng?: number;
         timezone?: string;
     };
-    special_onahs: {
-        onat_ohrZarua: boolean;
-        beinonit_on31: boolean;
+    halachicPreferences?: {
+        ohrZaruah?: boolean;
+        kreisiUpleisi?: boolean;
+        chasamSofer?: boolean;
     };
     preferences: {
         email_reminders: boolean;

@@ -12,10 +12,14 @@ export interface Cycle {
   cycleLength?: number;
   haflagah?: number;
   vestOnot?: {
-    yomHachodesh?: any;
-    ohrHachodesh?: any;
+    vesetHachodesh?: any;
     haflagah?: any;
     onahBeinonit?: any;
+  };
+  appliedChumras?: {
+    ohrZaruah: boolean;
+    kreisiUpleisi: boolean;
+    chasamSofer: boolean;
   };
   bedikot?: any[];
   notes?: string;

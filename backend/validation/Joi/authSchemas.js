@@ -65,7 +65,15 @@ const registerSchema = Joi.object({
       ipAddress: Joi.string(),
       userAgent: Joi.string()
     }).required()
-  }).required()
+  }).required(),
+
+  ethnicity: Joi.string().valid('ashkenazi', 'sephardi', 'teimani', 'other', null),
+  
+  halachicPreferences: Joi.object({
+    ohrZaruah: Joi.boolean().optional(),
+    kreisiUpleisi: Joi.boolean().optional(),
+    chasamSofer: Joi.boolean().optional(),
+  }).optional()
 });
 
 /**

@@ -50,9 +50,11 @@ const userSchema = new Schema({
     default: null
   },
 
-  specialOnahs: {
-    onatOhrZarua: { type: Boolean, default: false },
-    beinonitOn31: { type: Boolean, default: false },
+  // Halachic Stringencies (Chumras)
+  halachicPreferences: {
+    ohrZaruah: { type: Boolean, default: false },      // Separate on preceding onah for all vesetim
+    kreisiUpleisi: { type: Boolean, default: false },  // 24-hour onah beinonit (day 30)
+    chasamSofer: { type: Boolean, default: false },    // Also observe day 31
     _id: false
   },
 

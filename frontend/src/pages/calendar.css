@@ -1,90 +1,436 @@
+/* Google Material Design-inspired calendar with purple/pink theme */
+
 /* Customizing the entire calendar container */
 .calendar .fc {
-  background-color:rgb(163, 21, 102); /* Light gray background for the calendar */
-  border: none; /* Subtle border around the calendar */
-  border-radius: 0px; /* Slightly rounded corners */
+  background-color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-7));
+  border: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  border-radius: var(--mantine-radius-md);
+  box-shadow: var(--mantine-shadow-sm);
+  font-family: var(--mantine-font-family);
 }
 
 /* Customizing the header toolbar */
 .calendar .fc .fc-toolbar {
-  background-color: rgb(163, 21, 102); /* Google Blue for the toolbar background */
-  color: white; /* White text for toolbar elements */
-  padding: 10px 15px;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
-  border: none; 
+  background: linear-gradient(135deg, var(--mantine-color-pink-8) 0%, var(--mantine-color-pink-6) 100%);
+  color: white;
+  padding: 16px 20px;
+  border-top-left-radius: var(--mantine-radius-md);
+  border-top-right-radius: var(--mantine-radius-md);
+  border: none;
+  margin-bottom: 0;
 }
 
 /* Customizing the toolbar title (e.g., "June 2025") */
 .calendar .fc .fc-toolbar-title {
-  color: white; /* Ensure title is white */
-  font-size: 1.2em;
-  font-weight: 500;
+  color: white;
+  font-size: 1.5em;
+  font-weight: 600;
+  letter-spacing: 0.3px;
 }
 
-.calendar .fc .fc-col-header{
-    background-color:rgb(250, 122, 218); 
-    color: rgb(131, 10, 10);
+/* Column headers (day names) */
+.calendar .fc .fc-col-header {
+  background-color: light-dark(var(--mantine-color-pink-0), var(--mantine-color-dark-6));
+  color: light-dark(var(--mantine-color-pink-8), var(--mantine-color-pink-3));
+  border-bottom: 2px solid light-dark(var(--mantine-color-pink-1), var(--mantine-color-dark-5));
 }
+
+.calendar .fc .fc-col-header-cell {
+  padding: 12px 4px;
+  font-weight: 600;
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-color: light-dark(var(--mantine-color-pink-1), var(--mantine-color-dark-5));
+}
+
 /* Customizing the toolbar buttons */
 .calendar .fc .fc-button {
-  background-color:rgb(172, 12, 12); /* Lighter blue for buttons */
+  background-color: rgba(255, 255, 255, 0.2);
   color: white;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 5px;
-  margin-left: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 6px 14px;
+  border-radius: 6px;
+  margin-left: 6px;
+  font-weight: 500;
+  transition: all 0.2s ease;
 }
 
 .calendar .fc .fc-button:hover {
-  background-color: #357ae8; /* Darker blue on hover */
+  background-color: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+.calendar .fc .fc-button:active,
+.calendar .fc .fc-button-active {
+  background-color: rgba(255, 255, 255, 0.4);
+  border-color: rgba(255, 255, 255, 0.6);
 }
 
 /* Customizing individual day cells */
 .calendar .fc .fc-daygrid-day {
-  background-color: rgba(209, 27, 130, 0); /* White background for all day cells */
-  border: 1px solid #f0f0f0; /* Light border between cells */
-  padding: 5px;
-  font-size: 0.8em;
-  color: white;
+  background-color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-7));
+  border: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-5));
+  padding: 4px;
+  transition: background-color 0.15s ease;
+  cursor: pointer;
+  min-height: 80px;
+}
+
+.calendar .fc .fc-daygrid-day:hover {
+  background-color: light-dark(var(--mantine-color-pink-0), var(--mantine-color-dark-6));
+}
+
+/* Custom day cell content with Hebrew dates */
+.custom-day-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 4px 6px;
+  height: 100%;
+}
+
+.gregorian-date {
+  font-size: 1em;
+  font-weight: 600;
+  color: light-dark(var(--mantine-color-dark-9), var(--mantine-color-gray-1));
+  line-height: 1.2;
+}
+
+.hebrew-date {
+  font-size: 0.7em;
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-3));
+  font-weight: 400;
+  margin-top: 2px;
+  line-height: 1.1;
 }
 
 /* Styling for the current day cell */
 .calendar .fc .fc-day-today {
-  background-color:rgb(67, 171, 11); /* Light yellow for today's date */
-  border: 2px solidrgb(59, 242, 255); /* Stronger yellow border for today */
+  background-color: light-dark(var(--mantine-color-pink-0), var(--mantine-color-dark-6)) !important;
+  border: 2px solid var(--mantine-color-pink-6);
+  box-shadow: inset 0 0 0 1px light-dark(rgba(233, 30, 140, 0.1), rgba(233, 30, 140, 0.3));
 }
 
-/* Styling for event blocks */
+.calendar .fc .fc-day-today .gregorian-date {
+  color: var(--mantine-color-pink-8);
+  font-weight: 700;
+}
+
+.calendar .fc .fc-day-today .hebrew-date {
+  color: light-dark(var(--mantine-color-pink-7), var(--mantine-color-pink-4));
+}
+
+/* Other month days */
+.calendar .fc .fc-day-other .gregorian-date {
+  color: light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-2));
+}
+
+.calendar .fc .fc-day-other .hebrew-date {
+  color: light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+}
+
+/* Styling for event blocks - Material Design style with left border */
 .calendar .fc-event {
-  border-color: #0097a7; /* Darker cyan border */
-  color: white; /* White text for events */
-  font-size: 1em;
-  border-radius: 4px;
-  margin-bottom: 2px;
-  text-wrap: wrap;
-  width: 100%;
+  background-color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-6));
+  border: none;
+  border-left: 4px solid;
+  color: light-dark(var(--mantine-color-dark-9), var(--mantine-color-gray-1));
+  font-size: 0.85em;
+  border-radius: var(--mantine-radius-sm);
+  margin: 2px 4px;
+  padding: 3px 6px;
+  box-shadow: var(--mantine-shadow-xs);
+  transition: all 150ms ease;
+  cursor: pointer;
+  white-space: normal;
+  align-items: flex-start;
 }
 
+/* Remove FullCalendar's default bullet/dot before events */
+.calendar .fc-daygrid-event-dot {
+  display: none;
+}
+
+/* Event color coding with left border - using theme colors */
 .calendar .fc-event.period-start {
-    background-color:rgb(219, 14, 14);
+  border-left-color: var(--mantine-color-pink-7);
+  background-color: light-dark(var(--mantine-color-pink-0), var(--mantine-color-dark-5));
+}
+
+.calendar .fc-event.period-start .fc-event-title {
+  color: light-dark(var(--mantine-color-pink-8), var(--mantine-color-pink-3));
 }
 
 .calendar .fc-event.hefsek {
-    background-color:rgb(37, 73, 216);
+  border-left-color: var(--mantine-color-purple-7);
+  background-color: light-dark(var(--mantine-color-purple-0), var(--mantine-color-dark-5));
+}
+
+.calendar .fc-event.hefsek .fc-event-title {
+  color: light-dark(var(--mantine-color-purple-8), var(--mantine-color-purple-3));
 }
 
 .calendar .fc-event.onah {
-    background-color:rgb(120, 30, 179);
+  border-left-color: var(--mantine-color-indigo-6);
+  background-color: light-dark(var(--mantine-color-indigo-0), var(--mantine-color-dark-5));
 }
 
-/* When an event is hovered or selected */
+.calendar .fc-event.onah .fc-event-title {
+  color: light-dark(var(--mantine-color-indigo-8), var(--mantine-color-indigo-3));
+}
+
+/* When an event is hovered */
 .calendar .fc-event:hover {
-    background-color:rgb(213, 105, 23);
+  box-shadow: var(--mantine-shadow-md);
+  transform: translateY(-1px);
+  z-index: 10;
+}
+
+.calendar .fc-event.period-start:hover {
+  background-color: light-dark(var(--mantine-color-pink-1), var(--mantine-color-dark-4));
+}
+
+.calendar .fc-event.hefsek:hover {
+  background-color: light-dark(var(--mantine-color-purple-1), var(--mantine-color-dark-4));
+}
+
+.calendar .fc-event.onah:hover {
+  background-color: light-dark(var(--mantine-color-indigo-1), var(--mantine-color-dark-4));
+}
+
+/* Cycle Event Styles */
+.calendar .fc-event.niddah-start {
+  border-left-color: var(--mantine-color-pink-7);
+  background-color: light-dark(var(--mantine-color-pink-0), var(--mantine-color-dark-5));
+}
+
+.calendar .fc-event.niddah-start .fc-event-title {
+  color: light-dark(var(--mantine-color-pink-8), var(--mantine-color-pink-3));
+}
+
+.calendar .fc-event.niddah-start:hover {
+  background-color: light-dark(var(--mantine-color-pink-1), var(--mantine-color-dark-4));
+}
+
+.calendar .fc-event.hefsek-tahara {
+  border-left-color: var(--mantine-color-purple-7);
+  background-color: light-dark(var(--mantine-color-purple-0), var(--mantine-color-dark-5));
+}
+
+.calendar .fc-event.hefsek-tahara .fc-event-title {
+  color: light-dark(var(--mantine-color-purple-8), var(--mantine-color-purple-3));
+}
+
+.calendar .fc-event.hefsek-tahara:hover {
+  background-color: light-dark(var(--mantine-color-purple-1), var(--mantine-color-dark-4));
+}
+
+.calendar .fc-event.shiva-nekiyim {
+  border-left-color: var(--mantine-color-cyan-7);
+  background-color: light-dark(var(--mantine-color-cyan-0), var(--mantine-color-dark-5));
+}
+
+.calendar .fc-event.shiva-nekiyim .fc-event-title {
+  color: light-dark(var(--mantine-color-cyan-8), var(--mantine-color-cyan-3));
+}
+
+.calendar .fc-event.shiva-nekiyim:hover {
+  background-color: light-dark(var(--mantine-color-cyan-1), var(--mantine-color-dark-4));
+}
+
+.calendar .fc-event.mikvah {
+  border-left-color: var(--mantine-color-blue-7);
+  background-color: light-dark(var(--mantine-color-blue-0), var(--mantine-color-dark-5));
+}
+
+.calendar .fc-event.mikvah .fc-event-title {
+  color: light-dark(var(--mantine-color-blue-8), var(--mantine-color-blue-3));
+}
+
+.calendar .fc-event.mikvah:hover {
+  background-color: light-dark(var(--mantine-color-blue-1), var(--mantine-color-dark-4));
+}
+
+/* Vest Onot Event Styles */
+.calendar .fc-event.vest-onah {
+  font-weight: 500;
+}
+
+.calendar .fc-event.veset-hachodesh {
+  border-left-color: var(--mantine-color-grape-7);
+  background-color: light-dark(var(--mantine-color-grape-0), var(--mantine-color-dark-5));
+}
+
+.calendar .fc-event.veset-hachodesh .fc-event-title {
+  color: light-dark(var(--mantine-color-grape-8), var(--mantine-color-grape-3));
+}
+
+.calendar .fc-event.veset-hachodesh:hover {
+  background-color: light-dark(var(--mantine-color-grape-1), var(--mantine-color-dark-4));
+}
+
+.calendar .fc-event.haflagah {
+  border-left-color: var(--mantine-color-violet-7);
+  background-color: light-dark(var(--mantine-color-violet-0), var(--mantine-color-dark-5));
+}
+
+.calendar .fc-event.haflagah .fc-event-title {
+  color: light-dark(var(--mantine-color-violet-8), var(--mantine-color-violet-3));
+}
+
+.calendar .fc-event.haflagah:hover {
+  background-color: light-dark(var(--mantine-color-violet-1), var(--mantine-color-dark-4));
+}
+
+.calendar .fc-event.onah-beinonit {
+  border-left-color: var(--mantine-color-orange-7);
+  background-color: light-dark(var(--mantine-color-orange-0), var(--mantine-color-dark-5));
+}
+
+.calendar .fc-event.onah-beinonit .fc-event-title {
+  color: light-dark(var(--mantine-color-orange-8), var(--mantine-color-orange-3));
+}
+
+.calendar .fc-event.onah-beinonit:hover {
+  background-color: light-dark(var(--mantine-color-orange-1), var(--mantine-color-dark-4));
+}
+
+.calendar .fc-event.onah-beinonit-kreisi {
+  border-left-color: var(--mantine-color-orange-6);
+  background-color: light-dark(var(--mantine-color-orange-1), var(--mantine-color-dark-5));
+  border-left-width: 3px;
+  border-left-style: dashed;
+}
+
+.calendar .fc-event.onah-beinonit-kreisi .fc-event-title {
+  color: light-dark(var(--mantine-color-orange-8), var(--mantine-color-orange-3));
+}
+
+.calendar .fc-event.onah-beinonit-kreisi:hover {
+  background-color: light-dark(var(--mantine-color-orange-2), var(--mantine-color-dark-4));
+}
+
+.calendar .fc-event.onah-beinonit-sofer {
+  border-left-color: var(--mantine-color-orange-8);
+  background-color: light-dark(var(--mantine-color-orange-1), var(--mantine-color-dark-5));
+  border-left-width: 3px;
+  border-left-style: dotted;
+}
+
+.calendar .fc-event.onah-beinonit-sofer .fc-event-title {
+  color: light-dark(var(--mantine-color-orange-9), var(--mantine-color-orange-2));
+}
+
+.calendar .fc-event.onah-beinonit-sofer:hover {
+  background-color: light-dark(var(--mantine-color-orange-2), var(--mantine-color-dark-4));
+}
+
+/* Ohr Zaruah Stringency Events - Distinct styling with pattern */
+.calendar .fc-event.ohr-zaruah {
+  border-left-color: var(--mantine-color-teal-7);
+  background-color: light-dark(var(--mantine-color-teal-0), var(--mantine-color-dark-5));
+  border-left-width: 3px;
+  border-left-style: double;
+}
+
+.calendar .fc-event.ohr-zaruah .fc-event-title {
+  color: light-dark(var(--mantine-color-teal-8), var(--mantine-color-teal-3));
+  font-style: italic;
+}
+
+.calendar .fc-event.ohr-zaruah:hover {
+  background-color: light-dark(var(--mantine-color-teal-1), var(--mantine-color-dark-4));
 }
 
 /* Customize the "more" link for hidden events */
 .calendar .fc-daygrid-more-link {
-  color: #007bff; /* Blue text for the "more" link */
-  font-weight: bold;
+  color: var(--mantine-color-pink-8);
+  font-weight: 600;
+  font-size: 0.8em;
+  padding: 2px 4px;
+  border-radius: var(--mantine-radius-xs);
+  transition: background-color 150ms ease;
+}
+
+.calendar .fc-daygrid-more-link:hover {
+  background-color: light-dark(var(--mantine-color-pink-0), var(--mantine-color-dark-5));
+  text-decoration: none;
+}
+
+/* Day number alignment */
+.calendar .fc-daygrid-day-top {
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+/* Event content styling */
+.calendar .fc-event-main {
+  padding: 0;
+}
+
+.calendar .fc-event-title {
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  line-height: 1.3;
+  
+  /* Add these to allow wrapping */
+  white-space: normal;      
+  overflow: visible;        
+  text-overflow: clip;      
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 700px) {
+  .calendar .fc .fc-toolbar {
+    padding: 12px 10px;
+  }
+
+  .calendar .fc .fc-toolbar-title {
+    font-size: 1.2em;
+  }
+
+  .calendar .fc-button {
+    padding: 4px 8px;
+    font-size: 0.9em;
+  }
+
+  .gregorian-date {
+    font-size: 0.9em;
+  }
+
+  .hebrew-date {
+    font-size: 0.65em;
+  }
+
+  .calendar .fc-event {
+    font-size: 0.7rem; /* Slightly smaller for mobile */
+    padding: 1px 3px;
+    margin: 1px;
+    border-left-width: 3px; /* Slightly thinner border to save horizontal space */
+  }
+
+  .calendar .fc-event-title {
+    word-break: break-word; /* Prevents overflow if a single word is very long */
+    hyphens: auto;
+  }
+
+  .calendar .fc .fc-daygrid-day {
+    min-height: 70px; /* Increased slightly to handle wrapped text */
+  }
+}
+
+/* Smooth scrolling for overflow */
+.calendar .fc-scroller {
+  overflow-y: auto !important;
+}
+
+/* Weekend styling (optional - subtle difference) */
+.calendar .fc-day-sat .gregorian-date,
+.calendar .fc-day-sun .gregorian-date {
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-2));
 }

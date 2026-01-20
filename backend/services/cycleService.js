@@ -16,7 +16,7 @@ const createCycle = async (userId, cycleData) => {
   const { dateString, timeString, onah, notes, privateNotes } = cycleData;
 
   // STEP 1: Fetch user and validate location
-  const user = await Users.findById(userId).select('location');
+  const user = await Users.findById(userId).select('location halachicPreferences');
   if (!user) {
     throwError(404, 'User not found');
   }
@@ -26,6 +26,13 @@ const createCycle = async (userId, cycleData) => {
   }
 
   const timezone = user.location.timezone;
+
+  // Extract user's halachic preferences (default to false if not set)
+  const halachicPreferences = user.halachicPreferences || {
+    ohrZaruah: false,
+    kreisiUpleisi: false,
+    chasamSofer: false
+  };
 
   // Check if user has complete location data (timezone, lat, lng)
   const hasCompleteLocation = user.location.lat != null && user.location.lng != null;
@@ -89,7 +96,9 @@ const createCycle = async (userId, cycleData) => {
     niddahStartSunset: niddahStartInfo.niddahStartSunset,
     // Optional metrics
     haflagah: metrics.haflagah,
-    cycleLength: metrics.cycleLength
+    cycleLength: metrics.cycleLength,
+    // Halachic preferences applied to this cycle
+    appliedChumras: halachicPreferences
   });
 
   // STEP 7: Calculate vest onot (if location complete)
@@ -99,7 +108,7 @@ const createCycle = async (userId, cycleData) => {
       lng: user.location.lng,
       timezone: user.location.timezone
     };
-    cycle.calculateVestOnot(previousCycles, location);
+    cycle.calculateVestOnot(previousCycles, location, halachicPreferences);
   }
 
   // STEP 8: Save (validation only, no business logic in hook)
@@ -193,6 +202,11 @@ const updateCycle = async (userId, cycleId, updateData) => {
       updateData.hefsekTaharaDate.timeString,
       timezone
     );
+
+    // Automatically create mikvah date 7 days after hefsek tahara
+    const mikvahDate = new Date(cycle.hefsekTaharaDate);
+    mikvahDate.setDate(mikvahDate.getDate() + 7);
+    cycle.mikvahDate = mikvahDate;
   }
 
   if (updateData.shivaNekiyimStartDate) {
@@ -377,7 +391,7 @@ const getUpcomingVestOnot = async (userId, daysAhead = 30) => {
   cycles.forEach(cycle => {
     if (cycle.vestOnot) {
       // Check each vest onah
-      ['yomHachodesh', 'ohrHachodesh', 'haflagah', 'onahBeinonit'].forEach(type => {
+      ['vesetHachodesh', 'haflagah', 'onahBeinonit'].forEach(type => {
         const vestOnah = cycle.vestOnot[type];
         if (vestOnah && vestOnah.date) {
           const vestDate = new Date(vestOnah.date);
@@ -417,9 +431,10 @@ const getCalendarEvents = async (userId, options = {}) => {
   cycles.forEach((cycle) => {
     // 1. Period Start Event (Niddah Start)
     if (cycle.niddahStartDate) {
+      const onahIcon = cycle.niddahStartOnah === 'day' ? '☀️' : '🌙';
       events.push({
         id: `${cycle._id}-niddah`,
-        title: `Period Start (${cycle.niddahStartOnah})`,
+        title: `🩸 Period Start (${onahIcon})`,
         start: cycle.niddahStartDate,
         className: `niddah-start ${cycle.niddahStartOnah}`,
         groupID: cycle._id,
@@ -430,7 +445,7 @@ const getCalendarEvents = async (userId, options = {}) => {
     if (cycle.hefsekTaharaDate) {
       events.push({
         id: `${cycle._id}-hefsek`,
-        title: 'Hefsek Tahara',
+        title: '✅ Hefsek Tahara',
         start: cycle.hefsekTaharaDate,
         className: 'hefsek-tahara',
         groupID: cycle._id,
@@ -441,7 +456,7 @@ const getCalendarEvents = async (userId, options = {}) => {
     if (cycle.shivaNekiyimStartDate) {
       events.push({
         id: `${cycle._id}-shiva`,
-        title: 'Shiva Nekiyim Start',
+        title: '7️⃣ Shiva Nekiyim Start',
         start: cycle.shivaNekiyimStartDate,
         className: 'shiva-nekiyim',
         groupID: cycle._id,
@@ -452,7 +467,7 @@ const getCalendarEvents = async (userId, options = {}) => {
     if (cycle.mikvahDate) {
       events.push({
         id: `${cycle._id}-mikvah`,
-        title: 'Mikvah',
+        title: '🛁 Mikvah',
         start: cycle.mikvahDate,
         className: 'mikvah',
         groupID: cycle._id,
@@ -461,30 +476,22 @@ const getCalendarEvents = async (userId, options = {}) => {
 
     // 5. Vest Onot Events
     if (cycle.vestOnot) {
-      if (cycle.vestOnot.yomHachodesh?.date) {
+      if (cycle.vestOnot.vesetHachodesh?.date) {
+        const onahIcon = cycle.vestOnot.vesetHachodesh.onah === 'day' ? '☀️' : '🌙';
         events.push({
-          id: `${cycle._id}-yom`,
-          title: `Yom Hachodesh (${cycle.vestOnot.yomHachodesh.onah})`,
-          start: cycle.vestOnot.yomHachodesh.date,
-          className: `vest-onah yom-hachodesh ${cycle.vestOnot.yomHachodesh.onah}`,
-          groupID: cycle._id,
-        });
-      }
-
-      if (cycle.vestOnot.ohrHachodesh?.date) {
-        events.push({
-          id: `${cycle._id}-ohr`,
-          title: `Ohr Hachodesh (${cycle.vestOnot.ohrHachodesh.onah})`,
-          start: cycle.vestOnot.ohrHachodesh.date,
-          className: `vest-onah ohr-hachodesh ${cycle.vestOnot.ohrHachodesh.onah}`,
+          id: `${cycle._id}-veset`,
+          title: `📅 Veset HaChodesh (${onahIcon})`,
+          start: cycle.vestOnot.vesetHachodesh.date,
+          className: `vest-onah veset-hachodesh ${cycle.vestOnot.vesetHachodesh.onah}`,
           groupID: cycle._id,
         });
       }
 
       if (cycle.vestOnot.haflagah?.date) {
+        const onahIcon = cycle.vestOnot.haflagah.onah === 'day' ? '☀️' : '🌙';
         events.push({
           id: `${cycle._id}-haflagah`,
-          title: `Haflagah (${cycle.vestOnot.haflagah.onah})`,
+          title: `⏱️ Haflagah (${onahIcon})`,
           start: cycle.vestOnot.haflagah.date,
           className: `vest-onah haflagah ${cycle.vestOnot.haflagah.onah}`,
           groupID: cycle._id,
@@ -492,11 +499,70 @@ const getCalendarEvents = async (userId, options = {}) => {
       }
 
       if (cycle.vestOnot.onahBeinonit?.date) {
+        const onahIcon = cycle.vestOnot.onahBeinonit.onah === 'day' ? '☀️' : '🌙';
         events.push({
           id: `${cycle._id}-beinonit`,
-          title: `Onah Beinonit (${cycle.vestOnot.onahBeinonit.onah})`,
+          title: `🔄 Onah Beinonit (${onahIcon})`,
           start: cycle.vestOnot.onahBeinonit.date,
           className: `vest-onah onah-beinonit ${cycle.vestOnot.onahBeinonit.onah}`,
+          groupID: cycle._id,
+        });
+
+        // Kreisi Upleisi - Opposite onah on day 30
+        if (cycle.vestOnot.onahBeinonit.kreisiUpleisi?.date) {
+          const kreisiIcon = cycle.vestOnot.onahBeinonit.kreisiUpleisi.onah === 'day' ? '☀️' : '🌙';
+          events.push({
+            id: `${cycle._id}-beinonit-kreisi`,
+            title: `🔄 Onah Beinonit - Kreisi U'Pleisi (${kreisiIcon})`,
+            start: cycle.vestOnot.onahBeinonit.kreisiUpleisi.date,
+            className: `vest-onah onah-beinonit-kreisi ${cycle.vestOnot.onahBeinonit.kreisiUpleisi.onah}`,
+            groupID: cycle._id,
+          });
+        }
+
+        // Chasam Sofer - Day 31
+        if (cycle.vestOnot.onahBeinonit.chasamSofer?.date) {
+          const soferIcon = cycle.vestOnot.onahBeinonit.chasamSofer.onah === 'day' ? '☀️' : '🌙';
+          events.push({
+            id: `${cycle._id}-beinonit-sofer`,
+            title: `🔄 Onah Beinonit - Chasam Sofer Day 31 (${soferIcon})`,
+            start: cycle.vestOnot.onahBeinonit.chasamSofer.date,
+            className: `vest-onah onah-beinonit-sofer ${cycle.vestOnot.onahBeinonit.chasamSofer.onah}`,
+            groupID: cycle._id,
+          });
+        }
+      }
+
+      // Ohr Zaruah events - Preceding onah for all vesetim
+      if (cycle.vestOnot.vesetHachodesh?.ohrZaruah?.date) {
+        const ohrIcon = cycle.vestOnot.vesetHachodesh.ohrZaruah.onah === 'day' ? '☀️' : '🌙';
+        events.push({
+          id: `${cycle._id}-veset-ohr`,
+          title: `Ohr Zaruah - Veset HaChodesh (${ohrIcon})`,
+          start: cycle.vestOnot.vesetHachodesh.ohrZaruah.date,
+          className: `vest-onah ohr-zaruah ${cycle.vestOnot.vesetHachodesh.ohrZaruah.onah}`,
+          groupID: cycle._id,
+        });
+      }
+
+      if (cycle.vestOnot.haflagah?.ohrZaruah?.date) {
+        const ohrIcon = cycle.vestOnot.haflagah.ohrZaruah.onah === 'day' ? '☀️' : '🌙';
+        events.push({
+          id: `${cycle._id}-haflagah-ohr`,
+          title: `Ohr Zaruah - Haflagah (${ohrIcon})`,
+          start: cycle.vestOnot.haflagah.ohrZaruah.date,
+          className: `vest-onah ohr-zaruah ${cycle.vestOnot.haflagah.ohrZaruah.onah}`,
+          groupID: cycle._id,
+        });
+      }
+
+      if (cycle.vestOnot.onahBeinonit?.ohrZaruah?.date) {
+        const ohrIcon = cycle.vestOnot.onahBeinonit.ohrZaruah.onah === 'day' ? '☀️' : '🌙';
+        events.push({
+          id: `${cycle._id}-beinonit-ohr`,
+          title: `Ohr Zaruah - Onah Beinonit (${ohrIcon})`,
+          start: cycle.vestOnot.onahBeinonit.ohrZaruah.date,
+          className: `vest-onah ohr-zaruah ${cycle.vestOnot.onahBeinonit.ohrZaruah.onah}`,
           groupID: cycle._id,
         });
       }

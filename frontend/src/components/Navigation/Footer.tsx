@@ -1,86 +1,187 @@
-import { IconMailFilled, IconMapPinFilled, IconPhoneFilled } from '@tabler/icons-react';
-import { Container, Flex, Group, Text, Title } from '@mantine/core';
-
-import classes from './FooterStyles.module.css'
-//import { Logo } from './Logo';
-
-const data = [
-  {
-    title: 'Quick Links',
-    links: [
-      { label: 'Home Page', link: '/' },
-      { label: 'Login', link: '/login' },
-      { label: 'Register', link: '/register' },
-      { label: 'About', link: '/about' },
-    ],
-  },
-  {
-    title: 'Project',
-    links: [
-      { label: 'GitHub', link: 'https://github.com/Slapp62/freeMikvahCal.git'},
-      { label: 'MantineUI', link: 'https://mantine.dev' },
-      { label: 'React', link: 'https://react.dev' },
-      { label: 'Vite', link: 'https://vitejs.dev' },
-      { label: 'Redux', link: 'https://redux.js.org'},
-    ],
-  },
-  {
-    title: 'About Me',
-    links: [
-      { label: 'LinkedIn', link: 'https://www.linkedin.com/in/simcha-lapp-0b4081106/' },
-      { label: 'Portfolio Website', link: 'https://slapp62.github.io/portfolio_site/' },
-    ],
-  },
-];
+import {
+  IconBrandGithub,
+  IconMail,
+  IconMapPin,
+  IconPhone,
+  IconCalendar,
+  IconHeart,
+} from '@tabler/icons-react';
+import { Container, Grid, Group, Text, Stack, Box, Anchor, Divider, SimpleGrid } from '@mantine/core';
+import { Link } from 'react-router-dom';
 
 export function Footer() {
-  const groups = data.map((group) => {
-    const links = group.links.map((link, index) => (
-      <Text<'a'>
-        key={index}
-        className={classes.link}
-        component="a"
-        href={link.link}
-        target='_blank'
-      >
-        {link.label}
-      </Text>
-    ));
-
-    return (
-      <div className={classes.wrapper} key={group.title}>
-        <Text className={classes.title}>{group.title}</Text>
-        {links}
-      </div>
-    );
-  });
-
   return (
-    <footer className={classes.footer}>
-      <Container className={classes.inner}>
-        <div className={classes.logo}>
-          {/* <Logo /> */}
-          <Text size="xs" c="dimmed" className={classes.description}>
-            Creating opportunities and careers with simplicity in mind.
-          </Text>
-        </div>
-        <div className={classes.groups}>{groups}</div>
+    <Box
+      component="footer"
+      style={{
+        backgroundColor: 'light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-8))',
+        borderTop: '1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-5))',
+        marginTop: 'auto',
+      }}
+    >
+      {/* Main Footer Content */}
+      <Container size="xl" py={60}>
+        <Grid gutter="xl">
+          {/* Brand Section */}
+          <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
+            <Stack gap="md">
+              <Group gap="xs">
+                <Box
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 'var(--mantine-radius-md)',
+                    background:
+                      'linear-gradient(135deg, var(--mantine-color-pink-6) 0%, var(--mantine-color-purple-6) 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <IconCalendar size={20} color="white" stroke={2.5} />
+                </Box>
+                <Text
+                  size="lg"
+                  fw={800}
+                  style={{
+                    background:
+                      'linear-gradient(135deg, var(--mantine-color-pink-6) 0%, var(--mantine-color-purple-6) 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                  }}
+                >
+                  FreeMikvahCal
+                </Text>
+              </Group>
+              <Text size="sm" c="dimmed">
+                Simplifying halachic cycle tracking for Jewish women everywhere. 100% free, forever.
+              </Text>
+            </Stack>
+          </Grid.Col>
 
-        <Flex direction="column" c="dimmed" gap={5}>
-            <Title className={classes.title}>Contact Me</Title>
-            <Group><IconMailFilled /> <Text>slapp62@gmail.com</Text></Group>
-            <Group><IconPhoneFilled /> <Text>+972-58-434-5797</Text></Group>
-            <Group><IconMapPinFilled /> <Text>Beit Shemesh, IL</Text></Group>
-        </Flex>
-        
-      </Container>
-      <Container className={classes.afterFooter}>
-        <Text c="dimmed" size="sm">
-          © {new Date().getFullYear()} - Developed by Simcha Lapp. 
-        </Text>
+          {/* Quick Links */}
+          <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
+            <Stack gap="sm">
+              <Text fw={700} size="sm" tt="uppercase" c="secondary">
+                Quick Links
+              </Text>
+              <Anchor component={Link} to="/" c="dimmed" size="sm" style={{ textDecoration: 'none' }}>
+                Home
+              </Anchor>
+              <Anchor component={Link} to="/about" c="dimmed" size="sm" style={{ textDecoration: 'none' }}>
+                About
+              </Anchor>
+              <Anchor component={Link} to="/login" c="dimmed" size="sm" style={{ textDecoration: 'none' }}>
+                Login
+              </Anchor>
+              <Anchor component={Link} to="/register" c="dimmed" size="sm" style={{ textDecoration: 'none' }}>
+                Sign Up
+              </Anchor>
+            </Stack>
+          </Grid.Col>
 
-        <Text c="dimmed" size="sm">All rights reserved</Text>
+          {/* Resources */}
+          <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
+            <Stack gap="sm">
+              <Text fw={700} size="sm" tt="uppercase" c="secondary">
+                Resources
+              </Text>
+              <Anchor
+                href="https://github.com/Slapp62/freeMikvahCal.git"
+                target="_blank"
+                c="dimmed"
+                size="sm"
+                style={{ textDecoration: 'none' }}
+              >
+                GitHub
+              </Anchor>
+              <Anchor href="https://mantine.dev" target="_blank" c="dimmed" size="sm" style={{ textDecoration: 'none' }}>
+                Mantine UI
+              </Anchor>
+              <Anchor href="https://react.dev" target="_blank" c="dimmed" size="sm" style={{ textDecoration: 'none' }}>
+                React
+              </Anchor>
+              <Anchor href="https://vitejs.dev" target="_blank" c="dimmed" size="sm" style={{ textDecoration: 'none' }}>
+                Vite
+              </Anchor>
+            </Stack>
+          </Grid.Col>
+
+          {/* Contact */}
+          <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
+            <Stack gap="sm">
+              <Text fw={700} size="sm" tt="uppercase" c="secondary">
+                Contact
+              </Text>
+              <Group gap="xs">
+                <IconMail size={16} style={{ color: 'var(--mantine-color-dimmed)' }} />
+                <Anchor href="mailto:slapp62@gmail.com" c="dimmed" size="sm" style={{ textDecoration: 'none' }}>
+                  slapp62@gmail.com
+                </Anchor>
+              </Group>
+              <Group gap="xs">
+                <IconPhone size={16} style={{ color: 'var(--mantine-color-dimmed)' }} />
+                <Text c="dimmed" size="sm">
+                  +972-58-434-5797
+                </Text>
+              </Group>
+              <Group gap="xs">
+                <IconMapPin size={16} style={{ color: 'var(--mantine-color-dimmed)' }} />
+                <Text c="dimmed" size="sm">
+                  Beit Shemesh, Israel
+                </Text>
+              </Group>
+            </Stack>
+          </Grid.Col>
+        </Grid>
       </Container>
-    </footer>
+
+      <Divider color="light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-5))" />
+
+      {/* Footer Bottom */}
+      <Container size="xl" py="md">
+        <Group justify="space-between" wrap="wrap">
+          <Group gap="xs">
+            <Text size="sm" c="dimmed">
+              © {new Date().getFullYear()} FreeMikvahCal. Made with
+            </Text>
+            <IconHeart size={16} style={{ color: 'var(--mantine-color-pink-6)' }} fill="var(--mantine-color-pink-6)" />
+            <Text size="sm" c="dimmed">
+              by
+            </Text>
+            <Anchor
+              href="https://www.linkedin.com/in/simcha-lapp-0b4081106/"
+              target="_blank"
+              c="dimmed"
+              size="sm"
+              style={{ textDecoration: 'none' }}
+            >
+              Simcha Lapp
+            </Anchor>
+          </Group>
+
+          <Group gap="md">
+            <Anchor
+              href="https://github.com/Slapp62/freeMikvahCal.git"
+              target="_blank"
+              c="dimmed"
+              style={{ display: 'flex', alignItems: 'center' }}
+            >
+              <IconBrandGithub size={20} />
+            </Anchor>
+            <Anchor
+              href="https://slapp62.github.io/portfolio_site/"
+              target="_blank"
+              c="dimmed"
+              size="sm"
+              style={{ textDecoration: 'none' }}
+            >
+              Portfolio
+            </Anchor>
+          </Group>
+        </Group>
+      </Container>
+    </Box>
   );
 }

@@ -32,7 +32,15 @@
       "Bash(timeout 60 echo:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push)"
+      "Bash(git push)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run build:*)",
+      "Bash(find:*)",
+      "Bash(nul)",
+      "Bash(timeout 30 npm run dev:*)",
+      "Bash(taskkill:*)",
+      "Bash(npm start)",
+      "Bash(timeout:*)"
     ],
     "deny": [],
     "ask": []

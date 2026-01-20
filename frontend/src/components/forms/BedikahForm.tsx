@@ -22,6 +22,7 @@ type Props = {
 
 const BedikahForm = ({ close, dateClicked }: Props) => {
     const updateCycleInStore = useCycleStore((state) => state.updateCycle);
+    const triggerRefetch = useCycleStore((state) => state.triggerRefetch);
     const [activeCycles, setActiveCycles] = useState<Cycle[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -100,6 +101,7 @@ const BedikahForm = ({ close, dateClicked }: Props) => {
                 color: 'green',
             });
 
+            triggerRefetch();
             close();
         } catch (error: any) {
             notifications.show({
@@ -217,7 +219,6 @@ const BedikahForm = ({ close, dateClicked }: Props) => {
 
                 <Button
                     type='submit'
-                    color='pink'
                     fullWidth
                 >
                     Add Bedikah

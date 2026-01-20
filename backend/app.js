@@ -5,6 +5,7 @@ const session = require('express-session');
 const passport = require('./config/passport');
 const sessionConfig = require('./config/sessionConfig');
 const mongoSanitize = require('express-mongo-sanitize');
+const correlationId = require('./middleware/logging/correlationId');
 const httpLogger = require('./middleware/logging/httpLogger');
 const errorLogger = require('./middleware/logging/errorLogger');
 const { handleError } = require('./utils/functionHandlers');
@@ -27,6 +28,9 @@ const corsOptions = {
   optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
+
+// Correlation ID for request tracing
+app.use(correlationId);
 
 // HTTP request logging
 app.use(httpLogger);
