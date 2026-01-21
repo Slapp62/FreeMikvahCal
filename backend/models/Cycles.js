@@ -11,27 +11,21 @@ const cycleSchema = new Schema({
   },
 
   // Cycle Dates (all stored as UTC)
-  niddahStartDate: { type: Date, required: true },
   hefsekTaharaDate: { type: Date },
   shivaNekiyimStartDate: { type: Date },
   mikvahDate: { type: Date },
 
-  // Onah tracking (day/night boundary at sunset)
-  niddahStartOnah: {
-    type: String,
-    enum: ['day', 'night'],
-    required: true
+  // Niddah Start Onah - Time range representing the actual onah period
+  niddahOnah: {
+    start: { type: Date, required: true },  // Sunrise (day) or Sunset (night)
+    end: { type: Date, required: true },    // Sunset (day) or Sunrise (night)
+    _id: false
   },
 
   // Timezone info (CRITICAL for calculations)
   calculatedInTimezone: {
     type: String,
     required: true  // IANA timezone name at time of creation
-  },
-
-  // Sunset time on niddahStartDate (for reference)
-  niddahStartSunset: {
-    type: Date  // Sunset time on niddahStartDate in user's location
   },
 
   // Cycle Status
@@ -46,61 +40,55 @@ const cycleSchema = new Schema({
   cycleLength: { type: Number },
   haflagah: { type: Number },
 
-  // Vest Onot - Computed in pre-save hook with timezone awareness
+  // Vest Onot - Time ranges for each vest calculation
   vestOnot: {
     vesetHachodesh: {
-      date: Date,
+      start: Date,
+      end: Date,
       ohrZaruah: {
-        date: Date,
-        onah: { type: String, enum: ['day', 'night'] },
+        start: Date,
+        end: Date,
         _id: false
       },
-      onah: { type: String, enum: ['day', 'night'] },
       hebrewDate: String,
       dayOfWeek: Number,
-      sunset: Date,
-      sunrise: Date,
       _id: false
     },
     haflagah: {
-      date: Date,
+      start: Date,
+      end: Date,
       ohrZaruah: {
-        date: Date,
-        onah: { type: String, enum: ['day', 'night'] },
+        start: Date,
+        end: Date,
         _id: false
       },
-      onah: { type: String, enum: ['day', 'night'] },
       interval: Number,
       hebrewDate: String,
       dayOfWeek: Number,
-      sunset: Date,
-      sunrise: Date,
       _id: false
     },
     onahBeinonit: {
-      date: Date,
+      start: Date,
+      end: Date,
       ohrZaruah: {
-        date: Date,
-        onah: { type: String, enum: ['day', 'night'] },
+        start: Date,
+        end: Date,
         _id: false
       },
       kreisiUpleisi: {
-        date: Date,
-        onah: { type: String, enum: ['day', 'night'] },
+        start: Date,
+        end: Date,
         _id: false
       },
       chasamSofer: {
-        date: Date,
-        onah: { type: String, enum: ['day', 'night'] },
+        start: Date,
+        end: Date,
         _id: false
       },
-      onah: { type: String, enum: ['day', 'night'] },
       calculatedFrom: Number,
       averageLength: Number,
       hebrewDate: String,
       dayOfWeek: Number,
-      sunset: Date,
-      sunrise: Date,
       _id: false
     },
     _id: false
@@ -175,7 +163,7 @@ const cycleSchema = new Schema({
 });
 
 // Indexes
-cycleSchema.index({ userId: 1, niddahStartDate: -1 });
+cycleSchema.index({ userId: 1, 'niddahOnah.start': -1 });
 cycleSchema.index({ userId: 1, status: 1 });
 cycleSchema.index({ userId: 1, 'vestOnot.onahBeinonit': 1 });
 
@@ -188,8 +176,8 @@ cycleSchema.pre('save', function(next) {
 
 // PRE-VALIDATE HOOK: Ensure dates are logical
 cycleSchema.pre('validate', function(next) {
-  if (this.hefsekTaharaDate && this.niddahStartDate) {
-    if (this.hefsekTaharaDate < this.niddahStartDate) {
+  if (this.hefsekTaharaDate && this.niddahOnah && this.niddahOnah.start) {
+    if (this.hefsekTaharaDate < this.niddahOnah.start) {
       this.invalidate('hefsekTaharaDate',
         'Hefsek Tahara cannot be before Niddah start');
     }
@@ -217,7 +205,7 @@ cycleSchema.pre('validate', function(next) {
 
 // STATIC METHOD: Calculate cycle metrics (cycle length, haflagah)
 // Pure calculation - no database queries
-cycleSchema.statics.calculateCycleMetrics = function(niddahStartDate, mikvahDate, lastCycle) {
+cycleSchema.statics.calculateCycleMetrics = function(niddahOnahStart, mikvahDate, lastCycle) {
   const metrics = {
     cycleLength: null,
     haflagah: null
@@ -226,46 +214,36 @@ cycleSchema.statics.calculateCycleMetrics = function(niddahStartDate, mikvahDate
   // Calculate cycle length
   if (mikvahDate) {
     metrics.cycleLength = Math.ceil(
-      (mikvahDate - niddahStartDate) / (1000 * 60 * 60 * 24)
+      (mikvahDate - niddahOnahStart) / (1000 * 60 * 60 * 24)
     );
   }
 
   // Calculate haflagah (interval from last cycle)
-  if (lastCycle && lastCycle.niddahStartDate) {
+  if (lastCycle && lastCycle.niddahOnah && lastCycle.niddahOnah.start) {
     metrics.haflagah = Math.ceil(
-      (niddahStartDate - lastCycle.niddahStartDate) / (1000 * 60 * 60 * 24)
+      (niddahOnahStart - lastCycle.niddahOnah.start) / (1000 * 60 * 60 * 24)
     );
   }
 
   return metrics;
 };
 
-// STATIC METHOD: Determine niddah start onah and related info
-// Pure calculation - no database queries
-cycleSchema.statics.determineNiddahStartInfo = function(niddahStartDate, location) {
-  const { getHebrewDateForTimestamp } = require('../utils/hebrewDateTime');
-
-  const hebrewInfo = getHebrewDateForTimestamp(niddahStartDate, location);
-
-  return {
-    calculatedInTimezone: location.timezone,
-    niddahStartSunset: hebrewInfo.sunset,
-    niddahStartOnah: hebrewInfo.onah
-  };
-};
-
-// METHOD: Calculate vest onot with timezone awareness
+// METHOD: Calculate vest onot with timezone awareness using time ranges
 // Pure calculation - requires previousCycles to be passed in (no database queries)
 cycleSchema.methods.calculateVestOnot = function(previousCycles, location, halachicPreferences = {}) {
-  const { HDate } = require('@hebcal/core');
-  const { getVestInfo } = require('../utils/hebrewDateTime');
+  const { HDate, Location, Zmanim } = require('@hebcal/core');
+  const { getOnahTimeRange } = require('../utils/hebrewDateTime');
 
-  // Get the matching onah from the niddah start
-  const matchingOnah = this.niddahStartOnah;
-  const oppositeOnah = matchingOnah === 'day' ? 'night' : 'day';
+  // Determine if original onah was day or night based on time range
+  // Day onah: start and end on same Gregorian day (sunrise to sunset)
+  // Night onah: spans two Gregorian days (sunset to next sunrise)
+  const startDate = new Date(this.niddahOnah.start).toDateString();
+  const endDate = new Date(this.niddahOnah.end).toDateString();
+  const isDayOnah = startDate === endDate;
 
   // 1. Veset Hachodesh - Same Hebrew date next month
-  const startHDate = new HDate(this.niddahStartDate);
+  const loc = new Location(location.lat, location.lng, false, location.timezone);
+  const startHDate = Zmanim.makeSunsetAwareHDate(loc, this.niddahOnah.start, false);
   const day = startHDate.getDate();
   const month = startHDate.getMonth();
   const year = startHDate.getFullYear();
@@ -273,53 +251,120 @@ cycleSchema.methods.calculateVestOnot = function(previousCycles, location, halac
   // Create new date with same day number, next Hebrew month
   const vesetHachodeshshDate = new HDate(day, month + 1, year);
   const vesetDate = vesetHachodeshshDate.greg();
-  this.vestOnot.vesetHachodesh = getVestInfo(vesetDate, location, matchingOnah);
+  const vesetRange = getOnahTimeRange(vesetDate, location, isDayOnah);
 
-  // Ohr Zaruah for Veset HaChodesh (if enabled)
+  this.vestOnot.vesetHachodesh = {
+    start: vesetRange.start,
+    end: vesetRange.end,
+    hebrewDate: vesetRange.hebrewDate,
+    dayOfWeek: vesetRange.dayOfWeek
+  };
+
+  // Ohr Zaruah for Veset HaChodesh (preceding onah)
   if (halachicPreferences.ohrZaruah) {
-    const ozDate = new Date(vesetDate);
-    ozDate.setDate(ozDate.getDate() + (matchingOnah === 'day' ? -1 : 0));
-    this.vestOnot.vesetHachodesh.ohrZaruah = getVestInfo(ozDate, location, oppositeOnah);
+    if (isDayOnah) {
+      // If original was day, Ohr Zaruah is night before
+      const nightBefore = new Date(vesetDate);
+      nightBefore.setDate(nightBefore.getDate() - 1);
+      const ozRange = getOnahTimeRange(nightBefore, location, false);
+      this.vestOnot.vesetHachodesh.ohrZaruah = {
+        start: ozRange.start,
+        end: ozRange.end
+      };
+    } else {
+      // If original was night, Ohr Zaruah is day before (same Gregorian date)
+      const ozRange = getOnahTimeRange(vesetDate, location, true);
+      this.vestOnot.vesetHachodesh.ohrZaruah = {
+        start: ozRange.start,
+        end: ozRange.end
+      };
+    }
   }
 
   // 2. Haflagah - Based on interval from last cycle
   if (this.haflagah && previousCycles.length > 0) {
-    const haflagahDate = new Date(this.niddahStartDate);
+    const haflagahDate = new Date(this.niddahOnah.start);
     haflagahDate.setDate(haflagahDate.getDate() + this.haflagah);
-    this.vestOnot.haflagah = getVestInfo(haflagahDate, location, matchingOnah);
-    this.vestOnot.haflagah.interval = this.haflagah;
+    const haflagahRange = getOnahTimeRange(haflagahDate, location, isDayOnah);
 
-    // Ohr Zaruah for Haflagah (if enabled)
+    this.vestOnot.haflagah = {
+      start: haflagahRange.start,
+      end: haflagahRange.end,
+      interval: this.haflagah,
+      hebrewDate: haflagahRange.hebrewDate,
+      dayOfWeek: haflagahRange.dayOfWeek
+    };
+
+    // Ohr Zaruah for Haflagah (preceding onah)
     if (halachicPreferences.ohrZaruah) {
-      const ozDate = new Date(haflagahDate);
-      ozDate.setDate(ozDate.getDate() + (matchingOnah === 'day' ? -1 : 0));
-      this.vestOnot.haflagah.ohrZaruah = getVestInfo(ozDate, location, oppositeOnah);
+      if (isDayOnah) {
+        const nightBefore = new Date(haflagahDate);
+        nightBefore.setDate(nightBefore.getDate() - 1);
+        const ozRange = getOnahTimeRange(nightBefore, location, false);
+        this.vestOnot.haflagah.ohrZaruah = {
+          start: ozRange.start,
+          end: ozRange.end
+        };
+      } else {
+        const ozRange = getOnahTimeRange(haflagahDate, location, true);
+        this.vestOnot.haflagah.ohrZaruah = {
+          start: ozRange.start,
+          end: ozRange.end
+        };
+      }
     }
   }
 
   // 3. Onah Beinonit - Fixed 29-day calculation
-  const beinonitDate = new Date(this.niddahStartDate);
+  const beinonitDate = new Date(this.niddahOnah.start);
   beinonitDate.setDate(beinonitDate.getDate() + 29);
-  this.vestOnot.onahBeinonit = getVestInfo(beinonitDate, location, matchingOnah);
-  this.vestOnot.onahBeinonit.calculatedFrom = 29;
+  const beinonitRange = getOnahTimeRange(beinonitDate, location, isDayOnah);
 
-  // Kreisi Upleisi - Add opposite onah for day 29 (if enabled)
+  this.vestOnot.onahBeinonit = {
+    start: beinonitRange.start,
+    end: beinonitRange.end,
+    calculatedFrom: 29,
+    hebrewDate: beinonitRange.hebrewDate,
+    dayOfWeek: beinonitRange.dayOfWeek
+  };
+
+  // Kreisi Upleisi - Opposite onah same Hebrew day
   if (halachicPreferences.kreisiUpleisi) {
-    this.vestOnot.onahBeinonit.kreisiUpleisi = getVestInfo(beinonitDate, location, oppositeOnah);
+    const kreisiRange = getOnahTimeRange(beinonitDate, location, !isDayOnah);
+    this.vestOnot.onahBeinonit.kreisiUpleisi = {
+      start: kreisiRange.start,
+      end: kreisiRange.end
+    };
   }
 
-  // Ohr Zaruah for Onah Beinonit (if enabled)
+  // Ohr Zaruah for Onah Beinonit (preceding onah)
   if (halachicPreferences.ohrZaruah) {
-    const ozDate = new Date(beinonitDate);
-    ozDate.setDate(ozDate.getDate() + (matchingOnah === 'day' ? -1 : 0));
-    this.vestOnot.onahBeinonit.ohrZaruah = getVestInfo(ozDate, location, oppositeOnah);
+    if (isDayOnah) {
+      const nightBefore = new Date(beinonitDate);
+      nightBefore.setDate(nightBefore.getDate() - 1);
+      const ozRange = getOnahTimeRange(nightBefore, location, false);
+      this.vestOnot.onahBeinonit.ohrZaruah = {
+        start: ozRange.start,
+        end: ozRange.end
+      };
+    } else {
+      const ozRange = getOnahTimeRange(beinonitDate, location, true);
+      this.vestOnot.onahBeinonit.ohrZaruah = {
+        start: ozRange.start,
+        end: ozRange.end
+      };
+    }
   }
 
-  // Chasam Sofer - Add day 30 (if enabled)
+  // Chasam Sofer - Day 30 with matching onah
   if (halachicPreferences.chasamSofer) {
-    const chasamSoferDate = new Date(this.niddahStartDate);
+    const chasamSoferDate = new Date(this.niddahOnah.start);
     chasamSoferDate.setDate(chasamSoferDate.getDate() + 30);
-    this.vestOnot.onahBeinonit.chasamSofer = getVestInfo(chasamSoferDate, location, matchingOnah);
+    const chasamRange = getOnahTimeRange(chasamSoferDate, location, isDayOnah);
+    this.vestOnot.onahBeinonit.chasamSofer = {
+      start: chasamRange.start,
+      end: chasamRange.end
+    };
   }
 };
 

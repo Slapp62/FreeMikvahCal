@@ -16,6 +16,8 @@ import { HDate } from '@hebcal/core';
 export default function CalendarPage() {
     const isMobile = useMediaQuery('(max-width: 700px)');
     const events = useLoadEvents();
+    console.log(events);
+      
     const [clickedDate, setClickedDate] = useState<string>('');
     
     // New Event Modal
@@ -71,27 +73,20 @@ export default function CalendarPage() {
             eventDisplay='block'
             eventOrder='start'
             timeZone='local'
-            displayEventTime={false}
+            displayEventTime={true}
             dayCellContent={(arg) => {
               const morningDate = new HDate(arg.date);
-              
+
               // Get the date for the following evening by adding 1 day
               const eveningDate = new HDate(arg.date).next();
 
               return (
-                <Group justify="space-between" align="center" w="100%" className="split-day-header">
-                  <Text className="gregorian-number">{arg.dayNumberText}</Text>
-                  <Stack gap={0} className="hebrew-labels-container">
-                    {/* Morning Hebrew Date (e.g., 11 Shevat) */}
-                    <Text className="heb-label day-label" c="dimmed" fz="xs">
-                      ☀️ {morningDate.getDate()} {morningDate.getMonthName()}
-                    </Text>
-                    {/* Evening Hebrew Date (e.g., 12 Shevat) */}
-                    <Text className="heb-label night-label" c="dimmed" fz="xs">
-                      🌙 {eveningDate.getDate()} {eveningDate.getMonthName()}
-                    </Text>
-                  </Stack>
-                </Group>
+                <Box w="100%" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '4px' }}>
+                  <Text className="gregorian-number" style={{ flex: '0 0 auto' }}>{arg.dayNumberText}</Text>
+                  <Text className="hebrew-dates" c="dimmed" fz="xs" style={{ textAlign: 'right', flex: '0 0 auto' }}>
+                    {morningDate.getDate()}-{eveningDate.getDate()} {morningDate.getMonthName()}
+                  </Text>
+                </Box>
               );
             }}
         />

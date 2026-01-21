@@ -1,7 +1,10 @@
-import { Button, Stack, Textarea, Radio, Group } from "@mantine/core"
+import { Button, Stack, Textarea, Radio, Group, Text } from "@mantine/core"
 import { notifications } from "@mantine/notifications"
 import { useForm, Controller } from "react-hook-form"
+import { useState, useEffect } from "react"
+import { Location, Zmanim } from "@hebcal/core"
 import { useCycleStore } from "../../store/cycleStore"
+import { useUserStore } from "../../store/userStore"
 import { createCycle } from "../../services/cycleApi"
 
 type PeriodStartValues = {
@@ -17,23 +20,103 @@ type Props = {
 const PeriodStartForm = ({ close, dateClicked }: Props) => {
     const addCycle = useCycleStore((state) => state.addCycle);
     const triggerRefetch = useCycleStore((state) => state.triggerRefetch);
-    
-    const { register, handleSubmit, control } = useForm<PeriodStartValues>({
+    const user = useUserStore((state) => state.user);
+
+    const [timeRangeInfo, setTimeRangeInfo] = useState<string>('');
+
+    const { register, handleSubmit, control, watch } = useForm<PeriodStartValues>({
         defaultValues: {
             onah: 'day',
             notes: '',
         }
     });
 
-    const onSubmit = async (formData: PeriodStartValues) => {
-        // Map the radio selection to "dummy" times
-        // 08:00 is safely 'Day' and 22:00 is safely 'Night' for almost all latitudes
-        const timeString = formData.onah === 'day' ? '08:00' : '20:00';
+    const selectedOnah = watch('onah');
+
+    // Calculate and display time range when onah changes
+    useEffect(() => {
+        if (!user?.location?.lat || !user?.location?.lng || !user?.location?.timezone) {
+            setTimeRangeInfo('Location required for time calculations');
+            return;
+        }
 
         try {
+            const date = new Date(dateClicked);
+            const loc = new Location(
+                user.location.lat,
+                user.location.lng,
+                false,
+                user.location.timezone
+            );
+            const zmanim = new Zmanim(loc, date, false);
+            const sunrise = zmanim.sunrise();
+            const sunset = zmanim.sunset();
+
+            let start, end;
+            if (selectedOnah === 'day') {
+                start = sunrise;
+                end = sunset;
+            } else {
+                const nextDay = new Date(date);
+                nextDay.setDate(nextDay.getDate() + 1);
+                const nextDayZmanim = new Zmanim(loc, nextDay, false);
+                start = sunset;
+                end = nextDayZmanim.sunrise();
+            }
+
+            const formatTime = (d: Date) => d.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true,
+                timeZone: user.location.timezone
+            });
+
+            setTimeRangeInfo(`This onah occurs between ${formatTime(start)} and ${formatTime(end)}`);
+        } catch (error) {
+            console.error('Error calculating time range:', error);
+            setTimeRangeInfo('Error calculating times');
+        }
+    }, [selectedOnah, dateClicked, user?.location]);
+
+    const onSubmit = async (formData: PeriodStartValues) => {
+        if (!user?.location?.lat || !user?.location?.lng || !user?.location?.timezone) {
+            notifications.show({
+                title: 'Error',
+                message: 'Complete location required. Please update your profile in Settings.',
+                color: 'red',
+            });
+            return;
+        }
+
+        try {
+            // Calculate actual sunrise/sunset times using Hebcal
+            const date = new Date(dateClicked);
+            const loc = new Location(
+                user.location.lat,
+                user.location.lng,
+                false,
+                user.location.timezone
+            );
+            const zmanim = new Zmanim(loc, date, false);
+            const sunrise = zmanim.sunrise();
+            const sunset = zmanim.sunset();
+
+            let startTime, endTime;
+            if (formData.onah === 'day') {
+                startTime = sunrise;
+                endTime = sunset;
+            } else {
+                // Night onah: sunset to next sunrise
+                const nextDay = new Date(date);
+                nextDay.setDate(nextDay.getDate() + 1);
+                const nextDayZmanim = new Zmanim(loc, nextDay, false);
+                startTime = sunset;
+                endTime = nextDayZmanim.sunrise();
+            }
+
             const result = await createCycle({
-                dateString: dateClicked,
-                timeString: timeString,
+                startTime: startTime.toISOString(),
+                endTime: endTime.toISOString(),
                 notes: formData.notes,
             });
 
@@ -77,6 +160,12 @@ const PeriodStartForm = ({ close, dateClicked }: Props) => {
                         </Radio.Group>
                     )}
                 />
+
+                {timeRangeInfo && (
+                    <Text size="sm" c="dimmed" w='100%'>
+                        ℹ️ {timeRangeInfo}
+                    </Text>
+                )}
 
                 <Textarea
                     label="Notes (Optional)"

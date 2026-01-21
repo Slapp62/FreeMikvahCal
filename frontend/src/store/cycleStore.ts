@@ -3,8 +3,10 @@ import { create } from 'zustand';
 export interface Cycle {
   _id: string;
   userId: string;
-  niddahStartDate: string;
-  niddahStartOnah: 'day' | 'night';
+  niddahOnah: {
+    start: string;
+    end: string;
+  };
   hefsekTaharaDate?: string;
   shivaNekiyimStartDate?: string;
   mikvahDate?: string;
@@ -12,9 +14,46 @@ export interface Cycle {
   cycleLength?: number;
   haflagah?: number;
   vestOnot?: {
-    vesetHachodesh?: any;
-    haflagah?: any;
-    onahBeinonit?: any;
+    vesetHachodesh?: {
+      start: string;
+      end: string;
+      ohrZaruah?: {
+        start: string;
+        end: string;
+      };
+      hebrewDate?: string;
+      dayOfWeek?: number;
+    };
+    haflagah?: {
+      start: string;
+      end: string;
+      ohrZaruah?: {
+        start: string;
+        end: string;
+      };
+      interval?: number;
+      hebrewDate?: string;
+      dayOfWeek?: number;
+    };
+    onahBeinonit?: {
+      start: string;
+      end: string;
+      ohrZaruah?: {
+        start: string;
+        end: string;
+      };
+      kreisiUpleisi?: {
+        start: string;
+        end: string;
+      };
+      chasamSofer?: {
+        start: string;
+        end: string;
+      };
+      calculatedFrom?: number;
+      hebrewDate?: string;
+      dayOfWeek?: number;
+    };
   };
   appliedChumras?: {
     ohrZaruah: boolean;

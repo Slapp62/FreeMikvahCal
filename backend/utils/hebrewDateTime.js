@@ -205,12 +205,57 @@ const getZmanim = (date, location) => {
 };
 
 /**
+ * Get time range for a specific onah (day or night) on a given date
+ * Day onah: sunrise to sunset
+ * Night onah: sunset to next sunrise (spans 2 Gregorian days)
+ * @param {Date} date - Reference Gregorian date
+ * @param {Object} location - { lat, lng, timezone }
+ * @param {Boolean} isDayOnah - True for day onah, false for night onah
+ * @returns {Object} - { start, end, hebrewDate, dayOfWeek }
+ */
+const getOnahTimeRange = (date, location, isDayOnah) => {
+  const loc = new Location(location.lat, location.lng, false, location.timezone);
+  const zmanim = new Zmanim(loc, date, false);
+
+  const sunrise = zmanim.sunrise();
+  const sunset = zmanim.sunset();
+
+  let start, end;
+
+  if (isDayOnah) {
+    // Day onah: sunrise to sunset on the same date
+    start = sunrise;
+    end = sunset;
+  } else {
+    // Night onah: sunset to next sunrise (spans to next Gregorian day)
+    const nextDay = new Date(date);
+    nextDay.setDate(nextDay.getDate() + 1);
+    const nextDayZmanim = new Zmanim(loc, nextDay, false);
+
+    start = sunset;
+    end = nextDayZmanim.sunrise();
+  }
+
+  // Get Hebrew date at the start of the onah
+  const hDate = Zmanim.makeSunsetAwareHDate(loc, start, false);
+
+  return {
+    start,
+    end,
+    hebrewDate: hDate.toString(),
+    hebrewDateShort: `${hDate.getDate()} ${hDate.getMonthName()}`,
+    dayOfWeek: date.getDay()
+  };
+};
+
+/**
  * Calculate vest onah info for a specific date
  * Returns date with onah information
  * @param {Date} date - Gregorian date
  * @param {Object} location - { lat, lng, timezone }
  * @param {String} matchingOnah - 'day' or 'night'
  * @returns {Object} - Vest onah information
+ * @deprecated Use getOnahTimeRange instead
  */
 const getVestInfo = (date, location, matchingOnah) => {
   const hDate = new HDate(date);
@@ -285,6 +330,7 @@ module.exports = {
   getTimezoneOffset,
   isValidTimezone,
   getZmanim,
-  getVestInfo,
+  getOnahTimeRange,
+  getVestInfo,  // Deprecated, but kept for backward compatibility
   parseUserDateTime
 };

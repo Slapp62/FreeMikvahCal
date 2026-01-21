@@ -2,27 +2,25 @@ const Joi = require('joi');
 
 /**
  * Create cycle schema
+ * Now accepts onah time range (start and end times)
  */
 const createCycleSchema = Joi.object({
-  // Date and time from user (in their timezone)
-  dateString: Joi.string()
-    .pattern(/^\d{4}-\d{2}-\d{2}$/)
+  // Onah time range (calculated on frontend using Hebcal)
+  startTime: Joi.date()
+    .iso()
     .required()
     .messages({
-      'string.pattern.base': 'Date must be in YYYY-MM-DD format',
-      'any.required': 'Niddah start date is required'
+      'date.base': 'Start time must be a valid date',
+      'any.required': 'Onah start time is required'
     }),
 
-  timeString: Joi.string()
-    .pattern(/^([01]\d|2[0-3]):([0-5]\d)$/)
+  endTime: Joi.date()
+    .iso()
     .required()
     .messages({
-      'string.pattern.base': 'Time must be in HH:MM format (24-hour)',
-      'any.required': 'Niddah start time is required'
+      'date.base': 'End time must be a valid date',
+      'any.required': 'Onah end time is required'
     }),
-
-  // Optional: User can specify onah (otherwise calculated from sunset)
-  onah: Joi.string().valid('day', 'night'),
 
   // Optional fields
   notes: Joi.string().max(500).allow(''),

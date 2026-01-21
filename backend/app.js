@@ -20,7 +20,62 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // Security headers
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        // Start with default-src 'self'
+        defaultSrc: ["'self'"],
+
+        // Scripts: Fixed for Google Analytics, Ko-fi, and Google Login
+        scriptSrc: [
+          "'self'", 
+          "'unsafe-inline'", 
+          "https://storage.ko-fi.com", 
+          "https://ko-fi.com", 
+          "https://www.googletagmanager.com", 
+          "https://www.google-analytics.com"
+        ],
+
+        // Frames: Added accounts.google.com for Google One Tap/Login if used
+        frameSrc: ["'self'", "https://ko-fi.com", "https://accounts.google.com"],
+
+        // Images: 'https:' allows all external HTTPS images
+        imgSrc: ["'self'", "data:", "https:"],
+
+        // Styles: Includes Google Fonts and Ko-fi
+        styleSrc: [
+          "'self'", 
+          "'unsafe-inline'", 
+          "https://fonts.googleapis.com", 
+          "https://storage.ko-fi.com"
+        ],
+
+        // Fonts: THE FIX for your specific error
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+
+        // Connections: XHR/Fetch targets
+        connectSrc: [
+          "'self'", 
+          "https://accounts.google.com", 
+          "https://freemikvahcal.com", 
+          "https://freemikvahcal.onrender.com", 
+          "https://www.google-analytics.com", 
+          "https://analytics.google.com"
+        ],
+
+        // Form Actions: Redirect targets for OAuth
+        formAction: ["'self'", "https://accounts.google.com"],
+
+        // Best Practice: Block plugins like Flash
+        objectSrc: ["'none'"],
+        
+        // Best Practice: Prevent site from being embedded in iFrames on other sites
+        upgradeInsecureRequests: [],
+      },
+    },
+  })
+);
 
 // CORS
 const corsOptions = {
@@ -29,21 +84,6 @@ const corsOptions = {
   optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
-
-app.use((req, res, next) => {
-  res.setHeader(
-    'Content-Security-Policy',
-    "default-src 'self'; " +
-      "script-src 'self' 'unsafe-inline' https://storage.ko-fi.com https://ko-fi.com https://www.googletagmanager.com https://www.google-analytics.com; " +
-      'frame-src https://ko-fi.com; ' +
-      "img-src 'self' data: https:; " +
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://storage.ko-fi.com; " +
-      "font-src 'self' https://fonts.gstatic.com; " +
-      "connect-src 'self' https://accounts.google.com https://freemikvahcal.com https://freemikvahcal.onrender.com https://www.google-analytics.com https://analytics.google.com; " +
-      "form-action 'self' https://accounts.google.com;"
-  );
-  next();
-});
 
 // Correlation ID for request tracing
 app.use(correlationId);
