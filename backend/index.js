@@ -11,7 +11,7 @@ try {
 } catch (error) {
   logger.error('Environment validation failed', {
     type: 'error',
-    error: error.message
+    error: error.message,
   });
   process.exit(1);
 }
@@ -26,7 +26,7 @@ connectDB()
       logger.info('Server started successfully', {
         port: PORT,
         environment: process.env.NODE_ENV || 'development',
-        nodeVersion: process.version
+        nodeVersion: process.version,
       });
 
       // Start cron jobs
@@ -38,7 +38,7 @@ connectDB()
     logger.error('Failed to start server', {
       type: 'error',
       error: error.message,
-      stack: error.stack
+      stack: error.stack,
     });
     process.exit(1);
   });
@@ -48,7 +48,7 @@ process.on('unhandledRejection', (err) => {
   logger.error('Unhandled Promise Rejection', {
     type: 'error',
     error: err.message,
-    stack: err.stack
+    stack: err.stack,
   });
   process.exit(1);
 });

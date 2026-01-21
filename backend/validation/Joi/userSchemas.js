@@ -14,7 +14,7 @@ const updateUserSchema = Joi.object({
     geonameId: Joi.number(),
     lat: Joi.number().min(-90).max(90),
     lng: Joi.number().min(-180).max(180),
-    timezone: Joi.string()
+    timezone: Joi.string(),
   }),
 
   ethnicity: Joi.string().valid('ashkenazi', 'sephardi', 'teimani', 'other', null),
@@ -22,8 +22,8 @@ const updateUserSchema = Joi.object({
   halachicPreferences: Joi.object({
     ohrZaruah: Joi.boolean(),
     kreisiUpleisi: Joi.boolean(),
-    chasamSofer: Joi.boolean()
-  })
+    chasamSofer: Joi.boolean(),
+  }),
 }).min(1); // At least one field must be updated
 
 /**
@@ -39,9 +39,11 @@ const updatePreferencesSchema = Joi.object({
     shivaNekiyimReminder: Joi.boolean(),
     mikvahReminder: Joi.boolean(),
     vestOnotReminder: Joi.boolean(),
-    reminderTime: Joi.string().pattern(/^([01]\d|2[0-3]):([0-5]\d)$/).messages({
-      'string.pattern.base': 'Reminder time must be in HH:MM format (24-hour)'
-    })
+    reminderTime: Joi.string()
+      .pattern(/^([01]\d|2[0-3]):([0-5]\d)$/)
+      .messages({
+        'string.pattern.base': 'Reminder time must be in HH:MM format (24-hour)',
+      }),
   }),
 
   privacyMode: Joi.boolean(),
@@ -49,11 +51,11 @@ const updatePreferencesSchema = Joi.object({
 
   dataRetention: Joi.object({
     keepCycles: Joi.number().min(12).max(48),
-    autoDelete: Joi.boolean()
-  })
+    autoDelete: Joi.boolean(),
+  }),
 }).min(1); // At least one field must be updated
 
 module.exports = {
   updateUserSchema,
-  updatePreferencesSchema
+  updatePreferencesSchema,
 };

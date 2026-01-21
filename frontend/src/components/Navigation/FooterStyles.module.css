@@ -3,7 +3,6 @@
   padding-bottom: calc(var(--mantine-spacing-xs) * 1);
   background-color: light-dark(var(--mantine-color-pink-1), var(--mantine-color-dark-6));
   border-top: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-5));
-    
 }
 
 .logo {
@@ -27,7 +26,6 @@
 .inner {
   display: flex;
   justify-content: space-between;
-  
 
   @media (max-width: --mantine-breakpoint-sm) {
     flex-direction: column;

@@ -19,12 +19,12 @@ const connectDB = async () => {
       type: 'database',
       environment: env,
       connectionType: env === 'production' ? 'atlas' : 'local',
-      duration
+      duration,
     });
   } catch (error) {
     logError(error, {
       operation: 'database_connection',
-      environment: env
+      environment: env,
     });
     process.exit(1);
   }

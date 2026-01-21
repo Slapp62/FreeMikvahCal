@@ -25,15 +25,19 @@ type LoginFormValues = {
 export function LoginPage() {
   const { login, isLoading } = useAuth();
 
-  const { register, handleSubmit, formState: { errors } } = useForm<LoginFormValues>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormValues>({
     mode: 'onBlur',
     resolver: joiResolver(loginSchema),
   });
 
   const onSubmit = async (formData: LoginFormValues) => {
     await login(formData);
-  };  
-    
+  };
+
   return (
     <Container size={420} my={40}>
       <Title ta="center" className={classes.title}>

@@ -14,13 +14,15 @@ export interface Location {
 /**
  * Search locations (no auth required)
  */
-export const searchLocations = async (query?: string): Promise<{ count: number; locations: Location[] }> => {
+export const searchLocations = async (
+  query?: string
+): Promise<{ count: number; locations: Location[] }> => {
   const response = await axiosInstance.get('/locations/search', {
-    params: query ? { q: query } : {}
+    params: query ? { q: query } : {},
   });
   return response.data;
 };
 
 export default {
-  searchLocations
+  searchLocations,
 };

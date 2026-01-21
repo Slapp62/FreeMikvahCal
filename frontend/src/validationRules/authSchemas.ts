@@ -11,13 +11,10 @@ export const loginSchema = Joi.object({
       'string.email': 'Please provide a valid email address',
       'any.required': 'Email is required',
     }),
-  password: Joi.string()
-    .min(8)
-    .required()
-    .messages({
-      'string.min': 'Password must be at least 8 characters long',
-      'any.required': 'Password is required',
-    }),
+  password: Joi.string().min(8).required().messages({
+    'string.min': 'Password must be at least 8 characters long',
+    'any.required': 'Password is required',
+  }),
 });
 
 /**
@@ -41,20 +38,15 @@ export const registerSchema = Joi.object({
       'string.pattern.base': 'Password must contain at least one letter and one number',
       'any.required': 'Password is required',
     }),
-  confirmPassword: Joi.string()
-    .valid(Joi.ref('password'))
-    .required()
-    .messages({
-      'any.only': 'Passwords must match',
-      'any.required': 'Please confirm your password',
-    }),
+  confirmPassword: Joi.string().valid(Joi.ref('password')).required().messages({
+    'any.only': 'Passwords must match',
+    'any.required': 'Please confirm your password',
+  }),
   ethnicity: Joi.string()
     .valid('ashkenazi', 'sephardi', 'teimani', 'other')
     .optional()
     .allow(null, ''),
-  location: Joi.string()
-    .optional()
-    .allow(''),
+  location: Joi.string().optional().allow(''),
   preferences: Joi.object({
     reminders: Joi.boolean().optional(),
   }).optional(),

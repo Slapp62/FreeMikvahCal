@@ -13,12 +13,12 @@ const cleanupOldCycles = async () => {
     logger.info('Starting cycle cleanup job', {
       type: 'business',
       job: 'cycle_cleanup',
-      cutoffDate: twoYearsAgo
+      cutoffDate: twoYearsAgo,
     });
 
     const result = await Cycles.deleteMany({
       createdAt: { $lt: twoYearsAgo },
-      isDeleted: false
+      isDeleted: false,
     });
 
     const duration = Date.now() - startTime;
@@ -27,19 +27,19 @@ const cleanupOldCycles = async () => {
       deletedCount: result.deletedCount,
       olderThan: twoYearsAgo,
       reason: 'automatic_retention_policy',
-      duration
+      duration,
     });
 
     logger.info('Cycle cleanup job completed', {
       type: 'business',
       job: 'cycle_cleanup',
       deletedCount: result.deletedCount,
-      duration
+      duration,
     });
   } catch (error) {
     logError(error, {
       operation: 'cycle_cleanup_cron',
-      job: 'cycle_cleanup'
+      job: 'cycle_cleanup',
     });
   }
 };
@@ -52,7 +52,7 @@ const scheduleCycleCleanup = () => {
     type: 'business',
     job: 'cycle_cleanup',
     schedule: '0 2 * * *',
-    description: 'Daily at 2:00 AM'
+    description: 'Daily at 2:00 AM',
   });
 };
 

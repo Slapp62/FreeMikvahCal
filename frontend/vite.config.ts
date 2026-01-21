@@ -1,5 +1,5 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -20,7 +20,7 @@ export default defineConfig({
       '@tabler/icons-react',
       'react-router-dom',
       'zustand',
-      'axios'
+      'axios',
     ],
   },
 
@@ -33,19 +33,19 @@ export default defineConfig({
           // Vendor chunk for React ecosystem
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           // Mantine UI library
-          'mantine': ['@mantine/core', '@mantine/hooks', '@mantine/dates', '@mantine/notifications'],
+          mantine: ['@mantine/core', '@mantine/hooks', '@mantine/dates', '@mantine/notifications'],
           // FullCalendar library (only loaded on calendar page)
-          'fullcalendar': [
+          fullcalendar: [
             '@fullcalendar/core',
             '@fullcalendar/react',
             '@fullcalendar/daygrid',
             '@fullcalendar/timegrid',
-            '@fullcalendar/interaction'
+            '@fullcalendar/interaction',
           ],
           // Icons
-          'icons': ['@tabler/icons-react']
-        }
-      }
+          icons: ['@tabler/icons-react'],
+        },
+      },
     },
     // Increase chunk size warning limit (these are heavy libraries)
     chunkSizeWarningLimit: 1000,
@@ -61,8 +61,8 @@ export default defineConfig({
         './src/main.tsx',
         './src/App.tsx',
         './src/routing/AppRouter.tsx',
-        './src/pages/home.page.tsx'
-      ]
-    }
-  }
-})
+        './src/pages/home.page.tsx',
+      ],
+    },
+  },
+});

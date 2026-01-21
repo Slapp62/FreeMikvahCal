@@ -9,7 +9,7 @@ const register = async (req, res, next) => {
   try {
     const metadata = {
       ipAddress: req.ip,
-      userAgent: req.get('user-agent')
+      userAgent: req.get('user-agent'),
     };
 
     const user = await authService.register(req.body, metadata);
@@ -22,7 +22,7 @@ const register = async (req, res, next) => {
 
       res.status(201).json({
         message: 'Registration successful',
-        user
+        user,
       });
     });
   } catch (error) {
@@ -42,7 +42,7 @@ const login = (req, res, next) => {
 
     if (!user) {
       return res.status(401).json({
-        message: info.message || 'Invalid credentials'
+        message: info.message || 'Invalid credentials',
       });
     }
 
@@ -57,7 +57,7 @@ const login = (req, res, next) => {
 
         res.status(200).json({
           message: 'Login successful',
-          user: userData
+          user: userData,
         });
       } catch (error) {
         next(error);
@@ -83,7 +83,7 @@ const logout = (req, res, next) => {
 
       res.clearCookie('connect.sid');
       res.status(200).json({
-        message: 'Logout successful'
+        message: 'Logout successful',
       });
     });
   });
@@ -99,12 +99,12 @@ const getSession = async (req, res, next) => {
       const user = await authService.getUserById(req.user._id);
       res.status(200).json({
         authenticated: true,
-        user
+        user,
       });
     } else {
       res.status(200).json({
         authenticated: false,
-        user: null
+        user: null,
       });
     }
   } catch (error) {
@@ -132,5 +132,5 @@ module.exports = {
   login,
   logout,
   getSession,
-  changePassword
+  changePassword,
 };

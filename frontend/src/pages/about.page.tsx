@@ -96,11 +96,13 @@ const AboutPage: FC = () => {
             <Title order={1}>About FreeMikvahCal</Title>
 
             <Text>
-              FreeMikvahCal is a dedicated calendar application designed to help Jewish women
-              track their Niddah cycle and mikvah dates according to Jewish law (Halacha).
+              FreeMikvahCal is a dedicated calendar application designed to help Jewish women track
+              their Niddah cycle and mikvah dates according to Jewish law (Halacha).
             </Text>
 
-            <Title order={2} mt="md">Features</Title>
+            <Title order={2} mt="md">
+              Features
+            </Title>
             <Text>
               - Track niddah start dates
               <br />
@@ -113,11 +115,12 @@ const AboutPage: FC = () => {
               - Vest onot reminders (yom hachodesh, onah beinonit, haflagah)
               <br />
               - Timezone-aware calculations
-              <br />
-              - Email reminders (optional)
+              <br />- Email reminders (optional)
             </Text>
 
-            <Title order={2} mt="md">Privacy & Data</Title>
+            <Title order={2} mt="md">
+              Privacy & Data
+            </Title>
             <Text>
               Your data is stored securely and privately. We only collect the minimum information
               necessary to provide accurate calculations based on your location's timezone and
@@ -125,7 +128,7 @@ const AboutPage: FC = () => {
             </Text>
           </Stack>
         </Paper>
-        
+
         <Flex direction={{ base: 'column', md: 'row' }} gap="lg" justify="center" align="stretch">
           <Stat icon={<IconBriefcase size={24} />} label="AI-Powered Matching" value="Smart" />
           <Stat icon={<IconUsers size={24} />} label="Job Seekers & Employers" value="Connected" />

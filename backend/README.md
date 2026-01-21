@@ -13,11 +13,13 @@ Backend for the Niddah/Mikvah tracking application built with Node.js, Express, 
 ### Installation
 
 1. Install dependencies:
+
 ```bash
 npm install
 ```
 
 2. Create `.env` file from example:
+
 ```bash
 cp .env.example .env
 ```
@@ -30,12 +32,15 @@ cp .env.example .env
 ### Running the Application
 
 #### Development Mode
+
 ```bash
 npm run dev
 ```
+
 This will start the server with nodemon for auto-reloading.
 
 #### Production Mode
+
 ```bash
 npm start
 ```
@@ -43,6 +48,7 @@ npm start
 ### Testing
 
 Run tests:
+
 ```bash
 npm test
 ```
@@ -88,18 +94,21 @@ backend/
 ## API Endpoints
 
 ### Authentication
+
 - `POST /api/auth/register` - Register new user (to be implemented)
 - `POST /api/auth/login` - Login user (to be implemented)
 - `POST /api/auth/logout` - Logout user (to be implemented)
 - `GET /api/auth/session` - Get session status
 
 ### Users
+
 - `GET /api/users/me` - Get current user (requires auth)
 - `PUT /api/users/me` - Update current user (requires auth)
 - `GET /api/users/preferences` - Get user preferences (requires auth)
 - `PUT /api/users/preferences` - Update preferences (requires auth)
 
 ### Cycles
+
 - `GET /api/cycles` - Get user cycles (requires auth)
 - `POST /api/cycles` - Create new cycle (requires auth)
 - `GET /api/cycles/:id` - Get specific cycle (requires auth)
@@ -107,11 +116,13 @@ backend/
 - `DELETE /api/cycles/:id` - Delete cycle (requires auth)
 
 ### Health Check
+
 - `GET /health` - Health check endpoint
 
 ## Features
 
 ### Implemented
+
 - ✅ Database models with Mongoose schemas
 - ✅ Session-based authentication setup
 - ✅ Security middleware (Helmet, CORS, sanitization)
@@ -123,6 +134,7 @@ backend/
 - ✅ Route structure with stubs
 
 ### To Be Implemented
+
 - ⏳ Controller implementations
 - ⏳ Service layer (business logic)
 - ⏳ Joi validation schemas
@@ -145,6 +157,7 @@ backend/
 ## Logging
 
 Logs are stored in the `logs/` directory:
+
 - `application-YYYY-MM-DD.log` - All logs (retained 14 days)
 - `error-YYYY-MM-DD.log` - Error logs only (retained 30 days)
 

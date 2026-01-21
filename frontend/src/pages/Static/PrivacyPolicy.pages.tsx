@@ -16,16 +16,16 @@ const PrivacyPolicy: FC = () => {
       {/* Introduction */}
       <Text mb="md">
         FreeMikvahCal is committed to protecting your privacy. This Privacy Policy explains how we
-        collect, use, share, and protect your personal and sensitive information when you use our 
+        collect, use, share, and protect your personal and sensitive information when you use our
         Jewish calendar and cycle tracking platform.
       </Text>
       <Text mb="md">
-        By using FreeMikvahCal, you agree to the practices described in this Privacy Policy. Given 
-        the sensitive nature of the data involved in Mikvah calculations, we maintain a 
+        By using FreeMikvahCal, you agree to the practices described in this Privacy Policy. Given
+        the sensitive nature of the data involved in Mikvah calculations, we maintain a
         "privacy-first" approach. If you don't agree, please don't use our services.
       </Text>
       <Text mb="xl">
-        This policy is designed to comply with US privacy standards and reflects our commitment to 
+        This policy is designed to comply with US privacy standards and reflects our commitment to
         safeguarding religious and personal data globally.
       </Text>
 
@@ -66,10 +66,11 @@ const PrivacyPolicy: FC = () => {
               Account Information
             </Title>
             <Text mb="sm">
-              <strong>What we collect:</strong> Email address, encrypted password, and account settings.
+              <strong>What we collect:</strong> Email address, encrypted password, and account
+              settings.
             </Text>
             <Text mb="sm">
-              <strong>Why we collect it:</strong> To sync your data across devices and provide 
+              <strong>Why we collect it:</strong> To sync your data across devices and provide
               secure access to your personal calendar.
             </Text>
 
@@ -82,7 +83,9 @@ const PrivacyPolicy: FC = () => {
             <List mb="md">
               <List.Item>Dates and times of physiological cycles (period starts/ends)</List.Item>
               <List.Item>Bedikah results and times</List.Item>
-              <List.Item>Calculated dates for Mikvah immersion and vestos (required separations)</List.Item>
+              <List.Item>
+                Calculated dates for Mikvah immersion and vestos (required separations)
+              </List.Item>
               <List.Item>Custom notes regarding Halachic status</List.Item>
             </List>
             <Paper p="md" withBorder bg="blue.0" mb="md">
@@ -90,9 +93,9 @@ const PrivacyPolicy: FC = () => {
                 Sensitive Data Notice:
               </Text>
               <Text>
-                Because this data involves health and religious observance, it is treated with the 
-                highest level of sensitivity. We do not use this data for marketing or profiling. 
-                It is used exclusively to perform the Halachic calculations requested by you.
+                Because this data involves health and religious observance, it is treated with the
+                highest level of sensitivity. We do not use this data for marketing or profiling. It
+                is used exclusively to perform the Halachic calculations requested by you.
               </Text>
             </Paper>
 
@@ -100,8 +103,8 @@ const PrivacyPolicy: FC = () => {
               Technical Data
             </Title>
             <Text mb="sm">
-              <strong>What we collect automatically:</strong> IP address (anonymized where possible), 
-              device type, and session logs for security purposes.
+              <strong>What we collect automatically:</strong> IP address (anonymized where
+              possible), device type, and session logs for security purposes.
             </Text>
           </Accordion.Panel>
         </Accordion.Item>
@@ -115,16 +118,19 @@ const PrivacyPolicy: FC = () => {
           </Accordion.Control>
           <Accordion.Panel>
             <Text mb="md">
-              We do <strong>not</strong> sell your data. We only share data with essential infrastructure 
-              providers:
+              We do <strong>not</strong> sell your data. We only share data with essential
+              infrastructure providers:
             </Text>
             <List mb="md">
-              <List.Item><strong>Hosting:</strong> Secure US-based cloud servers (e.g., AWS or Render) to store the database.</List.Item>
-              <List.Item><strong>Email Services:</strong> To send password resets or account notifications.</List.Item>
+              <List.Item>
+                <strong>Hosting:</strong> Secure US-based cloud servers (e.g., AWS or Render) to
+                store the database.
+              </List.Item>
+              <List.Item>
+                <strong>Email Services:</strong> To send password resets or account notifications.
+              </List.Item>
             </List>
-            <Text>
-              All data is encrypted in transit (SSL/TLS) and at rest.
-            </Text>
+            <Text>All data is encrypted in transit (SSL/TLS) and at rest.</Text>
           </Accordion.Panel>
         </Accordion.Item>
 
@@ -140,12 +146,20 @@ const PrivacyPolicy: FC = () => {
               Regardless of your location, we provide the following rights to all users:
             </Text>
             <List mb="md">
-              <List.Item><strong>Right to Access:</strong> View and export your entire cycle history at any time.</List.Item>
-              <List.Item><strong>Right to Rectification:</strong> Edit or correct any entry in your calendar.</List.Item>
-              <List.Item><strong>Right to Erasure:</strong> Delete your account and all associated data permanently.</List.Item>
+              <List.Item>
+                <strong>Right to Access:</strong> View and export your entire cycle history at any
+                time.
+              </List.Item>
+              <List.Item>
+                <strong>Right to Rectification:</strong> Edit or correct any entry in your calendar.
+              </List.Item>
+              <List.Item>
+                <strong>Right to Erasure:</strong> Delete your account and all associated data
+                permanently.
+              </List.Item>
             </List>
             <Text>
-              To exercise these rights, navigate to your "Account Settings" or contact 
+              To exercise these rights, navigate to your "Account Settings" or contact
               <Anchor href="mailto:support@freemikvahcal.com"> support@freemikvahcal.com</Anchor>.
             </Text>
           </Accordion.Panel>
@@ -159,13 +173,22 @@ const PrivacyPolicy: FC = () => {
             </Title>
           </Accordion.Control>
           <Accordion.Panel>
-            <Text mb="sm">
-              We implement industry-standard security measures:
-            </Text>
+            <Text mb="sm">We implement industry-standard security measures:</Text>
             <List mb="md">
-              <List.Item><strong>Encryption:</strong> Database fields containing sensitive cycle data are encrypted.</List.Item>
-              <List.Item><strong>No Tracking:</strong> We do not use third-party analytics trackers (like Meta Pixel or Google Analytics) that could link your identity to your religious practices.</List.Item>
-              <List.Item><strong>Zero-Access Goals:</strong> We strive to ensure that even our administrators cannot read your personal notes or cycle data without your explicit troubleshooting consent.</List.Item>
+              <List.Item>
+                <strong>Encryption:</strong> Database fields containing sensitive cycle data are
+                encrypted.
+              </List.Item>
+              <List.Item>
+                <strong>No Tracking:</strong> We do not use third-party analytics trackers (like
+                Meta Pixel or Google Analytics) that could link your identity to your religious
+                practices.
+              </List.Item>
+              <List.Item>
+                <strong>Zero-Access Goals:</strong> We strive to ensure that even our administrators
+                cannot read your personal notes or cycle data without your explicit troubleshooting
+                consent.
+              </List.Item>
             </List>
           </Accordion.Panel>
         </Accordion.Item>
@@ -178,12 +201,15 @@ const PrivacyPolicy: FC = () => {
             </Title>
           </Accordion.Control>
           <Accordion.Panel>
-            <Text mb="md">
-              We keep your data only as long as your account is active. 
-            </Text>
+            <Text mb="md">We keep your data only as long as your account is active.</Text>
             <List mb="md">
-              <List.Item>If you delete your account, all data is purged from our active database within 48 hours.</List.Item>
-              <List.Item>Backups are maintained for up to 30 days before being permanently overwritten.</List.Item>
+              <List.Item>
+                If you delete your account, all data is purged from our active database within 48
+                hours.
+              </List.Item>
+              <List.Item>
+                Backups are maintained for up to 30 days before being permanently overwritten.
+              </List.Item>
             </List>
           </Accordion.Panel>
         </Accordion.Item>
@@ -191,9 +217,9 @@ const PrivacyPolicy: FC = () => {
 
       <Paper p="md" withBorder mt="xl" bg="gray.0">
         <Text size="sm">
-          <strong>Note:</strong> FreeMikvahCal is a tool to assist in calculations. It does not 
-          constitute Halachic or medical advice. Always consult with a qualified Rabbi or 
-          medical professional for specific questions.
+          <strong>Note:</strong> FreeMikvahCal is a tool to assist in calculations. It does not
+          constitute Halachic or medical advice. Always consult with a qualified Rabbi or medical
+          professional for specific questions.
         </Text>
       </Paper>
     </Container>

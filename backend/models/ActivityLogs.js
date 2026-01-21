@@ -6,7 +6,7 @@ const activityLogSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Users',
     required: true,
-    index: true
+    index: true,
   },
 
   action: {
@@ -20,14 +20,14 @@ const activityLogSchema = new Schema({
       'reminder_sent',
       'settings_changed',
       'login',
-      'logout'
+      'logout',
     ],
-    required: true
+    required: true,
   },
 
   entityType: {
     type: String,
-    enum: ['cycle', 'user', 'preference', 'bedika', 'auth']
+    enum: ['cycle', 'user', 'preference', 'bedika', 'auth'],
   },
 
   entityId: { type: Schema.Types.ObjectId },
@@ -35,14 +35,14 @@ const activityLogSchema = new Schema({
   changes: {
     before: Schema.Types.Mixed,
     after: Schema.Types.Mixed,
-    _id: false
+    _id: false,
   },
 
   metadata: {
     ipAddress: String,
     userAgent: String,
     timestamp: { type: Date, default: Date.now },
-    _id: false
+    _id: false,
   },
 
   expiresAt: {
@@ -52,8 +52,8 @@ const activityLogSchema = new Schema({
       date.setDate(date.getDate() + 90);
       return date;
     },
-    index: { expireAfterSeconds: 0 }
-  }
+    index: { expireAfterSeconds: 0 },
+  },
 });
 
 activityLogSchema.index({ userId: 1, 'metadata.timestamp': -1 });

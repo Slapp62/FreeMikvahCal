@@ -45,7 +45,13 @@ const RegisterPage = () => {
   const [locations, setLocations] = useState<Location[]>([]);
   const [locationOptions, setLocationOptions] = useState<string[]>([]);
 
-  const { register, control, handleSubmit, watch, formState: { errors } } = useForm<RegisterFormValues>({
+  const {
+    register,
+    control,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<RegisterFormValues>({
     mode: 'onBlur',
     defaultValues: {
       firstName: '',
@@ -73,7 +79,7 @@ const RegisterPage = () => {
       try {
         const response = await searchLocations();
         setLocations(response.locations);
-        setLocationOptions(response.locations.map(loc => loc.value));
+        setLocationOptions(response.locations.map((loc) => loc.value));
       } catch (error) {
         console.error('Error loading locations:', error);
         notifications.show({
@@ -122,7 +128,6 @@ const RegisterPage = () => {
       },
     });
   };
-
 
   return (
     <Container size="lg" my={40}>
@@ -260,9 +265,21 @@ const RegisterPage = () => {
             <Group grow align="flex-start">
               <Fieldset legend="Halachic Preferences">
                 <Stack gap="xs">
-                  <Checkbox label="Onat Ohr Zarua" description='Additional 12 hours separation preceding primary onah.'  {...register('halachicPreferences.ohrZaruah')} />
-                  <Checkbox label="Onat Chasam Sofer" description='Additional Onah Beinonit on day 31.' {...register('halachicPreferences.chasamSofer')} />
-                  <Checkbox label="Onat Kreisi U'Pleisi" description='Onah Beinonit on day 30 of 24 hours' {...register('halachicPreferences.kreisiUpleisi')} />
+                  <Checkbox
+                    label="Onat Ohr Zarua"
+                    description="Additional 12 hours separation preceding primary onah."
+                    {...register('halachicPreferences.ohrZaruah')}
+                  />
+                  <Checkbox
+                    label="Onat Chasam Sofer"
+                    description="Additional Onah Beinonit on day 31."
+                    {...register('halachicPreferences.chasamSofer')}
+                  />
+                  <Checkbox
+                    label="Onat Kreisi U'Pleisi"
+                    description="Onah Beinonit on day 30 of 24 hours"
+                    {...register('halachicPreferences.kreisiUpleisi')}
+                  />
                 </Stack>
               </Fieldset>
 

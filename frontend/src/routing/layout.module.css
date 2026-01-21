@@ -1,11 +1,11 @@
 .wrapper {
-    background-color: rgb(255, 255, 255);
+  background-color: rgb(255, 255, 255);
 }
 
 .main {
-    flex: 1;
-    min-height: 400px;
-    background-color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-6));
-    font-size: var(--mantine-font-size-md);
-    padding-bottom: 50px;
+  flex: 1;
+  min-height: 400px;
+  background-color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-6));
+  font-size: var(--mantine-font-size-md);
+  padding-bottom: 50px;
 }

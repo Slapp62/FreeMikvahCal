@@ -1,11 +1,11 @@
-import "@mantine/core/styles.css";
-import "@mantine/notifications/styles.css";
-import { MantineProvider } from "@mantine/core";
+import '@mantine/core/styles.css';
+import '@mantine/notifications/styles.css';
+import { MantineProvider } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
-import { useEffect } from "react";
-import { BrowserRouter } from "react-router-dom";
-import { AppRouter } from "./routing/AppRouter.tsx";
-import myTheme from "./styles/theme";
+import { useEffect } from 'react';
+import { BrowserRouter } from 'react-router-dom';
+import { AppRouter } from './routing/AppRouter.tsx';
+import myTheme from './styles/theme';
 
 export default function App() {
   // Global error handlers

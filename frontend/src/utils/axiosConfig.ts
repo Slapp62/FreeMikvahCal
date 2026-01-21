@@ -29,9 +29,10 @@ axiosInstance.interceptors.response.use(
       // Handle session expiration (401 Unauthorized)
       if (status === 401) {
         // Don't handle 401s for login/register/session endpoints
-        const isAuthEndpoint = url.includes('/auth/login') ||
-                              url.includes('/auth/register') ||
-                              url.includes('/auth/session');
+        const isAuthEndpoint =
+          url.includes('/auth/login') ||
+          url.includes('/auth/register') ||
+          url.includes('/auth/session');
 
         if (!isAuthEndpoint && !isHandling401) {
           isHandling401 = true;

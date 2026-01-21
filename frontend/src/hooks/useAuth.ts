@@ -2,7 +2,12 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUserStore } from '../store/userStore';
 import { useCycleStore } from '../store/cycleStore';
-import { login as loginApi, register as registerApi, logout as logoutApi, getSession } from '../services/authApi';
+import {
+  login as loginApi,
+  register as registerApi,
+  logout as logoutApi,
+  getSession,
+} from '../services/authApi';
 import { notifications } from '@mantine/notifications';
 import type { LoginData, RegisterData } from '../services/authApi';
 
@@ -38,7 +43,10 @@ export const useAuth = () => {
     } catch (error: any) {
       console.error('Login error:', error);
 
-      const message = error.response?.data?.message || error.message || 'Please check your credentials and try again';
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        'Please check your credentials and try again';
 
       notifications.show({
         title: 'Login failed',
@@ -72,7 +80,10 @@ export const useAuth = () => {
     } catch (error: any) {
       console.error('Registration error:', error);
 
-      const message = error.response?.data?.message || error.message || 'Please check your information and try again';
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        'Please check your information and try again';
 
       notifications.show({
         title: 'Registration failed',

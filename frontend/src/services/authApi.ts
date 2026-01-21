@@ -74,7 +74,10 @@ export const getSession = async (): Promise<SessionResponse> => {
 /**
  * Change password
  */
-export const changePassword = async (currentPassword: string, newPassword: string): Promise<{ message: string }> => {
+export const changePassword = async (
+  currentPassword: string,
+  newPassword: string
+): Promise<{ message: string }> => {
   const response = await axiosInstance.post('/auth/change-password', {
     currentPassword,
     newPassword,

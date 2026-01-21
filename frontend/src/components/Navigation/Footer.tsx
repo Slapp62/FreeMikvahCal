@@ -66,16 +66,40 @@ export function Footer() {
               <Text fw={700} size="sm" tt="uppercase" c="secondary">
                 Quick Links
               </Text>
-              <Anchor component={Link} to="/" c="dimmed" size="sm" style={{ textDecoration: 'none' }}>
+              <Anchor
+                component={Link}
+                to="/"
+                c="dimmed"
+                size="sm"
+                style={{ textDecoration: 'none' }}
+              >
                 Home
               </Anchor>
-              <Anchor component={Link} to="/about" c="dimmed" size="sm" style={{ textDecoration: 'none' }}>
+              <Anchor
+                component={Link}
+                to="/about"
+                c="dimmed"
+                size="sm"
+                style={{ textDecoration: 'none' }}
+              >
                 About
               </Anchor>
-              <Anchor component={Link} to="/login" c="dimmed" size="sm" style={{ textDecoration: 'none' }}>
+              <Anchor
+                component={Link}
+                to="/login"
+                c="dimmed"
+                size="sm"
+                style={{ textDecoration: 'none' }}
+              >
                 Login
               </Anchor>
-              <Anchor component={Link} to="/register" c="dimmed" size="sm" style={{ textDecoration: 'none' }}>
+              <Anchor
+                component={Link}
+                to="/register"
+                c="dimmed"
+                size="sm"
+                style={{ textDecoration: 'none' }}
+              >
                 Sign Up
               </Anchor>
             </Stack>
@@ -96,13 +120,31 @@ export function Footer() {
               >
                 GitHub
               </Anchor>
-              <Anchor href="https://mantine.dev" target="_blank" c="dimmed" size="sm" style={{ textDecoration: 'none' }}>
+              <Anchor
+                href="https://mantine.dev"
+                target="_blank"
+                c="dimmed"
+                size="sm"
+                style={{ textDecoration: 'none' }}
+              >
                 Mantine UI
               </Anchor>
-              <Anchor href="https://react.dev" target="_blank" c="dimmed" size="sm" style={{ textDecoration: 'none' }}>
+              <Anchor
+                href="https://react.dev"
+                target="_blank"
+                c="dimmed"
+                size="sm"
+                style={{ textDecoration: 'none' }}
+              >
                 React
               </Anchor>
-              <Anchor href="https://vitejs.dev" target="_blank" c="dimmed" size="sm" style={{ textDecoration: 'none' }}>
+              <Anchor
+                href="https://vitejs.dev"
+                target="_blank"
+                c="dimmed"
+                size="sm"
+                style={{ textDecoration: 'none' }}
+              >
                 Vite
               </Anchor>
             </Stack>
@@ -116,7 +158,12 @@ export function Footer() {
               </Text>
               <Group gap="xs">
                 <IconMail size={16} style={{ color: 'var(--mantine-color-dimmed)' }} />
-                <Anchor href="mailto:slapp62@gmail.com" c="dimmed" size="sm" style={{ textDecoration: 'none' }}>
+                <Anchor
+                  href="mailto:slapp62@gmail.com"
+                  c="dimmed"
+                  size="sm"
+                  style={{ textDecoration: 'none' }}
+                >
                   slapp62@gmail.com
                 </Anchor>
               </Group>
@@ -146,7 +193,11 @@ export function Footer() {
             <Text size="sm" c="dimmed">
               © {new Date().getFullYear()} FreeMikvahCal. Made with
             </Text>
-            <IconHeart size={16} style={{ color: 'var(--mantine-color-pink-6)' }} fill="var(--mantine-color-pink-6)" />
+            <IconHeart
+              size={16}
+              style={{ color: 'var(--mantine-color-pink-6)' }}
+              fill="var(--mantine-color-pink-6)"
+            />
             <Text size="sm" c="dimmed">
               by
             </Text>

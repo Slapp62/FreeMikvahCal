@@ -10,17 +10,19 @@ const userSchema = new Schema({
     unique: true,
     lowercase: true,
     trim: true,
-    match: [/^\S+@\S+\.\S+$/, 'Invalid email format']
+    match: [/^\S+@\S+\.\S+$/, 'Invalid email format'],
   },
   password: {
     type: String,
-    required: function() { return !this.googleId; },
-    minlength: 8
+    required: function () {
+      return !this.googleId;
+    },
+    minlength: 8,
   },
   googleId: {
     type: String,
     unique: true,
-    sparse: true
+    sparse: true,
   },
 
   // Profile
@@ -32,30 +34,31 @@ const userSchema = new Schema({
   // Location (CRITICAL for timezone-aware calculations)
   location: {
     city: String,
-    geonameId: Number,    // For Hebcal API
+    geonameId: Number, // For Hebcal API
     lat: Number,
     lng: Number,
-    timezone: {           // IANA timezone name (e.g., "Asia/Jerusalem")
+    timezone: {
+      // IANA timezone name (e.g., "Asia/Jerusalem")
       type: String,
       required: true,
-      default: 'UTC'      // Must be set during registration/onboarding
+      default: 'UTC', // Must be set during registration/onboarding
     },
-    _id: false
+    _id: false,
   },
 
   // Jewish Community Settings
   ethnicity: {
     type: String,
     enum: ['ashkenazi', 'sephardi', 'teimani', 'other'],
-    default: null
+    default: null,
   },
 
   // Halachic Stringencies (Chumras)
   halachicPreferences: {
-    ohrZaruah: { type: Boolean, default: false },      // Separate on preceding onah for all vesetim
-    kreisiUpleisi: { type: Boolean, default: false },  // 24-hour onah beinonit (day 30)
-    chasamSofer: { type: Boolean, default: false },    // Also observe day 31
-    _id: false
+    ohrZaruah: { type: Boolean, default: false }, // Separate on preceding onah for all vesetim
+    kreisiUpleisi: { type: Boolean, default: false }, // 24-hour onah beinonit (day 30)
+    chasamSofer: { type: Boolean, default: false }, // Also observe day 31
+    _id: false,
   },
 
   // Account Status
@@ -85,14 +88,14 @@ const userSchema = new Schema({
       timestamp: { type: Date, required: true },
       ipAddress: String,
       userAgent: String,
-      _id: false
+      _id: false,
     },
-    _id: false
+    _id: false,
   },
 
   // Timestamps
   createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
+  updatedAt: { type: Date, default: Date.now },
 });
 
 // Indexes
@@ -100,7 +103,7 @@ userSchema.index({ email: 1, isActive: 1 });
 userSchema.index({ isDeleted: 1, deletedAt: 1 });
 
 // Hash password before saving (if modified)
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function (next) {
   this.updatedAt = Date.now();
 
   // Only hash the password if it has been modified (or is new)
@@ -118,7 +121,7 @@ userSchema.pre('save', async function(next) {
 });
 
 // Custom validation
-userSchema.pre('validate', function(next) {
+userSchema.pre('validate', function (next) {
   if (!this.password && !this.googleId) {
     next(new Error('User must have either password or Google account'));
   }

@@ -52,7 +52,9 @@ export const getCurrentUser = async (): Promise<User> => {
 /**
  * Update current user
  */
-export const updateCurrentUser = async (data: UpdateUserData): Promise<{ message: string; user: User }> => {
+export const updateCurrentUser = async (
+  data: UpdateUserData
+): Promise<{ message: string; user: User }> => {
   const response = await axiosInstance.put('/users/me', data);
   return response.data;
 };
@@ -76,7 +78,9 @@ export const getPreferences = async (): Promise<Preferences> => {
 /**
  * Update user preferences
  */
-export const updatePreferences = async (data: Partial<Preferences>): Promise<{ message: string; preferences: Preferences }> => {
+export const updatePreferences = async (
+  data: Partial<Preferences>
+): Promise<{ message: string; preferences: Preferences }> => {
   const response = await axiosInstance.put('/users/preferences', data);
   return response.data;
 };

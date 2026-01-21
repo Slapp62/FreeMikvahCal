@@ -5,11 +5,8 @@ module.exports = {
     'services/**/*.js',
     'controllers/**/*.js',
     'middleware/**/*.js',
-    'utils/**/*.js'
+    'utils/**/*.js',
   ],
-  testMatch: [
-    '**/__tests__/**/*.js',
-    '**/*.test.js'
-  ],
-  verbose: true
+  testMatch: ['**/__tests__/**/*.js', '**/*.test.js'],
+  verbose: true,
 };

@@ -9,7 +9,7 @@ const connectAtlas = async () => {
 
   await mongoose.connect(uri, {
     retryWrites: true,
-    w: 'majority'
+    w: 'majority',
   });
 
   console.log('Connected to MongoDB Atlas');

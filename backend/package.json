@@ -7,7 +7,12 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "jest --coverage"
+    "test": "jest --coverage",
+    "lint": "eslint . --max-warnings 0",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --check .",
+    "format:fix": "prettier --write .",
+    "check": "npm run lint && npm run format"
   },
   "keywords": [],
   "author": "",
@@ -36,8 +41,11 @@
   },
   "devDependencies": {
     "eslint": "^9.18.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
     "jest": "^29.7.0",
     "nodemon": "^3.1.9",
+    "prettier": "^3.8.0",
     "supertest": "^7.0.0"
   }
 }

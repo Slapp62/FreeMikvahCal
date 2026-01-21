@@ -6,7 +6,10 @@ import { HDate } from '@hebcal/core';
  * @param format - Optional format: 'full' (default), 'short', or 'numeric'
  * @returns Hebrew date string (e.g., "15 Shevat 5785", "15 Shevat", or "15")
  */
-export function getHebrewDateString(date: Date, format: 'full' | 'short' | 'numeric' = 'short'): string {
+export function getHebrewDateString(
+  date: Date,
+  format: 'full' | 'short' | 'numeric' = 'short'
+): string {
   const hDate = new HDate(date);
 
   if (format === 'numeric') {

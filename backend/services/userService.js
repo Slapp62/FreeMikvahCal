@@ -35,10 +35,10 @@ const updateUser = async (userId, updateData) => {
     'dateOfBirth',
     'location',
     'ethnicity',
-    'halachicPreferences'
+    'halachicPreferences',
   ];
 
-  allowedFields.forEach(field => {
+  allowedFields.forEach((field) => {
     if (updateData[field] !== undefined) {
       if (field === 'location' || field === 'halachicPreferences') {
         // Merge nested objects
@@ -93,10 +93,10 @@ const updatePreferences = async (userId, updateData) => {
     'notifications',
     'privacyMode',
     'language',
-    'dataRetention'
+    'dataRetention',
   ];
 
-  allowedFields.forEach(field => {
+  allowedFields.forEach((field) => {
     if (updateData[field] !== undefined) {
       if (field === 'notifications' || field === 'dataRetention') {
         // Merge nested objects
@@ -157,5 +157,5 @@ module.exports = {
   getPreferences,
   updatePreferences,
   deleteUser,
-  completeOnboarding
+  completeOnboarding,
 };

@@ -10,44 +10,44 @@ import {
   Text,
   TextInput,
   Title,
-  virtualColor
-} from "@mantine/core";
-import type { MantineThemeOverride } from "@mantine/core";
+  virtualColor,
+} from '@mantine/core';
+import type { MantineThemeOverride } from '@mantine/core';
 
 export const myTheme: MantineThemeOverride = createTheme({
-  fontFamily: "Raleway, sans-serif",
+  fontFamily: 'Raleway, sans-serif',
 
   fontSizes: {
-    xs: rem("12px"),
-    sm: rem("14px"),
-    md: rem("16px"),
-    lg: rem("18px"),
-    xl: rem("20px"),
-    "2xl": rem("24px"),
-    "3xl": rem("30px"),
-    "4xl": rem("36px"),
-    "5xl": rem("48px"),
+    xs: rem('12px'),
+    sm: rem('14px'),
+    md: rem('16px'),
+    lg: rem('18px'),
+    xl: rem('20px'),
+    '2xl': rem('24px'),
+    '3xl': rem('30px'),
+    '4xl': rem('36px'),
+    '5xl': rem('48px'),
   },
 
   spacing: {
-    "3xs": rem("4px"),
-    "2xs": rem("8px"),
-    xs: rem("10px"),
-    sm: rem("12px"),
-    md: rem("16px"),
-    lg: rem("20px"),
-    xl: rem("24px"),
-    "2xl": rem("28px"),
-    "3xl": rem("32px"),
+    '3xs': rem('4px'),
+    '2xs': rem('8px'),
+    xs: rem('10px'),
+    sm: rem('12px'),
+    md: rem('16px'),
+    lg: rem('20px'),
+    xl: rem('24px'),
+    '2xl': rem('28px'),
+    '3xl': rem('32px'),
   },
 
   // Material Design-inspired border radius
   radius: {
-    xs: rem("4px"),
-    sm: rem("8px"),
-    md: rem("12px"),
-    lg: rem("16px"),
-    xl: rem("20px"),
+    xs: rem('4px'),
+    sm: rem('8px'),
+    md: rem('12px'),
+    lg: rem('16px'),
+    xl: rem('20px'),
   },
 
   // Material Design-inspired shadows
@@ -62,44 +62,44 @@ export const myTheme: MantineThemeOverride = createTheme({
   colors: {
     // Primary: Feminine Pink Scale
     pink: [
-      "#FEF5FC", // 0 - Lightest (backgrounds, hover states)
-      "#FDE8F7", // 1 - Very light
-      "#FCD3F0", // 2 - Light pink
-      "#FABAE5", // 3 - Soft pink
-      "#F79AD9", // 4 - Medium-light
-      "#F370CA", // 5 - Medium
-      "#E91E8C", // 6 - Brand primary (default)
-      "#C91A7A", // 7 - Medium-dark
-      "#A31666", // 8 - Dark
-      "#7D1150", // 9 - Darkest
+      '#FEF5FC', // 0 - Lightest (backgrounds, hover states)
+      '#FDE8F7', // 1 - Very light
+      '#FCD3F0', // 2 - Light pink
+      '#FABAE5', // 3 - Soft pink
+      '#F79AD9', // 4 - Medium-light
+      '#F370CA', // 5 - Medium
+      '#E91E8C', // 6 - Brand primary (default)
+      '#C91A7A', // 7 - Medium-dark
+      '#A31666', // 8 - Dark
+      '#7D1150', // 9 - Darkest
     ],
 
     // Secondary: Purple Scale
     purple: [
-      "#F5F3FF", // 0 - Lightest
-      "#EDE9FE", // 1 - Very light
-      "#DDD6FE", // 2 - Light
-      "#C4B5FD", // 3 - Soft purple
-      "#A78BFA", // 4 - Medium-light
-      "#8B5CF6", // 5 - Medium
-      "#7C3AED", // 6 - Brand secondary (default)
-      "#6D28D9", // 7 - Medium-dark
-      "#5B21B6", // 8 - Dark
-      "#4C1D95", // 9 - Darkest
+      '#F5F3FF', // 0 - Lightest
+      '#EDE9FE', // 1 - Very light
+      '#DDD6FE', // 2 - Light
+      '#C4B5FD', // 3 - Soft purple
+      '#A78BFA', // 4 - Medium-light
+      '#8B5CF6', // 5 - Medium
+      '#7C3AED', // 6 - Brand secondary (default)
+      '#6D28D9', // 7 - Medium-dark
+      '#5B21B6', // 8 - Dark
+      '#4C1D95', // 9 - Darkest
     ],
 
     // Accent: Indigo Scale
     indigo: [
-      "#EEF2FF", // 0 - Lightest
-      "#E0E7FF", // 1 - Very light
-      "#C7D2FE", // 2 - Light
-      "#A5B4FC", // 3 - Soft indigo
-      "#818CF8", // 4 - Medium-light
-      "#6366F1", // 5 - Medium (default)
-      "#4F46E5", // 6 - Brand accent
-      "#4338CA", // 7 - Medium-dark
-      "#3730A3", // 8 - Dark
-      "#312E81", // 9 - Darkest
+      '#EEF2FF', // 0 - Lightest
+      '#E0E7FF', // 1 - Very light
+      '#C7D2FE', // 2 - Light
+      '#A5B4FC', // 3 - Soft indigo
+      '#818CF8', // 4 - Medium-light
+      '#6366F1', // 5 - Medium (default)
+      '#4F46E5', // 6 - Brand accent
+      '#4338CA', // 7 - Medium-dark
+      '#3730A3', // 8 - Dark
+      '#312E81', // 9 - Darkest
     ],
 
     // Virtual color for semantic 'primary'
@@ -130,17 +130,17 @@ export const myTheme: MantineThemeOverride = createTheme({
   components: {
     Paper: Paper.extend({
       defaultProps: {
-        p: "md",
-        shadow: "md",
-        radius: "md",
+        p: 'md',
+        shadow: 'md',
+        radius: 'md',
         withBorder: true,
       },
     }),
 
     Button: Button.extend({
       defaultProps: {
-        radius: "md",
-        color: "primary",
+        radius: 'md',
+        color: 'primary',
       },
       styles: {
         root: {
@@ -152,37 +152,37 @@ export const myTheme: MantineThemeOverride = createTheme({
 
     Card: Card.extend({
       defaultProps: {
-        p: "xl",
-        shadow: "sm",
-        radius: "md",
+        p: 'xl',
+        shadow: 'sm',
+        radius: 'md',
         withBorder: true,
       },
     }),
 
     Modal: Modal.extend({
       defaultProps: {
-        radius: "md",
-        shadow: "xl",
+        radius: 'md',
+        shadow: 'xl',
         centered: true,
       },
     }),
 
     Input: Input.extend({
       defaultProps: {
-        radius: "md",
+        radius: 'md',
       },
     }),
 
     TextInput: TextInput.extend({
       defaultProps: {
-        radius: "md",
+        radius: 'md',
       },
     }),
 
     Select: Select.extend({
       defaultProps: {
-        checkIconPosition: "right",
-        radius: "md",
+        checkIconPosition: 'right',
+        radius: 'md',
       },
     }),
 

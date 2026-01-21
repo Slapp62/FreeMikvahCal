@@ -7,7 +7,7 @@ const cycleSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Users',
     required: true,
-    index: true
+    index: true,
   },
 
   // Cycle Dates (all stored as UTC)
@@ -17,15 +17,15 @@ const cycleSchema = new Schema({
 
   // Niddah Start Onah - Time range representing the actual onah period
   niddahOnah: {
-    start: { type: Date, required: true },  // Sunrise (day) or Sunset (night)
-    end: { type: Date, required: true },    // Sunset (day) or Sunrise (night)
-    _id: false
+    start: { type: Date, required: true }, // Sunrise (day) or Sunset (night)
+    end: { type: Date, required: true }, // Sunset (day) or Sunrise (night)
+    _id: false,
   },
 
   // Timezone info (CRITICAL for calculations)
   calculatedInTimezone: {
     type: String,
-    required: true  // IANA timezone name at time of creation
+    required: true, // IANA timezone name at time of creation
   },
 
   // Cycle Status
@@ -33,7 +33,7 @@ const cycleSchema = new Schema({
     type: String,
     enum: ['niddah', 'shiva_nekiyim', 'completed'],
     default: 'niddah',
-    index: true
+    index: true,
   },
 
   // Cycle Measurements
@@ -48,11 +48,11 @@ const cycleSchema = new Schema({
       ohrZaruah: {
         start: Date,
         end: Date,
-        _id: false
+        _id: false,
       },
       hebrewDate: String,
       dayOfWeek: Number,
-      _id: false
+      _id: false,
     },
     haflagah: {
       start: Date,
@@ -60,12 +60,12 @@ const cycleSchema = new Schema({
       ohrZaruah: {
         start: Date,
         end: Date,
-        _id: false
+        _id: false,
       },
       interval: Number,
       hebrewDate: String,
       dayOfWeek: Number,
-      _id: false
+      _id: false,
     },
     onahBeinonit: {
       start: Date,
@@ -73,25 +73,25 @@ const cycleSchema = new Schema({
       ohrZaruah: {
         start: Date,
         end: Date,
-        _id: false
+        _id: false,
       },
       kreisiUpleisi: {
         start: Date,
         end: Date,
-        _id: false
+        _id: false,
       },
       chasamSofer: {
         start: Date,
         end: Date,
-        _id: false
+        _id: false,
       },
       calculatedFrom: Number,
       averageLength: Number,
       hebrewDate: String,
       dayOfWeek: Number,
-      _id: false
+      _id: false,
     },
-    _id: false
+    _id: false,
   },
 
   // Applied Chumras (Halachic Stringencies)
@@ -99,30 +99,32 @@ const cycleSchema = new Schema({
     ohrZaruah: { type: Boolean, default: false },
     kreisiUpleisi: { type: Boolean, default: false },
     chasamSofer: { type: Boolean, default: false },
-    _id: false
+    _id: false,
   },
 
   // Bedikot tracking
-  bedikot: [{
-    date: { type: Date, required: true },
-    dayNumber: { type: Number, min: 1, max: 7 },
-    timeOfDay: {
-      type: String,
-      enum: ['morning', 'evening', 'both']
-    },
-    results: {
-      morning: {
+  bedikot: [
+    {
+      date: { type: Date, required: true },
+      dayNumber: { type: Number, min: 1, max: 7 },
+      timeOfDay: {
         type: String,
-        enum: ['clean', 'questionable', 'not_clean']
+        enum: ['morning', 'evening', 'both'],
       },
-      evening: {
-        type: String,
-        enum: ['clean', 'questionable', 'not_clean']
+      results: {
+        morning: {
+          type: String,
+          enum: ['clean', 'questionable', 'not_clean'],
+        },
+        evening: {
+          type: String,
+          enum: ['clean', 'questionable', 'not_clean'],
+        },
+        _id: false,
       },
-      _id: false
+      notes: { type: String, maxlength: 200 },
     },
-    notes: { type: String, maxlength: 200 }
-  }],
+  ],
 
   // Notes
   notes: { type: String, maxlength: 500 },
@@ -137,9 +139,9 @@ const cycleSchema = new Schema({
       vesetHachodesh: { type: Boolean, default: false },
       haflagah: { type: Boolean, default: false },
       onahBeinonit: { type: Boolean, default: false },
-      _id: false
+      _id: false,
     },
-    _id: false
+    _id: false,
   },
 
   // Soft delete
@@ -149,17 +151,17 @@ const cycleSchema = new Schema({
   // Auto-expire after 2 years
   expiresAt: {
     type: Date,
-    default: function() {
+    default: function () {
       const date = new Date();
       date.setFullYear(date.getFullYear() + 2);
       return date;
     },
-    index: { expireAfterSeconds: 0 }
+    index: { expireAfterSeconds: 0 },
   },
 
   // Timestamps
   createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
+  updatedAt: { type: Date, default: Date.now },
 });
 
 // Indexes
@@ -169,24 +171,22 @@ cycleSchema.index({ userId: 1, 'vestOnot.onahBeinonit': 1 });
 
 // PRE-SAVE HOOK: Update timestamp
 // NOTE: Business logic has been moved to service layer for better separation of concerns
-cycleSchema.pre('save', function(next) {
+cycleSchema.pre('save', function (next) {
   this.updatedAt = Date.now();
   next();
 });
 
 // PRE-VALIDATE HOOK: Ensure dates are logical
-cycleSchema.pre('validate', function(next) {
+cycleSchema.pre('validate', function (next) {
   if (this.hefsekTaharaDate && this.niddahOnah && this.niddahOnah.start) {
     if (this.hefsekTaharaDate < this.niddahOnah.start) {
-      this.invalidate('hefsekTaharaDate',
-        'Hefsek Tahara cannot be before Niddah start');
+      this.invalidate('hefsekTaharaDate', 'Hefsek Tahara cannot be before Niddah start');
     }
   }
 
   if (this.shivaNekiyimStartDate && this.hefsekTaharaDate) {
     if (this.shivaNekiyimStartDate < this.hefsekTaharaDate) {
-      this.invalidate('shivaNekiyimStartDate',
-        'Shiva Nekiyim cannot start before Hefsek Tahara');
+      this.invalidate('shivaNekiyimStartDate', 'Shiva Nekiyim cannot start before Hefsek Tahara');
     }
   }
 
@@ -195,8 +195,7 @@ cycleSchema.pre('validate', function(next) {
       (this.mikvahDate - this.shivaNekiyimStartDate) / (1000 * 60 * 60 * 24)
     );
     if (daysDiff < 7) {
-      this.invalidate('mikvahDate',
-        'Mikvah must be at least 7 days after Shiva Nekiyim start');
+      this.invalidate('mikvahDate', 'Mikvah must be at least 7 days after Shiva Nekiyim start');
     }
   }
 
@@ -205,17 +204,15 @@ cycleSchema.pre('validate', function(next) {
 
 // STATIC METHOD: Calculate cycle metrics (cycle length, haflagah)
 // Pure calculation - no database queries
-cycleSchema.statics.calculateCycleMetrics = function(niddahOnahStart, mikvahDate, lastCycle) {
+cycleSchema.statics.calculateCycleMetrics = function (niddahOnahStart, mikvahDate, lastCycle) {
   const metrics = {
     cycleLength: null,
-    haflagah: null
+    haflagah: null,
   };
 
   // Calculate cycle length
   if (mikvahDate) {
-    metrics.cycleLength = Math.ceil(
-      (mikvahDate - niddahOnahStart) / (1000 * 60 * 60 * 24)
-    );
+    metrics.cycleLength = Math.ceil((mikvahDate - niddahOnahStart) / (1000 * 60 * 60 * 24));
   }
 
   // Calculate haflagah (interval from last cycle)
@@ -230,7 +227,11 @@ cycleSchema.statics.calculateCycleMetrics = function(niddahOnahStart, mikvahDate
 
 // METHOD: Calculate vest onot with timezone awareness using time ranges
 // Pure calculation - requires previousCycles to be passed in (no database queries)
-cycleSchema.methods.calculateVestOnot = function(previousCycles, location, halachicPreferences = {}) {
+cycleSchema.methods.calculateVestOnot = function (
+  previousCycles,
+  location,
+  halachicPreferences = {}
+) {
   const { HDate, Location, Zmanim } = require('@hebcal/core');
   const { getOnahTimeRange } = require('../utils/hebrewDateTime');
 
@@ -257,7 +258,7 @@ cycleSchema.methods.calculateVestOnot = function(previousCycles, location, halac
     start: vesetRange.start,
     end: vesetRange.end,
     hebrewDate: vesetRange.hebrewDate,
-    dayOfWeek: vesetRange.dayOfWeek
+    dayOfWeek: vesetRange.dayOfWeek,
   };
 
   // Ohr Zaruah for Veset HaChodesh (preceding onah)
@@ -269,14 +270,14 @@ cycleSchema.methods.calculateVestOnot = function(previousCycles, location, halac
       const ozRange = getOnahTimeRange(nightBefore, location, false);
       this.vestOnot.vesetHachodesh.ohrZaruah = {
         start: ozRange.start,
-        end: ozRange.end
+        end: ozRange.end,
       };
     } else {
       // If original was night, Ohr Zaruah is day before (same Gregorian date)
       const ozRange = getOnahTimeRange(vesetDate, location, true);
       this.vestOnot.vesetHachodesh.ohrZaruah = {
         start: ozRange.start,
-        end: ozRange.end
+        end: ozRange.end,
       };
     }
   }
@@ -292,7 +293,7 @@ cycleSchema.methods.calculateVestOnot = function(previousCycles, location, halac
       end: haflagahRange.end,
       interval: this.haflagah,
       hebrewDate: haflagahRange.hebrewDate,
-      dayOfWeek: haflagahRange.dayOfWeek
+      dayOfWeek: haflagahRange.dayOfWeek,
     };
 
     // Ohr Zaruah for Haflagah (preceding onah)
@@ -303,13 +304,13 @@ cycleSchema.methods.calculateVestOnot = function(previousCycles, location, halac
         const ozRange = getOnahTimeRange(nightBefore, location, false);
         this.vestOnot.haflagah.ohrZaruah = {
           start: ozRange.start,
-          end: ozRange.end
+          end: ozRange.end,
         };
       } else {
         const ozRange = getOnahTimeRange(haflagahDate, location, true);
         this.vestOnot.haflagah.ohrZaruah = {
           start: ozRange.start,
-          end: ozRange.end
+          end: ozRange.end,
         };
       }
     }
@@ -325,7 +326,7 @@ cycleSchema.methods.calculateVestOnot = function(previousCycles, location, halac
     end: beinonitRange.end,
     calculatedFrom: 29,
     hebrewDate: beinonitRange.hebrewDate,
-    dayOfWeek: beinonitRange.dayOfWeek
+    dayOfWeek: beinonitRange.dayOfWeek,
   };
 
   // Kreisi Upleisi - Opposite onah same Hebrew day
@@ -333,7 +334,7 @@ cycleSchema.methods.calculateVestOnot = function(previousCycles, location, halac
     const kreisiRange = getOnahTimeRange(beinonitDate, location, !isDayOnah);
     this.vestOnot.onahBeinonit.kreisiUpleisi = {
       start: kreisiRange.start,
-      end: kreisiRange.end
+      end: kreisiRange.end,
     };
   }
 
@@ -345,13 +346,13 @@ cycleSchema.methods.calculateVestOnot = function(previousCycles, location, halac
       const ozRange = getOnahTimeRange(nightBefore, location, false);
       this.vestOnot.onahBeinonit.ohrZaruah = {
         start: ozRange.start,
-        end: ozRange.end
+        end: ozRange.end,
       };
     } else {
       const ozRange = getOnahTimeRange(beinonitDate, location, true);
       this.vestOnot.onahBeinonit.ohrZaruah = {
         start: ozRange.start,
-        end: ozRange.end
+        end: ozRange.end,
       };
     }
   }
@@ -363,13 +364,13 @@ cycleSchema.methods.calculateVestOnot = function(previousCycles, location, halac
     const chasamRange = getOnahTimeRange(chasamSoferDate, location, isDayOnah);
     this.vestOnot.onahBeinonit.chasamSofer = {
       start: chasamRange.start,
-      end: chasamRange.end
+      end: chasamRange.end,
     };
   }
 };
 
 // METHOD: Check if in shiva nekiyim period
-cycleSchema.methods.isInShivaNekiyim = function() {
+cycleSchema.methods.isInShivaNekiyim = function () {
   if (!this.shivaNekiyimStartDate || this.status === 'completed') {
     return false;
   }

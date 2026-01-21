@@ -42,5 +42,5 @@ const normalizeCycles = (cycles) => {
 module.exports = {
   normalizeUser,
   normalizeCycle,
-  normalizeCycles
+  normalizeCycles,
 };

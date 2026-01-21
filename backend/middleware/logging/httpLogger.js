@@ -12,13 +12,14 @@ morgan.token('correlation-id', (req) => {
 });
 
 // Create custom format with correlation ID
-const format = ':method :url :status :res[content-length] - :response-time ms - user::user-id - correlation::correlation-id';
+const format =
+  ':method :url :status :res[content-length] - :response-time ms - user::user-id - correlation::correlation-id';
 
 // Stream to Winston
 const stream = {
   write: (message) => {
     logger.info(message.trim());
-  }
+  },
 };
 
 const httpLogger = morgan(format, { stream });

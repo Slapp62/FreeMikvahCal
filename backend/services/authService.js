@@ -12,7 +12,16 @@ const { logAuth } = require('../utils/logHelpers');
  * @returns {Object} - Created user (normalized)
  */
 const register = async (userData, metadata = {}) => {
-  const { email, password, firstName, lastName, location, consents, ethnicity, halachicPreferences } = userData;
+  const {
+    email,
+    password,
+    firstName,
+    lastName,
+    location,
+    consents,
+    ethnicity,
+    halachicPreferences,
+  } = userData;
 
   // Check if user already exists
   const existingUser = await Users.findOne({ email: email.toLowerCase() });
@@ -26,8 +35,8 @@ const register = async (userData, metadata = {}) => {
       granted: consents.dataProcessing.granted,
       timestamp: new Date(),
       ipAddress: metadata.ipAddress || metadata.ip,
-      userAgent: metadata.userAgent
-    }
+      userAgent: metadata.userAgent,
+    },
   };
 
   // Create user (password will be hashed by pre-save hook)
@@ -42,14 +51,14 @@ const register = async (userData, metadata = {}) => {
     halachicPreferences,
     emailVerified: false,
     profileComplete: false,
-    onboardingCompleted: false
+    onboardingCompleted: false,
   });
 
   await user.save();
 
   // Create default preferences
   await Preferences.create({
-    userId: user._id
+    userId: user._id,
   });
 
   logAuth('register', user._id, { email: user.email });
@@ -144,5 +153,5 @@ module.exports = {
   login,
   getUserById,
   verifyPassword,
-  changePassword
+  changePassword,
 };

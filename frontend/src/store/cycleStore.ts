@@ -86,9 +86,7 @@ export const useCycleStore = create<CycleState>((set) => ({
   addCycle: (cycle) => set((state) => ({ cycles: [...state.cycles, cycle] })),
   updateCycle: (id, updates) =>
     set((state) => ({
-      cycles: state.cycles.map((cycle) =>
-        cycle._id === id ? { ...cycle, ...updates } : cycle
-      ),
+      cycles: state.cycles.map((cycle) => (cycle._id === id ? { ...cycle, ...updates } : cycle)),
     })),
   deleteCycle: (id) =>
     set((state) => ({

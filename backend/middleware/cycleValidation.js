@@ -1,4 +1,8 @@
-const { createCycleSchema, updateCycleSchema, addBedikaSchema } = require('../validation/Joi/cycleSchemas');
+const {
+  createCycleSchema,
+  updateCycleSchema,
+  addBedikaSchema,
+} = require('../validation/Joi/cycleSchemas');
 
 /**
  * Validate cycle creation
@@ -9,10 +13,10 @@ const validateCreateCycle = (req, res, next) => {
   if (error) {
     return res.status(400).json({
       message: 'Validation error',
-      errors: error.details.map(detail => ({
+      errors: error.details.map((detail) => ({
         field: detail.path.join('.'),
-        message: detail.message
-      }))
+        message: detail.message,
+      })),
     });
   }
 
@@ -28,10 +32,10 @@ const validateUpdateCycle = (req, res, next) => {
   if (error) {
     return res.status(400).json({
       message: 'Validation error',
-      errors: error.details.map(detail => ({
+      errors: error.details.map((detail) => ({
         field: detail.path.join('.'),
-        message: detail.message
-      }))
+        message: detail.message,
+      })),
     });
   }
 
@@ -47,10 +51,10 @@ const validateAddBedika = (req, res, next) => {
   if (error) {
     return res.status(400).json({
       message: 'Validation error',
-      errors: error.details.map(detail => ({
+      errors: error.details.map((detail) => ({
         field: detail.path.join('.'),
-        message: detail.message
-      }))
+        message: detail.message,
+      })),
     });
   }
 
@@ -60,5 +64,5 @@ const validateAddBedika = (req, res, next) => {
 module.exports = {
   validateCreateCycle,
   validateUpdateCycle,
-  validateAddBedika
+  validateAddBedika,
 };

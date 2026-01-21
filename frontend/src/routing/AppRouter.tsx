@@ -9,7 +9,7 @@ import HomePage from '../pages/home.page';
 
 // Lazy load all other pages
 const AboutPage = lazy(() => import('../pages/about.page'));
-const LoginPage = lazy(() => import('../pages/login.page').then(m => ({ default: m.LoginPage })));
+const LoginPage = lazy(() => import('../pages/login.page').then((m) => ({ default: m.LoginPage })));
 const RegisterPage = lazy(() => import('../pages/register.page'));
 const PageNotFound = lazy(() => import('../pages/404.page'));
 const CalendarPage = lazy(() => import('../pages/calendar.page'));

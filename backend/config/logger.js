@@ -10,9 +10,10 @@ if (!fs.existsSync(logsDir)) {
 }
 
 // Custom format to filter logs by type
-const filterByType = (type) => winston.format((info) => {
-  return info.type === type ? info : false;
-})();
+const filterByType = (type) =>
+  winston.format((info) => {
+    return info.type === type ? info : false;
+  })();
 
 // Log level configuration
 const getLogLevel = () => {
@@ -26,7 +27,7 @@ const logger = winston.createLogger({
   level: getLogLevel(),
   format: winston.format.combine(
     winston.format.timestamp({
-      format: 'YYYY-MM-DD HH:mm:ss'
+      format: 'YYYY-MM-DD HH:mm:ss',
     }),
     winston.format.errors({ stack: true }),
     winston.format.json()
@@ -37,7 +38,7 @@ const logger = winston.createLogger({
       filename: path.join(logsDir, 'application-%DATE%.log'),
       datePattern: 'YYYY-MM-DD',
       maxFiles: '14d',
-      level: getLogLevel()
+      level: getLogLevel(),
     }),
 
     // Errors only
@@ -45,7 +46,7 @@ const logger = winston.createLogger({
       filename: path.join(logsDir, 'error-%DATE%.log'),
       datePattern: 'YYYY-MM-DD',
       maxFiles: '30d',
-      level: 'error'
+      level: 'error',
     }),
 
     // Database operations
@@ -57,10 +58,10 @@ const logger = winston.createLogger({
       format: winston.format.combine(
         filterByType('database'),
         winston.format.timestamp({
-          format: 'YYYY-MM-DD HH:mm:ss'
+          format: 'YYYY-MM-DD HH:mm:ss',
         }),
         winston.format.json()
-      )
+      ),
     }),
 
     // Authentication logs
@@ -72,10 +73,10 @@ const logger = winston.createLogger({
       format: winston.format.combine(
         filterByType('auth'),
         winston.format.timestamp({
-          format: 'YYYY-MM-DD HH:mm:ss'
+          format: 'YYYY-MM-DD HH:mm:ss',
         }),
         winston.format.json()
-      )
+      ),
     }),
 
     // Security events
@@ -87,10 +88,10 @@ const logger = winston.createLogger({
       format: winston.format.combine(
         filterByType('security'),
         winston.format.timestamp({
-          format: 'YYYY-MM-DD HH:mm:ss'
+          format: 'YYYY-MM-DD HH:mm:ss',
         }),
         winston.format.json()
-      )
+      ),
     }),
 
     // Performance logs
@@ -102,26 +103,28 @@ const logger = winston.createLogger({
       format: winston.format.combine(
         filterByType('performance'),
         winston.format.timestamp({
-          format: 'YYYY-MM-DD HH:mm:ss'
+          format: 'YYYY-MM-DD HH:mm:ss',
         }),
         winston.format.json()
-      )
-    })
-  ]
+      ),
+    }),
+  ],
 });
 
 // Console logging for development
 if (process.env.NODE_ENV !== 'production') {
-  logger.add(new winston.transports.Console({
-    level: 'debug',
-    format: winston.format.combine(
-      winston.format.colorize(),
-      winston.format.printf(({ level, message, timestamp, type, ...meta }) => {
-        const metaStr = Object.keys(meta).length ? JSON.stringify(meta, null, 2) : '';
-        return `${timestamp} [${level}] ${type ? `[${type}] ` : ''}${message} ${metaStr}`;
-      })
-    )
-  }));
+  logger.add(
+    new winston.transports.Console({
+      level: 'debug',
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.printf(({ level, message, timestamp, type, ...meta }) => {
+          const metaStr = Object.keys(meta).length ? JSON.stringify(meta, null, 2) : '';
+          return `${timestamp} [${level}] ${type ? `[${type}] ` : ''}${message} ${metaStr}`;
+        })
+      ),
+    })
+  );
 }
 
 module.exports = logger;

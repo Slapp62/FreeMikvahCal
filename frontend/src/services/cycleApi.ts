@@ -60,7 +60,9 @@ export const getCycles = async (params?: {
 /**
  * Create a new cycle
  */
-export const createCycle = async (data: CreateCycleData): Promise<{ message: string; cycle: Cycle }> => {
+export const createCycle = async (
+  data: CreateCycleData
+): Promise<{ message: string; cycle: Cycle }> => {
   const response = await axiosInstance.post('/cycles', data);
   return response.data;
 };
@@ -76,7 +78,10 @@ export const getCycle = async (id: string): Promise<Cycle> => {
 /**
  * Update a cycle
  */
-export const updateCycle = async (id: string, data: UpdateCycleData): Promise<{ message: string; cycle: Cycle }> => {
+export const updateCycle = async (
+  id: string,
+  data: UpdateCycleData
+): Promise<{ message: string; cycle: Cycle }> => {
   const response = await axiosInstance.put(`/cycles/${id}`, data);
   return response.data;
 };
@@ -110,7 +115,10 @@ export const getUpcomingVestOnot = async (days: number = 30): Promise<any[]> => 
 /**
  * Add bedika to a cycle
  */
-export const addBedika = async (cycleId: string, data: AddBedikaData): Promise<{ message: string; cycle: Cycle }> => {
+export const addBedika = async (
+  cycleId: string,
+  data: AddBedikaData
+): Promise<{ message: string; cycle: Cycle }> => {
   const response = await axiosInstance.post(`/cycles/${cycleId}/bedikot`, data);
   return response.data;
 };

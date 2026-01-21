@@ -13,12 +13,12 @@ const validateEnv = () => {
     required.push(mongoVar);
   }
 
-  const missing = required.filter(varName => !process.env[varName]);
+  const missing = required.filter((varName) => !process.env[varName]);
 
   if (missing.length > 0) {
     throw new Error(
       `Missing required environment variables: ${missing.join(', ')}\n` +
-      'Please check your .env file.'
+        'Please check your .env file.'
     );
   }
 
@@ -27,7 +27,7 @@ const validateEnv = () => {
     if (process.env.SESSION_SECRET === 'change-this-secret-in-production') {
       throw new Error(
         'SESSION_SECRET must be changed in production. ' +
-        'Using the default value is a critical security risk.'
+          'Using the default value is a critical security risk.'
       );
     }
 

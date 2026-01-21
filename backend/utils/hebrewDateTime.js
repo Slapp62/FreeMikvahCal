@@ -71,7 +71,7 @@ const getHebrewDateForTimestamp = (timestamp, location) => {
     onah: isAfterSunset ? 'night' : 'day',
     sunset: sunset,
     sunrise: sunrise,
-    isAfterSunset: isAfterSunset
+    isAfterSunset: isAfterSunset,
   };
 };
 
@@ -119,7 +119,7 @@ const formatDateInTimezone = (date, timezone, options = {}) => {
     hour: '2-digit',
     minute: '2-digit',
     hour12: false,
-    timeZone: timezone
+    timeZone: timezone,
   };
 
   const finalOptions = { ...defaultOptions, ...options };
@@ -200,7 +200,7 @@ const getZmanim = (date, location) => {
     minchaGedola: zmanim.minchaGedola(),
     minchaKetana: zmanim.minchaKetana(),
     plagHaMincha: zmanim.plagHaMincha(),
-    tzeit: zmanim.tzeit()
+    tzeit: zmanim.tzeit(),
   };
 };
 
@@ -244,7 +244,7 @@ const getOnahTimeRange = (date, location, isDayOnah) => {
     end,
     hebrewDate: hDate.toString(),
     hebrewDateShort: `${hDate.getDate()} ${hDate.getMonthName()}`,
-    dayOfWeek: date.getDay()
+    dayOfWeek: date.getDay(),
   };
 };
 
@@ -269,7 +269,7 @@ const getVestInfo = (date, location, matchingOnah) => {
     hebrewDateShort: `${hDate.getDate()} ${hDate.getMonthName()}`,
     dayOfWeek: date.getDay(),
     sunset: zmanim.sunset(),
-    sunrise: zmanim.sunrise()
+    sunrise: zmanim.sunrise(),
   };
 };
 
@@ -331,6 +331,6 @@ module.exports = {
   isValidTimezone,
   getZmanim,
   getOnahTimeRange,
-  getVestInfo,  // Deprecated, but kept for backward compatibility
-  parseUserDateTime
+  getVestInfo, // Deprecated, but kept for backward compatibility
+  parseUserDateTime,
 };

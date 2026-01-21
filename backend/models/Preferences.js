@@ -6,7 +6,7 @@ const preferencesSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Users',
     required: true,
-    unique: true
+    unique: true,
   },
 
   // Calendar Preferences
@@ -21,7 +21,7 @@ const preferencesSchema = new Schema({
     mikvahReminder: { type: Boolean, default: true },
     vestOnotReminder: { type: Boolean, default: true },
     reminderTime: { type: String, default: '09:00' },
-    _id: false
+    _id: false,
   },
 
   // Privacy
@@ -31,7 +31,7 @@ const preferencesSchema = new Schema({
   language: {
     type: String,
     enum: ['he', 'en'],
-    default: 'he'
+    default: 'he',
   },
 
   // Data Retention
@@ -40,20 +40,20 @@ const preferencesSchema = new Schema({
       type: Number,
       default: 24,
       min: 12,
-      max: 48
+      max: 48,
     },
     autoDelete: {
       type: Boolean,
-      default: true
+      default: true,
     },
-    _id: false
+    _id: false,
   },
 
   createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
+  updatedAt: { type: Date, default: Date.now },
 });
 
-preferencesSchema.pre('save', function(next) {
+preferencesSchema.pre('save', function (next) {
   this.updatedAt = Date.now();
   next();
 });

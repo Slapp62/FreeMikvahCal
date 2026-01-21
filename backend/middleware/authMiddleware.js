@@ -25,5 +25,5 @@ const userOwnsResource = (req, res, next) => {
 
 module.exports = {
   authenticateUser,
-  userOwnsResource
+  userOwnsResource,
 };

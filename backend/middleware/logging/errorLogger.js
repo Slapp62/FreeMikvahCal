@@ -8,7 +8,7 @@ const errorLogger = (error, req, res, next) => {
     method: req.method,
     userId: req.user?._id,
     body: req.body,
-    params: req.params
+    params: req.params,
   });
 
   next(error);

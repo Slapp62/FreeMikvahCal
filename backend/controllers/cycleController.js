@@ -11,14 +11,14 @@ const getUserCycles = async (req, res, next) => {
     const options = {
       limit: limit ? parseInt(limit) : 50,
       skip: skip ? parseInt(skip) : 0,
-      status
+      status,
     };
 
     const cycles = await cycleService.getUserCycles(req.user._id, options);
 
     res.status(200).json({
       count: cycles.length,
-      cycles
+      cycles,
     });
   } catch (error) {
     next(error);
@@ -35,7 +35,7 @@ const createCycle = async (req, res, next) => {
 
     res.status(201).json({
       message: 'Cycle created successfully',
-      cycle
+      cycle,
     });
   } catch (error) {
     next(error);
@@ -65,7 +65,7 @@ const updateCycle = async (req, res, next) => {
 
     res.status(200).json({
       message: 'Cycle updated successfully',
-      cycle
+      cycle,
     });
   } catch (error) {
     next(error);
@@ -95,7 +95,7 @@ const addBedika = async (req, res, next) => {
 
     res.status(201).json({
       message: 'Bedika added successfully',
-      cycle
+      cycle,
     });
   } catch (error) {
     next(error);
@@ -115,7 +115,7 @@ const getActiveCycle = async (req, res, next) => {
     } else {
       res.status(200).json({
         message: 'No active cycle',
-        cycle: null
+        cycle: null,
       });
     }
   } catch (error) {
@@ -136,7 +136,7 @@ const getUpcomingVestOnot = async (req, res, next) => {
 
     res.status(200).json({
       count: vestOnot.length,
-      vestOnot
+      vestOnot,
     });
   } catch (error) {
     next(error);
@@ -154,14 +154,14 @@ const getCalendarEvents = async (req, res, next) => {
     const options = {
       limit: limit ? parseInt(limit) : 50,
       skip: skip ? parseInt(skip) : 0,
-      status
+      status,
     };
 
     const events = await cycleService.getCalendarEvents(req.user._id, options);
 
     res.status(200).json({
       count: events.length,
-      events
+      events,
     });
   } catch (error) {
     next(error);
@@ -177,5 +177,5 @@ module.exports = {
   addBedika,
   getActiveCycle,
   getUpcomingVestOnot,
-  getCalendarEvents
+  getCalendarEvents,
 };

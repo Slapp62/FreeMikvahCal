@@ -9,10 +9,10 @@ const validateUserUpdate = (req, res, next) => {
   if (error) {
     return res.status(400).json({
       message: 'Validation error',
-      errors: error.details.map(detail => ({
+      errors: error.details.map((detail) => ({
         field: detail.path.join('.'),
-        message: detail.message
-      }))
+        message: detail.message,
+      })),
     });
   }
 
@@ -28,10 +28,10 @@ const validatePreferencesUpdate = (req, res, next) => {
   if (error) {
     return res.status(400).json({
       message: 'Validation error',
-      errors: error.details.map(detail => ({
+      errors: error.details.map((detail) => ({
         field: detail.path.join('.'),
-        message: detail.message
-      }))
+        message: detail.message,
+      })),
     });
   }
 
@@ -40,5 +40,5 @@ const validatePreferencesUpdate = (req, res, next) => {
 
 module.exports = {
   validateUserUpdate,
-  validatePreferencesUpdate
+  validatePreferencesUpdate,
 };

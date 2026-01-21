@@ -30,7 +30,8 @@ export function Header() {
       <Box
         component="header"
         style={{
-          borderBottom: '1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-5))',
+          borderBottom:
+            '1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-5))',
           backgroundColor: 'light-dark(var(--mantine-color-white), var(--mantine-color-dark-7))',
           position: 'sticky',
           top: 0,
@@ -48,7 +49,8 @@ export function Header() {
                     width: 40,
                     height: 40,
                     borderRadius: 'var(--mantine-radius-md)',
-                    background: 'linear-gradient(135deg, var(--mantine-color-pink-6) 0%, var(--mantine-color-purple-6) 100%)',
+                    background:
+                      'linear-gradient(135deg, var(--mantine-color-pink-6) 0%, var(--mantine-color-purple-6) 100%)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -60,7 +62,8 @@ export function Header() {
                   size="xl"
                   fw={800}
                   style={{
-                    background: 'linear-gradient(135deg, var(--mantine-color-pink-6) 0%, var(--mantine-color-purple-6) 100%)',
+                    background:
+                      'linear-gradient(135deg, var(--mantine-color-pink-6) 0%, var(--mantine-color-purple-6) 100%)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
                     backgroundClip: 'text',
@@ -75,18 +78,33 @@ export function Header() {
             {/* Desktop Navigation */}
             <Group gap="xl" visibleFrom="md">
               <Link to="/" style={{ textDecoration: 'none' }}>
-                <Text fw={600} c="dimmed" style={{ transition: 'color 150ms' }} className="nav-link">
+                <Text
+                  fw={600}
+                  c="dimmed"
+                  style={{ transition: 'color 150ms' }}
+                  className="nav-link"
+                >
                   Home
                 </Text>
               </Link>
               <Link to="/about" style={{ textDecoration: 'none' }}>
-                <Text fw={600} c="dimmed" style={{ transition: 'color 150ms' }} className="nav-link">
+                <Text
+                  fw={600}
+                  c="dimmed"
+                  style={{ transition: 'color 150ms' }}
+                  className="nav-link"
+                >
                   About
                 </Text>
               </Link>
               {user && (
                 <Link to="/calendar" style={{ textDecoration: 'none' }}>
-                  <Text fw={600} c="dimmed" style={{ transition: 'color 150ms' }} className="nav-link">
+                  <Text
+                    fw={600}
+                    c="dimmed"
+                    style={{ transition: 'color 150ms' }}
+                    className="nav-link"
+                  >
                     Calendar
                   </Text>
                 </Link>
@@ -100,13 +118,24 @@ export function Header() {
                   <Button component={Link} to="/login" variant="subtle" color="secondary">
                     Login
                   </Button>
-                  <Button component={Link} to="/register" variant="gradient" gradient={{ from: 'pink', to: 'purple' }}>
+                  <Button
+                    component={Link}
+                    to="/register"
+                    variant="gradient"
+                    gradient={{ from: 'pink', to: 'purple' }}
+                  >
                     Sign Up
                   </Button>
                 </>
               ) : (
                 <>
-                  <ActionIcon component={Link} to="/settings" variant="subtle" color="secondary" size="lg">
+                  <ActionIcon
+                    component={Link}
+                    to="/settings"
+                    variant="subtle"
+                    color="secondary"
+                    size="lg"
+                  >
                     <IconSettings size={20} />
                   </ActionIcon>
                   <Button variant="subtle" color="secondary" onClick={logoutHandler}>
@@ -139,7 +168,8 @@ export function Header() {
                 width: 32,
                 height: 32,
                 borderRadius: 'var(--mantine-radius-md)',
-                background: 'linear-gradient(135deg, var(--mantine-color-pink-6) 0%, var(--mantine-color-purple-6) 100%)',
+                background:
+                  'linear-gradient(135deg, var(--mantine-color-pink-6) 0%, var(--mantine-color-purple-6) 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -184,7 +214,13 @@ export function Header() {
             <Stack gap="sm">
               {!user ? (
                 <>
-                  <Button component={Link} to="/login" onClick={closeDrawer} variant="outline" fullWidth>
+                  <Button
+                    component={Link}
+                    to="/login"
+                    onClick={closeDrawer}
+                    variant="outline"
+                    fullWidth
+                  >
                     Login
                   </Button>
                   <Button

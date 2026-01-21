@@ -4,7 +4,11 @@ const { authenticateUser } = require('../middleware/authMiddleware');
 const { apiLimiter } = require('../middleware/rateLimiter');
 const { validateObjectId } = require('../middleware/validateObjectId');
 const cycleController = require('../controllers/cycleController');
-const { validateCreateCycle, validateUpdateCycle, validateAddBedika } = require('../middleware/cycleValidation');
+const {
+  validateCreateCycle,
+  validateUpdateCycle,
+  validateAddBedika,
+} = require('../middleware/cycleValidation');
 
 // Apply middleware to all routes
 router.use(apiLimiter);

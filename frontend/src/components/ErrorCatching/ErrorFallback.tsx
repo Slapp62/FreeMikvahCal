@@ -18,18 +18,13 @@ const ErrorFallback = ({ error, errorInfo, onReset }: ErrorFallbackProps) => {
             Something went wrong
           </Title>
 
-          <Text>
-            We apologize for the inconvenience. An error occurred while loading the page.
-          </Text>
+          <Text>We apologize for the inconvenience. An error occurred while loading the page.</Text>
 
           <Button onClick={onReset} variant="filled">
             Try Again
           </Button>
 
-          <Button
-            onClick={() => (window.location.href = '/')}
-            variant="outline"
-          >
+          <Button onClick={() => (window.location.href = '/')} variant="outline">
             Go to Home
           </Button>
 

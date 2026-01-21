@@ -9,7 +9,7 @@ const logAuth = (action, userId, metadata = {}) => {
     action,
     userId,
     timestamp: new Date().toISOString(),
-    ...metadata
+    ...metadata,
   });
 };
 
@@ -22,7 +22,7 @@ const logDatabase = (operation, model, metadata = {}) => {
     operation,
     model,
     timestamp: new Date().toISOString(),
-    ...metadata
+    ...metadata,
   });
 };
 
@@ -34,7 +34,7 @@ const logSecurity = (eventType, metadata = {}) => {
     type: 'security',
     eventType,
     timestamp: new Date().toISOString(),
-    ...metadata
+    ...metadata,
   });
 };
 
@@ -50,7 +50,7 @@ const logError = (error, context = {}) => {
     statusCode: error.status || 500,
     isOperational: error.isOperational || false,
     timestamp: new Date().toISOString(),
-    ...context
+    ...context,
   });
 };
 
@@ -65,7 +65,7 @@ const logPerformance = (operation, duration, metadata = {}) => {
     duration,
     isSlow: duration > 1000,
     timestamp: new Date().toISOString(),
-    ...metadata
+    ...metadata,
   });
 };
 
@@ -78,7 +78,7 @@ const logValidation = (validationType, errors, metadata = {}) => {
     validationType,
     errors,
     timestamp: new Date().toISOString(),
-    ...metadata
+    ...metadata,
   });
 };
 
@@ -90,7 +90,7 @@ const logBusiness = (event, metadata = {}) => {
     type: 'business',
     event,
     timestamp: new Date().toISOString(),
-    ...metadata
+    ...metadata,
   });
 };
 
@@ -102,7 +102,7 @@ const logDebug = (message, metadata = {}) => {
     logger.debug(message, {
       type: 'debug',
       timestamp: new Date().toISOString(),
-      ...metadata
+      ...metadata,
     });
   }
 };
@@ -115,5 +115,5 @@ module.exports = {
   logPerformance,
   logValidation,
   logBusiness,
-  logDebug
+  logDebug,
 };

@@ -29,8 +29,8 @@ const migrateUsers = async () => {
     $or: [
       { 'location.timezone': { $exists: false } },
       { 'location.timezone': null },
-      { 'location.timezone': '' }
-    ]
+      { 'location.timezone': '' },
+    ],
   });
 
   console.log(`Found ${usersWithoutTimezone.length} users without timezone`);
@@ -72,7 +72,7 @@ const migrateCycles = async () => {
   console.log('Starting cycle migration...');
 
   const cyclesWithoutTimezone = await Cycles.find({
-    calculatedInTimezone: { $exists: false }
+    calculatedInTimezone: { $exists: false },
   }).populate('userId', 'location');
 
   console.log(`Found ${cyclesWithoutTimezone.length} cycles without timezone info`);
@@ -94,14 +94,11 @@ const migrateCycles = async () => {
       const location = {
         lat: user.location.lat,
         lng: user.location.lng,
-        timezone: user.location.timezone
+        timezone: user.location.timezone,
       };
 
       // Calculate Hebrew date info for niddah start
-      const hebrewInfo = getHebrewDateForTimestamp(
-        cycle.niddahStartDate,
-        location
-      );
+      const hebrewInfo = getHebrewDateForTimestamp(cycle.niddahStartDate, location);
 
       // Update timezone fields
       cycle.calculatedInTimezone = location.timezone;
@@ -115,8 +112,8 @@ const migrateCycles = async () => {
           $set: {
             calculatedInTimezone: location.timezone,
             niddahStartSunset: hebrewInfo.sunset,
-            niddahStartOnah: hebrewInfo.onah
-          }
+            niddahStartOnah: hebrewInfo.onah,
+          },
         }
       );
 
@@ -175,9 +172,8 @@ const runMigration = async () => {
     logger.info('Timezone migration completed', {
       usersUpdated,
       cyclesUpdated: updated,
-      cyclesFailed: failed
+      cyclesFailed: failed,
     });
-
   } catch (error) {
     console.error('Migration failed:', error);
     logger.error('Timezone migration failed', { error: error.message });

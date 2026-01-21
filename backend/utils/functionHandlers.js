@@ -22,12 +22,12 @@ const nextError = (next, statusCode, message) => {
 const handleError = (res, statusCode, message) => {
   res.status(statusCode).json({
     error: true,
-    message: message || 'An error occurred'
+    message: message || 'An error occurred',
   });
 };
 
 module.exports = {
   throwError,
   nextError,
-  handleError
+  handleError,
 };

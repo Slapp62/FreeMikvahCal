@@ -11,7 +11,7 @@ const getLocations = async (req, res, next) => {
 
     res.status(200).json({
       count: results.length,
-      locations: results
+      locations: results,
     });
   } catch (error) {
     next(error);
@@ -19,5 +19,5 @@ const getLocations = async (req, res, next) => {
 };
 
 module.exports = {
-  getLocations
+  getLocations,
 };
