@@ -11,10 +11,9 @@ type OtherEventValues = {
 
 type Props = {
     close: () => void;
-    dateClicked: string;
 }
 
-const OtherEventForm = ({ close, dateClicked }: Props) => {
+const OtherEventForm = ({ close }: Props) => {
     const { register, handleSubmit } = useForm<OtherEventValues>({
         defaultValues: {
             time: '12:00',
@@ -23,7 +22,7 @@ const OtherEventForm = ({ close, dateClicked }: Props) => {
     });
     const [timeValue, setTimeValue] = useState('12:00');
 
-    const onSubmit = async (formData: OtherEventValues) => {
+    const onSubmit = async () => {
         // TODO: Implement API endpoint for other events (stains, etc.)
         // For now, just show info message
         notifications.show({

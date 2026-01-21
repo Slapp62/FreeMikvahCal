@@ -26,7 +26,7 @@ const BedikahForm = ({ close, dateClicked }: Props) => {
     const [activeCycles, setActiveCycles] = useState<Cycle[]>([]);
     const [loading, setLoading] = useState(true);
 
-    const { register, handleSubmit, control, watch } = useForm<BedikahValues>({
+    const { register, handleSubmit, control } = useForm<BedikahValues>({
         defaultValues: {
             time: '12:00',
             dayNumber: 1,
@@ -36,7 +36,7 @@ const BedikahForm = ({ close, dateClicked }: Props) => {
         }
     });
     const [timeValue, setTimeValue] = useState('12:00');
-    const timeOfDay = watch('timeOfDay');
+    //const timeOfDay = watch('timeOfDay');
 
     // Fetch only cycles in shiva_nekiyim status from server
     useEffect(() => {

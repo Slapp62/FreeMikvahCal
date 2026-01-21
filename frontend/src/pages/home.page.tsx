@@ -34,7 +34,7 @@ const HomePage = () => {
             <Box
                 py={80}
                 style={{
-                    background: 'linear-gradient(135deg, var(--mantine-color-pink-6) 0%, var(--mantine-color-purple-6) 100%)',
+                    background: 'linear-gradient(135deg, var(--mantine-color-pink-3) 0%, var(--mantine-color-purple-3) 100%)',
                 }}
             >
                 <Container size="lg">
@@ -43,16 +43,16 @@ const HomePage = () => {
                             order={1}
                             size="3.5rem"
                             ta="center"
-                            c="white"
+                            c="pink.7"
                             fw={800}
                             style={{ lineHeight: 1.2 }}
                         >
                             The Free Mikvah Calendar
                         </Title>
-                        <Title order={2} size="1.8rem" ta="center" c="pink.0" fw={500}>
+                        <Title order={2} size="1.8rem" ta="center" c="pink.6" fw={500}>
                             Making family purity easy for everyone
                         </Title>
-                        <Text size="xl" ta="center" c="white" maw={700}>
+                        <Text size="xl" ta="center" c="pink.9" maw={700}>
                             Automatically calculate halachic dates, track your cycle, and receive reminders
                             — all customized to your minhagim. 100% free, forever.
                         </Text>
@@ -76,17 +76,17 @@ const HomePage = () => {
                                 to="/about"
                                 size="xl"
                                 radius="md"
-                                variant="outline"
-                                c="white"
+                                variant="subtle"
+                                c="pink.6"
                                 style={{
-                                    borderColor: 'white',
+                                    borderColor: 'pink.6',
                                     borderWidth: 2,
                                 }}
                             >
                                 Learn More
                             </Button>
                         </Group>
-                        <Text size="sm" c="pink.0" mt="xs">
+                        <Text size="sm" c="pink.9" mt="xs">
                             Join hundreds of women tracking their cycles with confidence
                         </Text>
                     </Stack>

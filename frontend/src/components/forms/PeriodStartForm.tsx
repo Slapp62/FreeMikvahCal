@@ -1,13 +1,11 @@
-import { Button, Stack, Textarea } from "@mantine/core"
-import { TimeInput } from "@mantine/dates"
+import { Button, Stack, Textarea, Radio, Group } from "@mantine/core"
 import { notifications } from "@mantine/notifications"
-import { useForm } from "react-hook-form"
+import { useForm, Controller } from "react-hook-form"
 import { useCycleStore } from "../../store/cycleStore"
 import { createCycle } from "../../services/cycleApi"
-import { useState } from "react"
 
 type PeriodStartValues = {
-    time: string;
+    onah: 'day' | 'night';
     notes?: string;
 }
 
@@ -19,24 +17,27 @@ type Props = {
 const PeriodStartForm = ({ close, dateClicked }: Props) => {
     const addCycle = useCycleStore((state) => state.addCycle);
     const triggerRefetch = useCycleStore((state) => state.triggerRefetch);
-    const { register, handleSubmit } = useForm<PeriodStartValues>({
+    
+    const { register, handleSubmit, control } = useForm<PeriodStartValues>({
         defaultValues: {
-            time: '12:00',
+            onah: 'day',
             notes: '',
         }
     });
-    const [timeValue, setTimeValue] = useState('12:00');
 
     const onSubmit = async (formData: PeriodStartValues) => {
+        // Map the radio selection to "dummy" times
+        // 08:00 is safely 'Day' and 22:00 is safely 'Night' for almost all latitudes
+        const timeString = formData.onah === 'day' ? '08:00' : '20:00';
+
         try {
             const result = await createCycle({
                 dateString: dateClicked,
-                timeString: timeValue,
+                timeString: timeString,
                 notes: formData.notes,
             });
 
             addCycle(result.cycle);
-
             notifications.show({
                 title: 'Success',
                 message: 'Period start event created successfully',
@@ -47,36 +48,34 @@ const PeriodStartForm = ({ close, dateClicked }: Props) => {
             close();
         } catch (error: any) {
             const errorMessage = error.response?.data?.message || 'Failed to create event';
-
-            // Special handling for location errors
-            if (errorMessage.toLowerCase().includes('location') ||
-                errorMessage.toLowerCase().includes('timezone')) {
-                notifications.show({
-                    title: 'Profile Setup Required',
-                    message: 'Please set your location (city and timezone) in your profile settings before creating events.',
-                    color: 'orange',
-                    autoClose: 8000,
-                });
-            } else {
-                notifications.show({
-                    title: 'Error',
-                    message: errorMessage,
-                    color: 'red',
-                });
-            }
+            notifications.show({
+                title: 'Error',
+                message: errorMessage,
+                color: 'red',
+            });
         }
     };
 
     return (
         <form onSubmit={handleSubmit(onSubmit)}>
-            <Stack align='center' justify='center' w='90%' mx='auto'>
-                <TimeInput
-                    label="Time of Day"
-                    description="When did your period start?"
-                    value={timeValue}
-                    onChange={(event) => setTimeValue(event.target.value)}
-                    required
-                    w='100%'
+            <Stack align='center' justify='center' w='90%' mx='auto' gap="md">
+                <Controller
+                    name="onah"
+                    control={control}
+                    render={({ field }) => (
+                        <Radio.Group
+                            label="Time of Day"
+                            description="Did the period start before or after sunset?"
+                            required
+                            {...field}
+                            w='100%'
+                        >
+                            <Group mt="xs">
+                                <Radio value="day" label="Before Sunset (Day)" />
+                                <Radio value="night" label="After Sunset (Night)" />
+                            </Group>
+                        </Radio.Group>
+                    )}
                 />
 
                 <Textarea
@@ -87,10 +86,7 @@ const PeriodStartForm = ({ close, dateClicked }: Props) => {
                     {...register('notes')}
                 />
 
-                <Button
-                    type='submit'
-                    fullWidth
-                >
+                <Button type='submit' fullWidth>
                     Add Period Start
                 </Button>
             </Stack>
@@ -98,4 +94,4 @@ const PeriodStartForm = ({ close, dateClicked }: Props) => {
     );
 }
 
-export default PeriodStartForm
+export default PeriodStartForm;

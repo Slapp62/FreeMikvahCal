@@ -6,7 +6,7 @@ import { updateCurrentUser, getCurrentUser } from "../services/userApi";
 import { IconInfoCircle } from "@tabler/icons-react";
 
 const EditUserSettings = () => {
-    const user = useUserStore((state) => state.user);
+    //const user = useUserStore((state) => state.user);
     const updateUser = useUserStore((state) => state.updateUser);
     const [loading, setLoading] = useState(false);
     const [isFetching, setIsFetching] = useState(true);

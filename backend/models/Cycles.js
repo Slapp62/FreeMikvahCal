@@ -297,13 +297,13 @@ cycleSchema.methods.calculateVestOnot = function(previousCycles, location, halac
     }
   }
 
-  // 3. Onah Beinonit - Fixed 30-day calculation
+  // 3. Onah Beinonit - Fixed 29-day calculation
   const beinonitDate = new Date(this.niddahStartDate);
-  beinonitDate.setDate(beinonitDate.getDate() + 30);
+  beinonitDate.setDate(beinonitDate.getDate() + 29);
   this.vestOnot.onahBeinonit = getVestInfo(beinonitDate, location, matchingOnah);
-  this.vestOnot.onahBeinonit.calculatedFrom = 30;
+  this.vestOnot.onahBeinonit.calculatedFrom = 29;
 
-  // Kreisi Upleisi - Add opposite onah for day 30 (if enabled)
+  // Kreisi Upleisi - Add opposite onah for day 29 (if enabled)
   if (halachicPreferences.kreisiUpleisi) {
     this.vestOnot.onahBeinonit.kreisiUpleisi = getVestInfo(beinonitDate, location, oppositeOnah);
   }
@@ -315,10 +315,10 @@ cycleSchema.methods.calculateVestOnot = function(previousCycles, location, halac
     this.vestOnot.onahBeinonit.ohrZaruah = getVestInfo(ozDate, location, oppositeOnah);
   }
 
-  // Chasam Sofer - Add day 31 (if enabled)
+  // Chasam Sofer - Add day 30 (if enabled)
   if (halachicPreferences.chasamSofer) {
     const chasamSoferDate = new Date(this.niddahStartDate);
-    chasamSoferDate.setDate(chasamSoferDate.getDate() + 31);
+    chasamSoferDate.setDate(chasamSoferDate.getDate() + 30);
     this.vestOnot.onahBeinonit.chasamSofer = getVestInfo(chasamSoferDate, location, matchingOnah);
   }
 };

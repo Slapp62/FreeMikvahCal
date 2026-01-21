@@ -11,6 +11,7 @@ import EditEventModal from './editCalEvent.modal.tsx';
 import { EventImpl } from '@fullcalendar/core/internal';
 import { useMediaQuery } from '@mantine/hooks';
 import { getHebrewDateString } from '../utils/hebrewDates.ts';
+import { HDate } from '@hebcal/core';
 
 export default function CalendarPage() {
     const isMobile = useMediaQuery('(max-width: 700px)');
@@ -68,9 +69,31 @@ export default function CalendarPage() {
             selectable={true}
             height='auto'
             eventDisplay='block'
+            eventOrder='start'
             timeZone='local'
             displayEventTime={false}
-            dayCellContent={renderDayCell}
+            dayCellContent={(arg) => {
+              const morningDate = new HDate(arg.date);
+              
+              // Get the date for the following evening by adding 1 day
+              const eveningDate = new HDate(arg.date).next();
+
+              return (
+                <Group justify="space-between" align="center" w="100%" className="split-day-header">
+                  <Text className="gregorian-number">{arg.dayNumberText}</Text>
+                  <Stack gap={0} className="hebrew-labels-container">
+                    {/* Morning Hebrew Date (e.g., 11 Shevat) */}
+                    <Text className="heb-label day-label" c="dimmed" fz="xs">
+                      ☀️ {morningDate.getDate()} {morningDate.getMonthName()}
+                    </Text>
+                    {/* Evening Hebrew Date (e.g., 12 Shevat) */}
+                    <Text className="heb-label night-label" c="dimmed" fz="xs">
+                      🌙 {eveningDate.getDate()} {eveningDate.getMonthName()}
+                    </Text>
+                  </Stack>
+                </Group>
+              );
+            }}
         />
         <Stack gap="xs" mt={20} mb={10}>
             <Text fw={600} size="sm" ta="center">Event Types</Text>

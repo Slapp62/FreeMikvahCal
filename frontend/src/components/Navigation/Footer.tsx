@@ -6,7 +6,7 @@ import {
   IconCalendar,
   IconHeart,
 } from '@tabler/icons-react';
-import { Container, Grid, Group, Text, Stack, Box, Anchor, Divider, SimpleGrid } from '@mantine/core';
+import { Container, Grid, Group, Text, Stack, Box, Anchor, Divider } from '@mantine/core';
 import { Link } from 'react-router-dom';
 
 export function Footer() {

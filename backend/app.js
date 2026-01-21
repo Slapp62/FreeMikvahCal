@@ -10,6 +10,7 @@ const httpLogger = require('./middleware/logging/httpLogger');
 const errorLogger = require('./middleware/logging/errorLogger');
 const { handleError } = require('./utils/functionHandlers');
 const mainRouter = require('./routes/main');
+const path = require('path');
 
 const app = express();
 
@@ -28,6 +29,21 @@ const corsOptions = {
   optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
+
+app.use((req, res, next) => {
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; " +
+      "script-src 'self' 'unsafe-inline' https://storage.ko-fi.com https://ko-fi.com https://www.googletagmanager.com https://www.google-analytics.com; " +
+      'frame-src https://ko-fi.com; ' +
+      "img-src 'self' data: https:; " +
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://storage.ko-fi.com; " +
+      "font-src 'self' https://fonts.gstatic.com; " +
+      "connect-src 'self' https://accounts.google.com https://freemikvahcal.com https://freemikvahcal.onrender.com https://www.google-analytics.com https://analytics.google.com; " +
+      "form-action 'self' https://accounts.google.com;"
+  );
+  next();
+});
 
 // Correlation ID for request tracing
 app.use(correlationId);
@@ -51,6 +67,16 @@ app.use(passport.session());
 
 // API Routes
 app.use('/api', mainRouter);
+
+if (process.env.NODE_ENV === 'production') {
+  // Serve static files from the public folder
+  app.use(express.static(path.join(__dirname, 'public')));
+  // Catch-all route: serve index.html for any non-API routes
+  // This allows React Router to handle client-side routing
+  app.get('/*path', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  });
+}
 
 // Health check
 app.get('/health', (req, res) => {

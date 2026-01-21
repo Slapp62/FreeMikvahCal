@@ -2,7 +2,7 @@ import { Modal, Stack, Button, Textarea, Text } from "@mantine/core"
 import { EventImpl } from '@fullcalendar/core/internal';
 import { notifications } from "@mantine/notifications";
 import { useCycleStore } from "../store/cycleStore";
-import { deleteCycle, updateCycle } from "../services/cycleApi";
+import { deleteCycle } from "../services/cycleApi";
 import { useState } from "react";
 
 type ModalProps = {
@@ -61,7 +61,7 @@ const EditEventModal = ({clicked, close, selectedEvent} : ModalProps) => {
 
         setIsSaving(true);
         try {
-            const result = await updateCycle(cycleId, { notes });
+            //const result = await updateCycle(cycleId, { notes });
             updateCycleInStore(cycleId, { notes });
 
             notifications.show({

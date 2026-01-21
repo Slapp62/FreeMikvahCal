@@ -428,6 +428,7 @@ const getCalendarEvents = async (userId, options = {}) => {
 
   const events = [];
 
+
   cycles.forEach((cycle) => {
     // 1. Period Start Event (Niddah Start)
     if (cycle.niddahStartDate) {

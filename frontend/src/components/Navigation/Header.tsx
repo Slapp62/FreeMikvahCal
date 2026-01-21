@@ -35,7 +35,7 @@ export function Header() {
           position: 'sticky',
           top: 0,
           zIndex: 100,
-          boxShadow: 'var(--mantine-shadow-sm)',
+          boxShadow: 'var(--mantine-shadow-xs)',
         }}
       >
         <Container size="xl">

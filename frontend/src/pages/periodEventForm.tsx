@@ -34,7 +34,7 @@ const PeriodEventForm = ({close, dateClicked} : {close: () => void; dateClicked:
 
     const [timeValue, setTimeValue] = useState('12:00');
     const eventType = watch('eventType');
-    const selectedCycleId = watch('cycleId');
+    //const selectedCycleId = watch('cycleId');
 
     // Fetch active cycles based on event type
     useEffect(() => {
