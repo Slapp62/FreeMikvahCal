@@ -78,6 +78,8 @@ app.use(
 );
 
 // CORS
+// In production, Express serves frontend from same domain, but keep CORS for security
+// In development, allow requests from Vite dev server
 const corsOptions = {
   origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   credentials: true,

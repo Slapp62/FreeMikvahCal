@@ -48,7 +48,7 @@ const createCycle = async (userId, cycleData) => {
   // STEP 3: Fetch previous cycles for calculations
   const previousCycles = await Cycles.find({
     userId: userId,
-    status: 'completed',
+    status: { $in: ['niddah', 'shiva_nekiyim', 'completed'] },
     'niddahOnah.start': { $lt: niddahOnahStart }
   })
     .sort({ 'niddahOnah.start': -1 })
@@ -224,6 +224,12 @@ const updateCycle = async (userId, cycleId, updateData) => {
 
   if (updateData.privateNotes !== undefined) {
     cycle.privateNotes = updateData.privateNotes;
+  }
+
+  // Ensure niddahOnah is preserved (defensive check for required fields)
+  // This should already exist from when cycle was loaded from DB, but explicit check prevents validation errors
+  if (!cycle.niddahOnah || !cycle.niddahOnah.start || !cycle.niddahOnah.end) {
+    throwError(400, 'Invalid cycle data: niddahOnah fields are required');
   }
 
   // Recalculate vest onot if needed
@@ -520,11 +526,11 @@ const getCalendarEvents = async (userId, options = {}) => {
           });
         }
 
-        // Chasam Sofer - Day 30
+        // Beinonit 31 - Day 31
         if (cycle.vestOnot.onahBeinonit.chasamSofer?.start) {
           events.push({
             id: `${cycle._id}-beinonit-sofer`,
-            title: `🔄 Chasam Sofer`,
+            title: `🔄 Beinonit 31`,
             start: cycle.vestOnot.onahBeinonit.chasamSofer.start,
             end: cycle.vestOnot.onahBeinonit.chasamSofer.end,
             className: `vest-onah onah-beinonit-sofer`,

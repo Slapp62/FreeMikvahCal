@@ -3,7 +3,10 @@ import { useUserStore } from '../store/userStore';
 import { useCycleStore } from '../store/cycleStore';
 
 // Get API base URL from environment or use default
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+// In production (Render), use relative path since Express serves frontend from same domain
+// In development, use localhost with port
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.PROD ? '/api' : 'http://localhost:5000/api');
 
 // Create axios instance
 const axiosInstance = axios.create({

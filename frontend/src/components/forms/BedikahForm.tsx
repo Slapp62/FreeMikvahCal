@@ -26,7 +26,7 @@ const BedikahForm = ({ close, dateClicked }: Props) => {
     const [activeCycles, setActiveCycles] = useState<Cycle[]>([]);
     const [loading, setLoading] = useState(true);
 
-    const { register, handleSubmit, control } = useForm<BedikahValues>({
+    const { register, handleSubmit, control, setValue } = useForm<BedikahValues>({
         defaultValues: {
             time: '12:00',
             dayNumber: 1,
@@ -44,6 +44,11 @@ const BedikahForm = ({ close, dateClicked }: Props) => {
             try {
                 const response = await getCycles({ status: 'shiva_nekiyim' });
                 setActiveCycles(response.cycles);
+
+                // Pre-fill with most recent cycle (first in array after sort)
+                if (response.cycles.length > 0 && response.cycles[0]._id) {
+                    setValue('cycleId', response.cycles[0]._id);
+                }
             } catch (error) {
                 console.error('Error fetching active cycles:', error);
                 notifications.show({
@@ -56,12 +61,14 @@ const BedikahForm = ({ close, dateClicked }: Props) => {
             }
         };
         fetchActiveCycles();
-    }, []);
+    }, [setValue]);
 
-    const cycleOptions = activeCycles.map(c => ({
-        value: c._id,
-        label: `Cycle from ${new Date(c.niddahStartDate).toLocaleDateString()}`
-    }));
+    const cycleOptions = activeCycles
+        .filter(c => c.niddahOnah?.start) // Only include cycles with valid niddahOnah
+        .map(c => ({
+            value: c._id,
+            label: `Cycle from ${new Date(c.niddahOnah.start).toLocaleDateString()}`
+        }));
 
     const onSubmit = async (formData: BedikahValues) => {
         try {

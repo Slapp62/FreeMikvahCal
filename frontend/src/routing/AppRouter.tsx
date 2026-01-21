@@ -15,6 +15,11 @@ const PageNotFound = lazy(() => import('../pages/404.page'));
 const CalendarPage = lazy(() => import('../pages/calendar.page'));
 const EditUserSettings = lazy(() => import('../pages/editUserSettings.page'));
 
+// Static/Legal pages
+const PrivacyPolicy = lazy(() => import('../pages/Static/PrivacyPolicy.pages'));
+const TermsOfService = lazy(() => import('../pages/Static/TermsOfService.pages'));
+const AccessibilityStatement = lazy(() => import('../pages/Static/AccessibilityStatement.pages'));
+
 export function AppRouter() {
   return (
     <Routes>
@@ -70,6 +75,32 @@ export function AppRouter() {
               <RouteGuard permission="user">
                 <EditUserSettings />
               </RouteGuard>
+            </Suspense>
+          }
+        />
+
+        {/* Static/Legal pages */}
+        <Route
+          path="privacy-policy"
+          element={
+            <Suspense fallback={<LoadingOverlay visible />}>
+              <PrivacyPolicy />
+            </Suspense>
+          }
+        />
+        <Route
+          path="terms-of-service"
+          element={
+            <Suspense fallback={<LoadingOverlay visible />}>
+              <TermsOfService />
+            </Suspense>
+          }
+        />
+        <Route
+          path="accessibility"
+          element={
+            <Suspense fallback={<LoadingOverlay visible />}>
+              <AccessibilityStatement />
             </Suspense>
           }
         />

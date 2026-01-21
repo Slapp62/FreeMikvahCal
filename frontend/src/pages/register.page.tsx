@@ -17,6 +17,7 @@ import {
   TextInput,
   Title,
 } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { useAuth } from '../hooks/useAuth';
 import { searchLocations, Location } from '../services/locationApi';
@@ -41,6 +42,7 @@ type RegisterFormValues = {
 };
 
 const RegisterPage = () => {
+  const isMobile = useMediaQuery('(max-width: 768px)');
   const { register: registerAuth, isLoading } = useAuth();
   const [locations, setLocations] = useState<Location[]>([]);
   const [locationOptions, setLocationOptions] = useState<string[]>([]);
@@ -140,7 +142,7 @@ const RegisterPage = () => {
       <Paper withBorder shadow="md" p={30} mt={30} radius="md">
         <form onSubmit={handleSubmit(onSubmit)}>
           <Stack gap="md">
-            <Group grow>
+            <Group grow={!isMobile} wrap={isMobile ? 'wrap' : 'nowrap'}>
               <TextInput
                 label="First Name"
                 placeholder="John"
@@ -257,11 +259,13 @@ const RegisterPage = () => {
               })}
             />
 
-            <Group grow align="flex-start">
+            <Group grow={!isMobile} wrap={isMobile ? 'wrap' : 'nowrap'} align="flex-start">
               <Fieldset legend="Halachic Preferences">
                 <Stack gap="xs">
                   <Checkbox label="Onat Ohr Zarua" description='Additional 12 hours separation preceding primary onah.'  {...register('halachicPreferences.ohrZaruah')} />
-                  <Checkbox label="Onat Chasam Sofer" description='Additional Onah Beinonit on day 31.' {...register('halachicPreferences.chasamSofer')} />
+
+                  <Checkbox label="Beinonit 31" description='Additional Onah Beinonit on day 31.' {...register('halachicPreferences.chasamSofer')} />
+                  
                   <Checkbox label="Onat Kreisi U'Pleisi" description='Onah Beinonit on day 30 of 24 hours' {...register('halachicPreferences.kreisiUpleisi')} />
                 </Stack>
               </Fieldset>

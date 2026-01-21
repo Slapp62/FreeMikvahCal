@@ -1,6 +1,7 @@
 import { Modal, Stack, Button, Textarea, Text, Group, Divider } from "@mantine/core"
 import { EventImpl } from '@fullcalendar/core/internal';
 import { notifications } from "@mantine/notifications";
+import { useMediaQuery } from "@mantine/hooks";
 import { useCycleStore } from "../store/cycleStore";
 import { useUserStore } from "../store/userStore";
 import { deleteCycle } from "../services/cycleApi";
@@ -15,6 +16,7 @@ type ModalProps = {
 const EditEventModal = ({clicked, close, selectedEvent} : ModalProps) => {
     if (!selectedEvent) return null;
 
+    const isMobile = useMediaQuery('(max-width: 768px)');
     const deleteCycleFromStore = useCycleStore((state) => state.deleteCycle);
     const updateCycleInStore = useCycleStore((state) => state.updateCycle);
     const triggerRefetch = useCycleStore((state) => state.triggerRefetch);
@@ -134,7 +136,15 @@ const EditEventModal = ({clicked, close, selectedEvent} : ModalProps) => {
     };
 
     return (
-        <Modal opened={clicked} onClose={close} title="Event Details" centered size="md">
+        <Modal
+            opened={clicked}
+            onClose={close}
+            title="Event Details"
+            centered
+            size="md"
+            fullScreen={isMobile}
+            padding={isMobile ? 'md' : 'lg'}
+        >
             <Stack>
                 <Text size="lg" fw={600}>
                     {selectedEvent.title}
@@ -144,15 +154,15 @@ const EditEventModal = ({clicked, close, selectedEvent} : ModalProps) => {
                 {eventStart && eventEnd && onahType && (
                     <Stack gap="xs">
                         <Divider />
-                        <Group justify="space-between">
+                        <Group justify="space-between" wrap="nowrap">
                             <Text size="sm" fw={500}>Onah Type:</Text>
                             <Text size="sm">{onahIcon} {onahType === 'day' ? 'Day Onah' : 'Night Onah'}</Text>
                         </Group>
-                        <Group justify="space-between">
+                        <Group justify="space-between" wrap="nowrap">
                             <Text size="sm" fw={500}>Start Time:</Text>
                             <Text size="sm">{formatTime(eventStart)}</Text>
                         </Group>
-                        <Group justify="space-between">
+                        <Group justify="space-between" wrap="nowrap">
                             <Text size="sm" fw={500}>End Time:</Text>
                             <Text size="sm">{formatTime(eventEnd)}</Text>
                         </Group>

@@ -17,8 +17,8 @@ const sessionConfig = {
   cookie: {
     maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+    secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+    sameSite: 'lax' // 'lax' is secure since frontend and backend are same domain on Render
   }
 };
 

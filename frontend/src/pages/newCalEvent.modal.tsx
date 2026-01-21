@@ -1,5 +1,6 @@
 import { Modal, Tabs } from '@mantine/core';
 import { useEffect, useState } from 'react';
+import { useMediaQuery } from '@mantine/hooks';
 import PeriodStartForm from '../components/forms/PeriodStartForm';
 import HefsekTaharaForm from '../components/forms/HefsekTaharaForm';
 import BedikahForm from '../components/forms/BedikahForm';
@@ -13,7 +14,10 @@ type ModalProps = {
 
 function CalendarEventModal({clicked, close, dateClicked} : ModalProps) {
     const [closeOutside, setCloseOutside] = useState(false);
+    const isMobile = useMediaQuery('(max-width: 768px)');
 
+    // Delay enabling closeOnClickOutside to prevent accidental closes
+    // when the modal is first opened (user's click to open might register as close)
     useEffect(() => {
         if (clicked){
             const timer = setTimeout(() => {
@@ -27,17 +31,19 @@ function CalendarEventModal({clicked, close, dateClicked} : ModalProps) {
 
     return (
     <>
-        <Modal
-            opened={clicked}
-            onClose={close}
-            title={`Add Event for ${new Date(dateClicked).toLocaleDateString()}`}
-            closeOnClickOutside={closeOutside}
-            centered
-            size='md'
-            radius="md"
-        >
-            <Tabs defaultValue="period">
-                <Tabs.List mb={10}>
+        {dateClicked && (
+            <Modal
+                opened={clicked}
+                onClose={close}
+                title={`Add Event for ${new Date(dateClicked).toLocaleDateString()}`}
+                closeOnClickOutside={closeOutside}
+                centered
+                size={isMobile ? 'md' : 'lg'}
+                radius="md"
+                fullScreen={isMobile}
+            >
+            <Tabs defaultValue="period" orientation="horizontal">
+                <Tabs.List mb={10} grow={isMobile}>
                     <Tabs.Tab value="period">
                         Period Start
                     </Tabs.Tab>
@@ -76,12 +82,12 @@ function CalendarEventModal({clicked, close, dateClicked} : ModalProps) {
                 <Tabs.Panel value="other" pt="xs">
                     <OtherEventForm
                         close={close}
-                        dateClicked={dateClicked}
                     />
                 </Tabs.Panel>
             </Tabs>
 
         </Modal>
+        )}
     </>
     );
 }

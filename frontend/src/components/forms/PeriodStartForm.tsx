@@ -1,4 +1,5 @@
 import { Button, Stack, Textarea, Radio, Group, Text } from "@mantine/core"
+import { useMediaQuery } from "@mantine/hooks"
 import { notifications } from "@mantine/notifications"
 import { useForm, Controller } from "react-hook-form"
 import { useState, useEffect } from "react"
@@ -18,6 +19,7 @@ type Props = {
 }
 
 const PeriodStartForm = ({ close, dateClicked }: Props) => {
+    const isMobile = useMediaQuery('(max-width: 768px)');
     const addCycle = useCycleStore((state) => state.addCycle);
     const triggerRefetch = useCycleStore((state) => state.triggerRefetch);
     const user = useUserStore((state) => state.user);
@@ -153,10 +155,10 @@ const PeriodStartForm = ({ close, dateClicked }: Props) => {
                             {...field}
                             w='100%'
                         >
-                            <Group mt="xs">
+                            <Stack mt="xs" gap="xs">
                                 <Radio value="day" label="Before Sunset (Day)" />
                                 <Radio value="night" label="After Sunset (Night)" />
-                            </Group>
+                            </Stack>
                         </Radio.Group>
                     )}
                 />

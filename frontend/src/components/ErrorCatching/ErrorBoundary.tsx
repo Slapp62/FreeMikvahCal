@@ -1,8 +1,11 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
+import { useMantineTheme } from '@mantine/core';
 import ErrorFallback from './ErrorFallback';
+import SimpleHTMLErrorFallback from './SimpleHTMLErrorFallback';
 
 interface Props {
   children: ReactNode;
+  useMantineFallback?: boolean;
 }
 
 interface State {
@@ -53,8 +56,14 @@ class ErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
+      // Use Mantine-based fallback if explicitly requested (when inside MantineProvider)
+      // Otherwise use plain HTML fallback (for root-level errors)
+      const FallbackComponent = this.props.useMantineFallback
+        ? ErrorFallback
+        : SimpleHTMLErrorFallback;
+
       return (
-        <ErrorFallback
+        <FallbackComponent
           error={this.state.error}
           errorInfo={this.state.errorInfo}
           onReset={this.handleReset}

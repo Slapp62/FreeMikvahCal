@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { BrowserRouter } from "react-router-dom";
 import { AppRouter } from "./routing/AppRouter.tsx";
 import myTheme from "./styles/theme";
+import ErrorBoundary from "./components/ErrorCatching/ErrorBoundary";
 
 export default function App() {
   // Global error handlers
@@ -32,9 +33,11 @@ export default function App() {
   return (
     <MantineProvider theme={myTheme}>
       <Notifications />
-      <BrowserRouter>
-        <AppRouter />
-      </BrowserRouter>
+      <ErrorBoundary useMantineFallback={true}>
+        <BrowserRouter>
+          <AppRouter />
+        </BrowserRouter>
+      </ErrorBoundary>
     </MantineProvider>
   );
 }

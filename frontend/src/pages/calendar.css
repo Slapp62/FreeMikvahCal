@@ -400,19 +400,37 @@
   text-overflow: clip;
 }
 
+/* Hebrew dates styling for day cells */
+.calendar .gregorian-number {
+  font-size: 1em;
+  font-weight: 600;
+  color: light-dark(var(--mantine-color-dark-9), var(--mantine-color-gray-1));
+  line-height: 1.2;
+}
+
+.calendar .hebrew-dates {
+  font-size: 0.7em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 50%;
+}
+
 /* Responsive adjustments for mobile */
-@media (max-width: 700px) {
+@media (max-width: 768px) {
   .calendar .fc .fc-toolbar {
     padding: 12px 10px;
   }
 
   .calendar .fc .fc-toolbar-title {
-    font-size: 1.2em;
+    font-size: 1.1em;
+    word-break: break-word;
   }
 
   .calendar .fc-button {
-    padding: 4px 8px;
+    padding: 6px 10px;
     font-size: 0.9em;
+    min-height: 44px; /* Touch-friendly minimum */
   }
 
   .gregorian-date {
@@ -420,23 +438,43 @@
   }
 
   .hebrew-date {
-    font-size: 0.65em;
+    font-size: 0.68em; /* Slightly larger for better readability */
+  }
+
+  /* Hebrew dates in day cells - hide on mobile */
+  .calendar .gregorian-number {
+    font-size: 0.9em;
+  }
+
+  .calendar .hebrew-dates {
+    display: none;
   }
 
   .calendar .fc-event {
-    font-size: 0.7rem; /* Slightly smaller for mobile */
-    padding: 1px 3px;
-    margin: 1px;
-    border-left-width: 3px; /* Slightly thinner border to save horizontal space */
+    font-size: 0.75rem; /* Increased from 0.7rem for better legibility */
+    padding: 2px 4px; /* Slightly more padding for touch targets */
+    margin: 2px;
+    border-left-width: 3px;
   }
 
   .calendar .fc-event-title {
-    word-break: break-word; /* Prevents overflow if a single word is very long */
+    word-break: break-word;
     hyphens: auto;
+    line-height: 1.4; /* Better spacing for readability */
   }
 
   .calendar .fc .fc-daygrid-day {
-    min-height: 70px; /* Increased slightly to handle wrapped text */
+    min-height: 75px; /* Slightly increased for better event visibility */
+  }
+
+  .calendar .fc-col-header-cell {
+    padding: 8px 2px;
+    font-size: 0.75em; /* Smaller day names on mobile */
+  }
+
+  /* Reduce padding in day cells on mobile */
+  .calendar .fc .fc-daygrid-day-frame {
+    padding: 2px;
   }
 }
 

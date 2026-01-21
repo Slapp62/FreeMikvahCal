@@ -41,7 +41,7 @@ const HomePage = () => {
                     <Stack align="center" gap="xl">
                         <Title
                             order={1}
-                            size="3.5rem"
+                            size={{ base: '2rem', sm: '2.5rem', md: '3.5rem' }}
                             ta="center"
                             c="pink.7"
                             fw={800}
@@ -49,14 +49,14 @@ const HomePage = () => {
                         >
                             The Free Mikvah Calendar
                         </Title>
-                        <Title order={2} size="1.8rem" ta="center" c="pink.6" fw={500}>
+                        <Title order={2} size={{ base: '1.2rem', sm: '1.5rem', md: '1.8rem' }} ta="center" c="pink.6" fw={500}>
                             Making family purity easy for everyone
                         </Title>
                         <Text size="xl" ta="center" c="pink.9" maw={700}>
                             Automatically calculate halachic dates, track your cycle, and receive reminders
                             — all customized to your minhagim. 100% free, forever.
                         </Text>
-                        <Group gap="md" mt="md">
+                        <Group gap="md" mt="md" justify="center" wrap="wrap">
                             <Button
                                 component={Link}
                                 to="/register"
@@ -350,7 +350,7 @@ const HomePage = () => {
                         <Text size="xl" ta="center" c="white" maw={600}>
                             Join our community today and experience stress-free halachic cycle tracking
                         </Text>
-                        <Group gap="md">
+                        <Group gap="md" justify="center" wrap="wrap">
                             <Button
                                 component={Link}
                                 to="/register"

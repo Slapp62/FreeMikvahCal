@@ -1,0 +1,19 @@
+services:
+  # Web service - Express backend serving React frontend
+  - type: web
+    name: freemikvahcal
+    runtime: node
+    plan: free
+    buildCommand: cd frontend && npm install && npm run build && cd ../backend && npm install && node scripts/copy-build.js
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_ATLAS_URI
+        sync: false  # Set this manually in Render dashboard
+      - key: SESSION_SECRET
+        generateValue: true  # Render will auto-generate a secure random string
+      - key: FRONTEND_URL
+        value: https://freemikvahcal.onrender.com  # Update this to your actual Render URL
+      - key: PORT
+        value: 10000

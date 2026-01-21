@@ -120,7 +120,7 @@ const EditUserSettings = () => {
 
                     <div>
                         <Checkbox
-                            label="Chasam Sofer"
+                            label="Beinonit 31"
                             description="Also observe day 31 in addition to day 30"
                             checked={chasamSofer}
                             onChange={(event) => setChasamSofer(event.currentTarget.checked)}

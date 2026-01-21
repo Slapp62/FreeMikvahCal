@@ -21,9 +21,9 @@ export function Footer() {
     >
       {/* Main Footer Content */}
       <Container size="xl" py={60}>
-        <Grid gutter="xl">
+        <Grid gutter={{ base: 'md', md: 'xl' }}>
           {/* Brand Section */}
-          <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
+          <Grid.Col span={{ base: 12, sm: 6, lg: 4 }}>
             <Stack gap="md">
               <Group gap="xs">
                 <Box
@@ -61,7 +61,7 @@ export function Footer() {
           </Grid.Col>
 
           {/* Quick Links */}
-          <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
+          <Grid.Col span={{ base: 6, sm: 3, lg: 2 }}>
             <Stack gap="sm">
               <Text fw={700} size="sm" tt="uppercase" c="secondary">
                 Quick Links
@@ -72,6 +72,9 @@ export function Footer() {
               <Anchor component={Link} to="/about" c="dimmed" size="sm" style={{ textDecoration: 'none' }}>
                 About
               </Anchor>
+              <Anchor component={Link} to="/about#contact" c="dimmed" size="sm" style={{ textDecoration: 'none' }}>
+                Contact Us
+              </Anchor>
               <Anchor component={Link} to="/login" c="dimmed" size="sm" style={{ textDecoration: 'none' }}>
                 Login
               </Anchor>
@@ -81,8 +84,26 @@ export function Footer() {
             </Stack>
           </Grid.Col>
 
+          {/* Legal */}
+          <Grid.Col span={{ base: 6, sm: 3, lg: 2 }}>
+            <Stack gap="sm">
+              <Text fw={700} size="sm" tt="uppercase" c="secondary">
+                Legal
+              </Text>
+              <Anchor component={Link} to="/privacy-policy" c="dimmed" size="sm" style={{ textDecoration: 'none' }}>
+                Privacy Policy
+              </Anchor>
+              <Anchor component={Link} to="/terms-of-service" c="dimmed" size="sm" style={{ textDecoration: 'none' }}>
+                Terms of Service
+              </Anchor>
+              <Anchor component={Link} to="/accessibility" c="dimmed" size="sm" style={{ textDecoration: 'none' }}>
+                Accessibility
+              </Anchor>
+            </Stack>
+          </Grid.Col>
+
           {/* Resources */}
-          <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
+          <Grid.Col span={{ base: 6, sm: 6, lg: 2 }}>
             <Stack gap="sm">
               <Text fw={700} size="sm" tt="uppercase" c="secondary">
                 Resources
@@ -109,25 +130,25 @@ export function Footer() {
           </Grid.Col>
 
           {/* Contact */}
-          <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
+          <Grid.Col span={{ base: 6, sm: 6, lg: 2 }}>
             <Stack gap="sm">
               <Text fw={700} size="sm" tt="uppercase" c="secondary">
                 Contact
               </Text>
-              <Group gap="xs">
-                <IconMail size={16} style={{ color: 'var(--mantine-color-dimmed)' }} />
-                <Anchor href="mailto:slapp62@gmail.com" c="dimmed" size="sm" style={{ textDecoration: 'none' }}>
+              <Group gap="xs" wrap="nowrap">
+                <IconMail size={16} style={{ color: 'var(--mantine-color-dimmed)', flexShrink: 0 }} />
+                <Anchor href="mailto:slapp62@gmail.com" c="dimmed" size="sm" style={{ textDecoration: 'none', wordBreak: 'break-word' }}>
                   slapp62@gmail.com
                 </Anchor>
               </Group>
-              <Group gap="xs">
-                <IconPhone size={16} style={{ color: 'var(--mantine-color-dimmed)' }} />
+              <Group gap="xs" wrap="nowrap">
+                <IconPhone size={16} style={{ color: 'var(--mantine-color-dimmed)', flexShrink: 0 }} />
                 <Text c="dimmed" size="sm">
                   +972-58-434-5797
                 </Text>
               </Group>
-              <Group gap="xs">
-                <IconMapPin size={16} style={{ color: 'var(--mantine-color-dimmed)' }} />
+              <Group gap="xs" wrap="nowrap">
+                <IconMapPin size={16} style={{ color: 'var(--mantine-color-dimmed)', flexShrink: 0 }} />
                 <Text c="dimmed" size="sm">
                   Beit Shemesh, Israel
                 </Text>
