@@ -7,9 +7,7 @@ import {
   Button,
   Container,
   Flex,
-  Grid,
   Group,
-  Image,
   Paper,
   SimpleGrid,
   Stack,
@@ -29,7 +27,6 @@ const AboutPage: FC = () => {
   const computedColorScheme = useComputedColorScheme('light');
 
   // Theme-aware colors
-  const cardBg = computedColorScheme === 'light' ? 'rocketGray.2' : 'rocketBlack.9';
   const pageBg = computedColorScheme === 'light' ? 'white' : 'rocketBlack.8';
 
   // Scroll to contact form if hash is present in URL

@@ -1,4 +1,3 @@
-const session = require('express-session');
 const MongoStore = require('connect-mongo');
 
 // Use the appropriate MongoDB URI based on environment

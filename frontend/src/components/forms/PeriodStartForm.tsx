@@ -68,7 +68,7 @@ const PeriodStartForm = ({ close, dateClicked }: Props) => {
                 hour: 'numeric',
                 minute: '2-digit',
                 hour12: true,
-                timeZone: user.location.timezone
+                timeZone: user.location?.timezone
             });
 
             setTimeRangeInfo(`This onah occurs between ${formatTime(start)} and ${formatTime(end)}`);

@@ -2,7 +2,6 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const bcrypt = require('bcryptjs');
 const Users = require('../models/Users');
-const logger = require('./logger');
 const { logSecurity, logAuth, logError } = require('../utils/logHelpers');
 
 // Serialize user

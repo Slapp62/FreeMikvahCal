@@ -132,7 +132,7 @@ app.use((req, res) => {
 app.use(errorLogger);
 
 // Global error handler (must be last)
-app.use((error, req, res, next) => {
+app.use((error, req, res, _next) => {
   const statusCode = error.status || 500;
   const message = error.message || 'Internal server error';
 

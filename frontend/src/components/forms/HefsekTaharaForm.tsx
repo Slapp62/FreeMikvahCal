@@ -54,7 +54,7 @@ const HefsekTaharaForm = ({ close, dateClicked }: Props) => {
 
     const cycleOptions = activeCycles.map(c => ({
         value: c._id,
-        label: `Cycle from ${new Date(c.niddahStartDate).toLocaleDateString()}`
+        label: `Cycle from ${new Date(c.niddahOnah.start).toLocaleDateString()}`
     }));
 
     const onSubmit = async (formData: HefsekTaharaValues) => {

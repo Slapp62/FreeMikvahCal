@@ -76,7 +76,6 @@ function CalendarEventModal({clicked, close, dateClicked} : ModalProps) {
                 <Tabs.Panel value="other" pt="xs">
                     <OtherEventForm
                         close={close}
-                        dateClicked={dateClicked}
                     />
                 </Tabs.Panel>
             </Tabs>

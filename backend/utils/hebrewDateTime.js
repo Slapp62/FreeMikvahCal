@@ -169,7 +169,7 @@ const isValidTimezone = (timezone) => {
   try {
     DateTime.local().setZone(timezone);
     return true;
-  } catch (e) {
+  } catch {
     return false;
   }
 };
@@ -290,7 +290,7 @@ const parseUserDateTime = (input, timezone) => {
     if (dt.isValid) {
       return dt.toJSDate();
     }
-  } catch (e) {
+  } catch {
     // Continue to other parsing methods
   }
 
@@ -300,7 +300,7 @@ const parseUserDateTime = (input, timezone) => {
     if (dt.isValid) {
       return dt.toJSDate();
     }
-  } catch (e) {
+  } catch {
     // Continue to other parsing methods
   }
 
@@ -310,7 +310,7 @@ const parseUserDateTime = (input, timezone) => {
     if (dt.isValid) {
       return dt.toJSDate();
     }
-  } catch (e) {
+  } catch {
     // Continue to other parsing methods
   }
 

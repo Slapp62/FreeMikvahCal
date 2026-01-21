@@ -1,19 +1,36 @@
-import js from "@eslint/js";
-import globals from "globals";
-import pluginReact from "eslint-plugin-react";
-import { defineConfig } from "eslint/config";
+const js = require("@eslint/js");
 
-export default defineConfig([
+module.exports = [
   {
-    files: ["**/*.{js,mjs,cjs,jsx}"],
-    plugins: { js },
+    ignores: ["public/**", "node_modules/**", "dist/**", "build/**", "coverage/**"]
+  },
+  js.configs.recommended,
+  {
+    files: ["**/*.js"],
     languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: "commonjs",
       globals: {
-        ...globals.browser,  // for frontend
-        ...globals.node      // add this for backend compatibility
+        // Node.js globals
+        console: "readonly",
+        process: "readonly",
+        __dirname: "readonly",
+        __filename: "readonly",
+        module: "readonly",
+        require: "readonly",
+        exports: "readonly",
+        Buffer: "readonly",
+        setTimeout: "readonly",
+        clearTimeout: "readonly",
+        setInterval: "readonly",
+        clearInterval: "readonly",
+        setImmediate: "readonly",
+        clearImmediate: "readonly",
       }
     },
-    extends: ["js/recommended"]
-  },
-  pluginReact.configs.flat.recommended
-]);
+    rules: {
+      "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+      "no-console": "off",
+    }
+  }
+];

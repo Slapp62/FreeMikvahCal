@@ -1,7 +1,7 @@
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin, { DateClickArg } from '@fullcalendar/interaction';
-import { EventClickArg, DayCellContentArg } from '@fullcalendar/core';
+import { EventClickArg } from '@fullcalendar/core';
 import { Box, Group, Stack, Title, Text } from '@mantine/core';
 import './calendar.css';
 import CalendarEventModal from './newCalEvent.modal.tsx';
@@ -10,7 +10,6 @@ import useLoadEvents from '../hooks/useLoadEvents.ts';
 import EditEventModal from './editCalEvent.modal.tsx';
 import { EventImpl } from '@fullcalendar/core/internal';
 import { useMediaQuery } from '@mantine/hooks';
-import { getHebrewDateString } from '../utils/hebrewDates.ts';
 import { HDate } from '@hebcal/core';
 
 export default function CalendarPage() {
@@ -45,16 +44,6 @@ export default function CalendarPage() {
        const eventClicked = arg.event;
        setSelectedEvent(eventClicked);
        setEventModalOpened(true);
-    };
-
-    const renderDayCell = (arg: DayCellContentArg) => {
-        const hebrewDate = getHebrewDateString(arg.date, 'short');
-        return (
-            <div className="custom-day-cell">
-                <div className="gregorian-date">{arg.dayNumberText}</div>
-                <div className="hebrew-date">{hebrewDate}</div>
-            </div>
-        );
     };
 
   return (

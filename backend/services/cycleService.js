@@ -394,27 +394,6 @@ const getUpcomingVestOnot = async (userId, daysAhead = 30) => {
 };
 
 /**
- * Helper function to determine onah icon from time range
- * @param {Date} start - Start time
- * @param {Date} end - End time
- * @returns {String} - Onah icon (☀️ or 🌙)
- */
-const getOnahIcon = (start, end) => {
-  if (!start || !end) return '';
-
-  const startDate = new Date(start).toDateString();
-  const endDate = new Date(end).toDateString();
-
-  // Day onah: start and end on same Gregorian day (sunrise to sunset)
-  // Night onah: spans two Gregorian days (sunset to next sunrise)
-  if (startDate === endDate) {
-    return '☀️';
-  } else {
-    return '🌙';
-  }
-};
-
-/**
  * Get calendar events for user's cycles
  * Converts cycles into pre-formatted calendar events
  * @param {String} userId - User ID
