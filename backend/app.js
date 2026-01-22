@@ -51,8 +51,8 @@ app.use(
           "https://storage.ko-fi.com"
         ],
 
-        // Fonts: THE FIX for your specific error
-        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        // Fonts: Allow self, Google Fonts, and data URIs (for FullCalendar icons)
+        fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
 
         // Connections: XHR/Fetch targets
         connectSrc: [
