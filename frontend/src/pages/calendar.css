@@ -28,7 +28,7 @@
   letter-spacing: 0.3px;
 }
 
-/* Column headers (day names) */
+/* Column headers background (Sun, Mon, Tue, etc.) - Desktop */
 .calendar .fc .fc-col-header {
   background-color: light-dark(var(--mantine-color-pink-0), var(--mantine-color-dark-6));
   color: light-dark(var(--mantine-color-pink-8), var(--mantine-color-pink-3));
@@ -94,21 +94,7 @@
   width: 100%; /* Ensure it spans the full width of the cell */
 }
 
-.gregorian-date {
-  font-size: 1em;
-  font-weight: 600;
-  color: light-dark(var(--mantine-color-dark-9), var(--mantine-color-gray-1));
-  line-height: 1.2;
-  text-align: left;
-}
-
-.hebrew-date {
-  font-size: 0.7em;
-  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-3));
-  font-weight: 400;
-  line-height: 1.1;
-  text-align: right;
-}
+/* Removed dead code: .gregorian-date and .hebrew-date classes are not used in component */
 
 /* Day number alignment */
 .calendar .fc-daygrid-day-top {
@@ -130,23 +116,7 @@
   box-shadow: inset 0 0 0 1px light-dark(rgba(233, 30, 140, 0.1), rgba(233, 30, 140, 0.3));
 }
 
-.calendar .fc .fc-day-today .gregorian-date {
-  color: var(--mantine-color-pink-8);
-  font-weight: 700;
-}
-
-.calendar .fc .fc-day-today .hebrew-date {
-  color: light-dark(var(--mantine-color-pink-7), var(--mantine-color-pink-4));
-}
-
-/* Other month days */
-.calendar .fc .fc-day-other .gregorian-date {
-  color: light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-2));
-}
-
-.calendar .fc .fc-day-other .hebrew-date {
-  color: light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
-}
+/* Removed dead code: today and other month styling for .gregorian-date and .hebrew-date (not used) */
 
 /* Styling for event blocks - Material Design style with left border */
 .calendar .fc-event {
@@ -376,9 +346,18 @@
   text-decoration: none;
 }
 
-/* Event content styling */
+/* Event content styling - allow overflow into adjacent cells */
 .calendar .fc-event-main {
   padding: 0;
+  overflow: visible;
+}
+
+.calendar .fc-event-main-frame {
+  overflow: visible;
+}
+
+.calendar .fc-event-title-container {
+  overflow: visible;
 }
 
 .calendar .fc-event-time {
@@ -394,87 +373,101 @@
   gap: 4px;
   line-height: 1.3;
 
-  /* Add these to allow wrapping */
-  white-space: normal;
+  /* Allow text to overflow into adjacent cells */
+  white-space: nowrap;
   overflow: visible;
   text-overflow: clip;
+  max-width: none; /* Override FullCalendar's default max-width: 100% */
 }
 
-/* Hebrew dates styling for day cells */
+/* Gregorian day number in day cells (e.g., "15") - Desktop */
 .calendar .gregorian-number {
-  font-size: 1em;
+  font-size: 1em; /* Day number size - Desktop */
   font-weight: 600;
   color: light-dark(var(--mantine-color-dark-9), var(--mantine-color-gray-1));
   line-height: 1.2;
 }
 
+/* Hebrew dates text in day cells (e.g., "14-15 Shevat") - Desktop */
 .calendar .hebrew-dates {
   font-size: 0.7em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 50%;
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-3));
+  /* Removed truncation: white-space: nowrap, overflow: hidden, text-overflow: ellipsis */
 }
 
-/* Responsive adjustments for mobile */
+/* ========== MOBILE RESPONSIVE STYLES (max-width: 768px) ========== */
 @media (max-width: 768px) {
+  .calendar .fc {
+    border-radius: 0;
+  }
+  /* Calendar header toolbar - Mobile */
   .calendar .fc .fc-toolbar {
     padding: 12px 10px;
   }
 
+  /* Calendar title (e.g., "January 2026" / Hebrew month) - Mobile */
   .calendar .fc .fc-toolbar-title {
-    font-size: 1.1em;
+    font-size: 0.8em; /* Smaller title on mobile */
     word-break: break-word;
   }
 
+  /* Navigation buttons (Prev/Next/Today) - Mobile */
   .calendar .fc-button {
     padding: 6px 10px;
-    font-size: 0.9em;
+    font-size: 0.8em; /* Button text size */
     min-height: 44px; /* Touch-friendly minimum */
   }
 
-  .gregorian-date {
-    font-size: 0.9em;
-  }
+  /* Removed dead code: .gregorian-date and .hebrew-date mobile overrides (not used) */
 
-  .hebrew-date {
-    font-size: 0.68em; /* Slightly larger for better readability */
-  }
-
-  /* Hebrew dates in day cells - hide on mobile */
+  /* Gregorian day number in day cells (e.g., "15") - Mobile */
   .calendar .gregorian-number {
-    font-size: 0.9em;
+    font-size: 0.5em; /* Day number size */
   }
 
+  /* Hebrew dates text (e.g., "14-15 Shevat") stacked below Gregorian - Mobile */
   .calendar .hebrew-dates {
-    display: none;
+    display: block !important; /* Show Hebrew dates on mobile, stacked vertically */
+    font-size: 0.5em; /* Hebrew date text size */
   }
 
+  /* Event blocks (abbreviated text like "VH", "HT", "PS") - Mobile */
   .calendar .fc-event {
-    font-size: 0.75rem; /* Increased from 0.7rem for better legibility */
-    padding: 2px 4px; /* Slightly more padding for touch targets */
-    margin: 2px;
+    font-size: 0.5rem; /* Event text size (uses rem for consistency) */
+    padding: 1px 3px; /* Compact padding */
+    margin: 1px; /* Tight spacing between events */
     border-left-width: 3px;
+    overflow: visible;
+    text-wrap: nowrap;
   }
 
+  /* Event title text - Mobile */
   .calendar .fc-event-title {
     word-break: break-word;
     hyphens: auto;
-    line-height: 1.4; /* Better spacing for readability */
+    line-height: 1.1; /* Line spacing for multi-line events */
   }
 
+  /* Hide event icons (✅ 🛁 ☀️ 🌙 emojis) on mobile - icons removed for space */
+  .calendar .fc-event-time {
+    display: none;
+  }
+
+  /* Calendar day cell height - Mobile (affects how square/rectangular cells are) */
   .calendar .fc .fc-daygrid-day {
-    min-height: 75px; /* Slightly increased for better event visibility */
+    min-height: 100px; /* Cell height - adjust for more/less square cells */
   }
 
-  .calendar .fc-col-header-cell {
-    padding: 8px 2px;
-    font-size: 0.75em; /* Smaller day names on mobile */
+  /* Day name headers (Sun, Mon, Tue, etc.) - Mobile */
+  .calendar .fc .fc-col-header-cell {
+    padding: 4px 2px !important;
+    font-size: 0.6em !important; /* Day names size (very small to save space) */
   }
 
-  /* Reduce padding in day cells on mobile */
+  /* Inner padding of day cells - Mobile */
   .calendar .fc .fc-daygrid-day-frame {
-    padding: 2px;
+    padding: 1px; /* Reduced to 1px for more compact mobile layout */
+    overflow: visible; /* Allow events to overflow into adjacent cells */
   }
 }
 
@@ -483,8 +476,4 @@
   overflow-y: auto !important;
 }
 
-/* Weekend styling (optional - subtle difference) */
-.calendar .fc-day-sat .gregorian-date,
-.calendar .fc-day-sun .gregorian-date {
-  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-2));
-}
+/* Removed dead code: weekend styling for .gregorian-date (not used) */
