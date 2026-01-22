@@ -1,5 +1,4 @@
-import { Button, Stack, Textarea, Radio, Group, Text } from "@mantine/core"
-import { useMediaQuery } from "@mantine/hooks"
+import { Button, Stack, Textarea, Radio, Text } from "@mantine/core"
 import { notifications } from "@mantine/notifications"
 import { useForm, Controller } from "react-hook-form"
 import { useState, useEffect } from "react"
@@ -19,7 +18,6 @@ type Props = {
 }
 
 const PeriodStartForm = ({ close, dateClicked }: Props) => {
-    const isMobile = useMediaQuery('(max-width: 768px)');
     const addCycle = useCycleStore((state) => state.addCycle);
     const triggerRefetch = useCycleStore((state) => state.triggerRefetch);
     const user = useUserStore((state) => state.user);
@@ -42,13 +40,15 @@ const PeriodStartForm = ({ close, dateClicked }: Props) => {
             return;
         }
 
+        const userLocation = user.location;
+
         try {
             const date = new Date(dateClicked);
             const loc = new Location(
-                user.location.lat,
-                user.location.lng,
+                userLocation.lat!,
+                userLocation.lng!,
                 false,
-                user.location.timezone
+                userLocation.timezone!
             );
             const zmanim = new Zmanim(loc, date, false);
             const sunrise = zmanim.sunrise();
@@ -70,7 +70,7 @@ const PeriodStartForm = ({ close, dateClicked }: Props) => {
                 hour: 'numeric',
                 minute: '2-digit',
                 hour12: true,
-                timeZone: user.location.timezone
+                timeZone: userLocation.timezone
             });
 
             setTimeRangeInfo(`This onah occurs between ${formatTime(start)} and ${formatTime(end)}`);

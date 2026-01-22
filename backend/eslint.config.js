@@ -1,19 +1,23 @@
 import js from "@eslint/js";
 import globals from "globals";
-import pluginReact from "eslint-plugin-react";
-import { defineConfig } from "eslint/config";
 
-export default defineConfig([
+export default [
+  js.configs.recommended,
   {
-    files: ["**/*.{js,mjs,cjs,jsx}"],
-    plugins: { js },
+    files: ["**/*.js"],
     languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: "module",
       globals: {
-        ...globals.browser,  // for frontend
-        ...globals.node      // add this for backend compatibility
+        ...globals.node,
+        ...globals.es2021
       }
     },
-    extends: ["js/recommended"]
-  },
-  pluginReact.configs.flat.recommended
-]);
+    rules: {
+      "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+      "no-console": "off",
+      "prefer-const": "error",
+      "no-var": "error"
+    }
+  }
+];

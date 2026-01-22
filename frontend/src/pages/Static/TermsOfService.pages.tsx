@@ -14,7 +14,7 @@ import {
   Box,
 } from '@mantine/core';
 import { IconCalendarStats, IconAlertTriangle, IconShieldLock, IconPray } from '@tabler/icons-react';
-import { PageMeta } from '@/SEO/PageMeta';
+import { PageMeta } from '../../components/PageMeta';
 
 const MikvahTerms: FC = () => {
   return (

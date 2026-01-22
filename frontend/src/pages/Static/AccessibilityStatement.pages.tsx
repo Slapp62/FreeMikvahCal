@@ -8,8 +8,8 @@ import {
   Title,
   useComputedColorScheme,
 } from '@mantine/core';
-import { PageMeta } from '@/SEO/PageMeta';
-import { formatDate } from '@/utils/dateUtils';
+import { PageMeta } from '../../components/PageMeta';
+import { formatDate } from '../../utils/dateUtils';
 
 export function AccessibilityStatement() {
   const computedColorScheme = useComputedColorScheme('dark');
@@ -245,3 +245,5 @@ export function AccessibilityStatement() {
     </>
   );
 }
+
+export default AccessibilityStatement;
