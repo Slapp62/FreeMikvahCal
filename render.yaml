@@ -4,7 +4,7 @@ services:
     name: freemikvahcal
     runtime: node
     plan: free
-    buildCommand: cd frontend && npm install --legacy-peer-deps && npm run build && cd ../backend && npm install && node scripts/copy-build.js
+    buildCommand: cd frontend && npm install --legacy-peer-deps --include=dev && npm run build && cd ../backend && npm install && node scripts/copy-build.js
     startCommand: cd backend && npm start
     envVars:
       - key: NODE_ENV
