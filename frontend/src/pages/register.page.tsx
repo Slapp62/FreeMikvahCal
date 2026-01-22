@@ -75,7 +75,7 @@ const RegisterPage = () => {
       try {
         const response = await searchLocations();
         setLocations(response.locations);
-        setLocationOptions(response.locations.map(loc => loc.value));
+        setLocationOptions(response.locations.map((loc: Location) => loc.value));
       } catch (error) {
         console.error('Error loading locations:', error);
         notifications.show({
@@ -89,7 +89,7 @@ const RegisterPage = () => {
   }, []);
 
   const onSubmit = async (formData: RegisterFormValues) => {
-    const selectedLocation = locations.find((loc) => loc.value === formData.location);
+    const selectedLocation = locations.find((loc: Location) => loc.value === formData.location);
 
     if (!selectedLocation) {
       notifications.show({

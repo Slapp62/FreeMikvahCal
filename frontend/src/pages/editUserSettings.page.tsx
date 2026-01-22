@@ -95,7 +95,7 @@ const EditUserSettings = () => {
                             label="Ohr Zaruah"
                             description="Separate on the preceding onah (opposite time of day/night) for all vesetim"
                             checked={ohrZaruah}
-                            onChange={(event) => setOhrZaruah(event.currentTarget.checked)}
+                            onChange={(event: React.ChangeEvent<HTMLInputElement>) => setOhrZaruah(event.currentTarget.checked)}
                         />
                         <Text size="xs" c="dimmed" mt={5} ml={28}>
                             Example: If your period started during the day, you would also separate the night before each veset.
@@ -109,7 +109,7 @@ const EditUserSettings = () => {
                             label="Kreisi U'Pleisi"
                             description="Observe both day and night on day 30 (24-hour Onah Beinonit)"
                             checked={kreisiUpleisi}
-                            onChange={(event) => setKreisiUpleisi(event.currentTarget.checked)}
+                            onChange={(event: React.ChangeEvent<HTMLInputElement>) => setKreisiUpleisi(event.currentTarget.checked)}
                         />
                         <Text size="xs" c="dimmed" mt={5} ml={28}>
                             In addition to the matching onah on day 30, also observe the opposite onah on day 30.
@@ -123,7 +123,7 @@ const EditUserSettings = () => {
                             label="Beinonit 31"
                             description="Also observe day 31 in addition to day 30"
                             checked={chasamSofer}
-                            onChange={(event) => setChasamSofer(event.currentTarget.checked)}
+                            onChange={(event: React.ChangeEvent<HTMLInputElement>) => setChasamSofer(event.currentTarget.checked)}
                         />
                         <Text size="xs" c="dimmed" mt={5} ml={28}>
                             Observe the matching onah on both day 30 and day 31 from the start of your period.

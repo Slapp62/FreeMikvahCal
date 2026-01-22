@@ -41,7 +41,9 @@
       "Bash(taskkill:*)",
       "Bash(npm start)",
       "Bash(timeout:*)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm ls:*)"
     ],
     "deny": [],
     "ask": []

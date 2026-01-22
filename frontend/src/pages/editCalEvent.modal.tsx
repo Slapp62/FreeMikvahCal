@@ -174,7 +174,7 @@ const EditEventModal = ({clicked, close, selectedEvent} : ModalProps) => {
                     label="Notes"
                     placeholder="Enter notes for this cycle"
                     value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNotes(e.target.value)}
                     minRows={3}
                 />
 
