@@ -44,7 +44,8 @@
       "Bash(git log:*)",
       "Bash(npm run typecheck:*)",
       "Bash(npm ls:*)",
-      "Bash(yarn list:*)"
+      "Bash(yarn list:*)",
+      "Bash(npm config:*)"
     ],
     "deny": [],
     "ask": []
