@@ -41,15 +41,14 @@ const HomePage = () => {
                     <Stack align="center" gap="xl">
                         <Title
                             order={1}
-                            size={{ base: '2rem', sm: '2.5rem', md: '3.5rem' }}
                             ta="center"
                             c="pink.7"
                             fw={800}
-                            style={{ lineHeight: 1.2 }}
+                            style={{ lineHeight: 1.2, fontSize: 'clamp(2rem, 5vw, 3.5rem)' }}
                         >
                             The Free Mikvah Calendar
                         </Title>
-                        <Title order={2} size={{ base: '1.2rem', sm: '1.5rem', md: '1.8rem' }} ta="center" c="pink.6" fw={500}>
+                        <Title order={2} ta="center" c="pink.6" fw={500} style={{ fontSize: 'clamp(1.2rem, 3vw, 1.8rem)' }}>
                             Making family purity easy for everyone
                         </Title>
                         <Text size="xl" ta="center" c="pink.9" maw={700}>

@@ -1,5 +1,4 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
-import { useMantineTheme } from '@mantine/core';
 import ErrorFallback from './ErrorFallback';
 import SimpleHTMLErrorFallback from './SimpleHTMLErrorFallback';
 

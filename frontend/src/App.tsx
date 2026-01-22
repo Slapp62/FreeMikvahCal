@@ -4,6 +4,7 @@ import { MantineProvider } from "@mantine/core";
 import { Notifications } from '@mantine/notifications';
 import { useEffect } from "react";
 import { BrowserRouter } from "react-router-dom";
+import { HelmetProvider } from 'react-helmet-async';
 import { AppRouter } from "./routing/AppRouter.tsx";
 import myTheme from "./styles/theme";
 import ErrorBoundary from "./components/ErrorCatching/ErrorBoundary";
@@ -31,13 +32,15 @@ export default function App() {
   }, []);
 
   return (
-    <MantineProvider theme={myTheme}>
-      <Notifications />
-      <ErrorBoundary useMantineFallback={true}>
-        <BrowserRouter>
-          <AppRouter />
-        </BrowserRouter>
-      </ErrorBoundary>
-    </MantineProvider>
+    <HelmetProvider>
+      <MantineProvider theme={myTheme}>
+        <Notifications />
+        <ErrorBoundary useMantineFallback={true}>
+          <BrowserRouter>
+            <AppRouter />
+          </BrowserRouter>
+        </ErrorBoundary>
+      </MantineProvider>
+    </HelmetProvider>
   );
 }
