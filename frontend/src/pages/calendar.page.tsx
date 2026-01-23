@@ -104,6 +104,41 @@ export default function CalendarPage() {
     //     );
     // };
 
+    const eventDidMount = (info: any) => {
+        const event = info.event;
+        const classNames = event.classNames;
+
+        // Check if this is an onah event
+        const isOnahEvent = classNames.some((className: string) =>
+            className === 'veset-hachodesh' ||
+            className === 'haflagah' ||
+            className === 'onah-beinonit' ||
+            className === 'onah-beinonit-kreisi' ||
+            className === 'onah-beinonit-sofer' ||
+            className === 'ohr-zaruah' ||
+            className === 'niddah-start' ||
+            className === 'period-start'
+        );
+
+        if (isOnahEvent) {
+            // Determine if it's day or night onah based on start and end dates
+            const startDate = new Date(event.start!);
+            const endDate = event.end ? new Date(event.end) : startDate;
+
+            // Check if start and end are on the same Gregorian day
+            const isSameDay = startDate.getFullYear() === endDate.getFullYear() &&
+                             startDate.getMonth() === endDate.getMonth() &&
+                             startDate.getDate() === endDate.getDate();
+
+            // Add custom class to the event element
+            if (isSameDay) {
+                info.el.classList.add('day-onah');
+            } else {
+                info.el.classList.add('night-onah');
+            }
+        }
+    };
+
     const renderEventContent = (eventInfo: EventContentArg) => {
         const event = eventInfo.event;
         const classNames = event.classNames;
@@ -175,7 +210,7 @@ export default function CalendarPage() {
                 <div className="fc-event-main-frame">
                     <div className="fc-event-title-container">
                         <div className="fc-event-title fc-sticky">
-                            {isMobile ? displayTitle : `${icon} ${displayTitle}`}
+                            {`${icon} ${displayTitle}`}
                         </div>
                     </div>
                 </div>
@@ -219,6 +254,7 @@ export default function CalendarPage() {
             timeZone='local'
             displayEventTime={true}
             eventContent={renderEventContent}
+            eventDidMount={eventDidMount}
             datesSet={handleDatesSet}
             dayCellContent={(arg) => {
               const morningDate = new HDate(arg.date);
