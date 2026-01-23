@@ -469,6 +469,12 @@
     padding: 1px; /* Reduced to 1px for more compact mobile layout */
     overflow: visible; /* Allow events to overflow into adjacent cells */
   }
+
+  /* Remove background for day onah events in mobile view */
+  .calendar .fc-event.day-onah {
+    background-color: transparent !important;
+    border: none !important;
+  }
 }
 
 /* Smooth scrolling for overflow */
