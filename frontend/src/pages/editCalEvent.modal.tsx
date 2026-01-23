@@ -11,9 +11,10 @@ type ModalProps = {
     clicked: boolean;
     close: () => void;
     selectedEvent: EventImpl | null;
+    tooltipText?: string;
 };
 
-const EditEventModal = ({clicked, close, selectedEvent} : ModalProps) => {
+const EditEventModal = ({clicked, close, selectedEvent, tooltipText} : ModalProps) => {
     if (!selectedEvent) return null;
 
     const isMobile = useMediaQuery('(max-width: 768px)');
@@ -149,6 +150,13 @@ const EditEventModal = ({clicked, close, selectedEvent} : ModalProps) => {
                 <Text size="lg" fw={600}>
                     {selectedEvent.title}
                 </Text>
+
+                {/* Show event type description tooltip */}
+                {tooltipText && (
+                    <Text size="sm" c="dimmed" fs="italic">
+                        {tooltipText}
+                    </Text>
+                )}
 
                 {/* Show onah time information for onah events */}
                 {eventStart && eventEnd && onahType && (

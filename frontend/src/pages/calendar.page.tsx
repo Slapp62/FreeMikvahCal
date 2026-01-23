@@ -13,6 +13,31 @@ import { useMediaQuery } from '@mantine/hooks';
 import { getHebrewMonthRange } from '../utils/hebrewDates.ts';
 import { HDate } from '@hebcal/core';
 
+// Event type to tooltip text mapping for desktop hover tooltips
+const EVENT_TOOLTIPS: Record<string, string> = {
+    'niddah-start': 'Period Start - Beginning of niddah status',
+    'period-start': 'Period Start - Beginning of niddah status',
+    'hefsek-tahara': 'Hefsek Tahara - Internal examination to check for clean status',
+    'shiva-nekiyim': 'Shiva Nekiyim - Seven clean days of purity',
+    'mikvah': 'Mikvah - Ritual immersion completing the purification process',
+    'veset-hachodesh': 'Veset HaChodesh - Monthly separation period based on Hebrew date',
+    'haflagah': 'Haflagah - Interval-based separation period based on cycle length',
+    'onah-beinonit': 'Onah Beinonit - Standard 30-day separation period',
+    'onah-beinonit-kreisi': 'Onah Beinonit (Kreisi) - 31-day variant for longer cycles',
+    'onah-beinonit-sofer': 'Onah Beinonit (Sofer) - Alternative calculation method',
+    'ohr-zaruah': 'Ohr Zaruah - Additional stringency period (day before main veset)',
+};
+
+// Helper function to get tooltip text from event class names
+const getTooltipText = (classNames: string[]): string => {
+    for (const className of classNames) {
+        if (EVENT_TOOLTIPS[className]) {
+            return EVENT_TOOLTIPS[className];
+        }
+    }
+    return 'Calendar event - click for details';
+};
+
 // Helper function to abbreviate event titles on mobile
 const getEventAbbreviation = (title: string, isMobile: boolean): string => {
     if (!isMobile) return title;
@@ -22,15 +47,15 @@ const getEventAbbreviation = (title: string, isMobile: boolean): string => {
 
     // Mobile abbreviations mapping
     const abbreviations: Record<string, string> = {
-        'Period Start': 'PS',
+        'Period Start': 'Start',
         'Hefsek Tahara': 'Hefsek',
         'Shiva Nekiyim Start': '7N',
         'Mikvah': 'Mikvah',
         'Veset HaChodesh': 'Chodesh',
         'Haflagah': 'Haf',
-        'Onah Beinonit': 'OB30',
-        'Kreisi U\'Pleisi': 'OB31',
-        'Beinonit 31': 'OB31',
+        'Onah Beinonit': 'OB-30',
+        'Kreisi U\'Pleisi': 'OB-31',
+        'Beinonit 31': 'OB-31',
         'Ohr Zaruah - Veset HaChodesh': 'OZ-VH',
         'Ohr Zaruah - Haflagah': 'OZ-Haf',
         'Ohr Zaruah - Onah Beinonit': 'OZ-OB',
@@ -54,6 +79,7 @@ export default function CalendarPage() {
     const [eventModalOpened, setEventModalOpened] = useState(false);
     const closeEventModal = () => setEventModalOpened(false);
     const [selectedEvent, setSelectedEvent] = useState<EventImpl | null>(null);
+    const [selectedEventTooltip, setSelectedEventTooltip] = useState<string>('');
 
     const handleDatesSet = () => {
         // Update title when month changes
@@ -90,7 +116,10 @@ export default function CalendarPage() {
 
     const handleEventClick = (arg: EventClickArg) => {
        const eventClicked = arg.event;
+       const tooltipText = getTooltipText(eventClicked.classNames);
+
        setSelectedEvent(eventClicked);
+       setSelectedEventTooltip(tooltipText);
        setEventModalOpened(true);
     };
 
@@ -107,6 +136,12 @@ export default function CalendarPage() {
     const eventDidMount = (info: any) => {
         const event = info.event;
         const classNames = event.classNames;
+
+        // Add tooltip for desktop (using native HTML title attribute)
+        if (!isMobile) {
+            const tooltipText = getTooltipText(classNames);
+            info.el.setAttribute('title', tooltipText);
+        }
 
         // Check if this is an onah event
         const isOnahEvent = classNames.some((className: string) =>
@@ -329,6 +364,7 @@ export default function CalendarPage() {
             clicked={eventModalOpened}
             close={closeEventModal}
             selectedEvent={selectedEvent}
+            tooltipText={selectedEventTooltip}
         />
         
     </Stack>

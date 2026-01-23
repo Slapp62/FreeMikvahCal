@@ -395,6 +395,12 @@
   /* Removed truncation: white-space: nowrap, overflow: hidden, text-overflow: ellipsis */
 }
 
+/* Make day onah events completely transparent (desktop and mobile) - no background, just text */
+.calendar .fc-event.day-onah {
+  background-color: transparent !important;
+  border: none !important;
+}
+
 /* ========== MOBILE RESPONSIVE STYLES (max-width: 768px) ========== */
 @media (max-width: 768px) {
   .calendar .fc {
@@ -433,6 +439,7 @@
 
   /* Event blocks (abbreviated text like "VH", "HT", "PS") - Mobile */
   .calendar .fc-event {
+    background-color: transparent;
     font-size: 0.5rem; /* Event text size (uses rem for consistency) */
     padding: 1px 3px; /* Compact padding */
     margin: 1px; /* Tight spacing between events */
