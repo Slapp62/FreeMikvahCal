@@ -57,7 +57,7 @@ const EditUserSettings = () => {
 
             notifications.show({
                 title: 'Success',
-                message: 'Your halachic preferences have been updated. These will apply to all new cycles.',
+                message: 'Your halachic preferences have been updated and applied to all your cycles.',
                 color: 'green',
             });
         } catch (error: any) {
@@ -84,8 +84,7 @@ const EditUserSettings = () => {
             <Title order={2} mb={20}>Halachic Preferences</Title>
 
             <Alert icon={<IconInfoCircle size={16} />} color="blue" mb={20}>
-                These stringencies will automatically apply to all new cycles you create.
-                Existing cycles will not be affected.
+                These stringencies will automatically apply to all your cycles, including existing ones.
             </Alert>
 
             <Paper shadow="sm" p="lg" withBorder>
