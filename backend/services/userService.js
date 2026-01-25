@@ -3,6 +3,7 @@ const Preferences = require('../models/Preferences');
 const { throwError } = require('../utils/functionHandlers');
 const { normalizeUser } = require('../utils/normalizeResponses');
 const { logDatabase } = require('../utils/logHelpers');
+const { recalculateAllCycleVestOnot } = require('./cycleService');
 
 /**
  * Get user by ID
@@ -25,6 +26,19 @@ const updateUser = async (userId, updateData) => {
 
   if (!user || user.isDeleted) {
     throwError(404, 'User not found');
+  }
+
+  // Track if halachic preferences changed for cycle recalculation
+  let halachicPreferencesChanged = false;
+  if (updateData.halachicPreferences) {
+    const oldPrefs = user.halachicPreferences || {};
+    const newPrefs = updateData.halachicPreferences;
+
+    // Check if any preference value actually changed
+    halachicPreferencesChanged =
+      (newPrefs.ohrZaruah !== undefined && newPrefs.ohrZaruah !== oldPrefs.ohrZaruah) ||
+      (newPrefs.kreisiUpleisi !== undefined && newPrefs.kreisiUpleisi !== oldPrefs.kreisiUpleisi) ||
+      (newPrefs.chasamSofer !== undefined && newPrefs.chasamSofer !== oldPrefs.chasamSofer);
   }
 
   // Update allowed fields
@@ -56,7 +70,19 @@ const updateUser = async (userId, updateData) => {
 
   await user.save();
 
-  logDatabase('update', 'Users', { userId, fields: Object.keys(updateData) });
+  // If halachic preferences changed, recalculate vest onot for all existing cycles
+  if (halachicPreferencesChanged) {
+    try {
+      await recalculateAllCycleVestOnot(userId, user.halachicPreferences);
+      logDatabase('update', 'Users', { userId, fields: Object.keys(updateData), cyclesRecalculated: true });
+    } catch (error) {
+      // Log error but don't fail the user update
+      console.error('Failed to recalculate cycle vest onot:', error);
+      logDatabase('update', 'Users', { userId, fields: Object.keys(updateData), cyclesRecalculationFailed: true });
+    }
+  } else {
+    logDatabase('update', 'Users', { userId, fields: Object.keys(updateData) });
+  }
 
   return normalizeUser(user);
 };

@@ -638,6 +638,71 @@ const getOnahIcon = (start, end) => {
 };
 
 /**
+ * Recalculate vest onot for all cycles when halachic preferences change
+ * Only updates onah events (vestOnot), not hefsek or other dates
+ * @param {String} userId - User ID
+ * @param {Object} newHalachicPreferences - New halachic preferences
+ * @returns {Number} - Number of cycles updated
+ */
+const recalculateAllCycleVestOnot = async (userId, newHalachicPreferences) => {
+  // Get user's location for calculations
+  const user = await Users.findById(userId).select('location');
+  if (!user || !user.location || !user.location.timezone) {
+    throwError(400, 'User location not set. Please update your profile.');
+  }
+
+  const hasCompleteLocation = user.location.lat != null && user.location.lng != null;
+  if (!hasCompleteLocation) {
+    throwError(400, 'Complete location (latitude, longitude, timezone) required.');
+  }
+
+  const location = {
+    lat: user.location.lat,
+    lng: user.location.lng,
+    timezone: user.location.timezone
+  };
+
+  // Get all non-deleted cycles for the user
+  const cycles = await Cycles.find({
+    userId,
+    isDeleted: false
+  }).sort({ 'niddahOnah.start': -1 });
+
+  let updatedCount = 0;
+
+  // Update each cycle's appliedChumras and recalculate vestOnot
+  for (const cycle of cycles) {
+    // Get previous cycles for haflagah calculation
+    const previousCycles = await Cycles.find({
+      userId: userId,
+      _id: { $ne: cycle._id },
+      status: { $in: ['niddah', 'shiva_nekiyim', 'completed'] },
+      'niddahOnah.start': { $lt: cycle.niddahOnah.start }
+    })
+      .sort({ 'niddahOnah.start': -1 })
+      .limit(3)
+      .select('niddahOnah cycleLength');
+
+    // Update applied chumras
+    cycle.appliedChumras = {
+      ohrZaruah: newHalachicPreferences.ohrZaruah || false,
+      kreisiUpleisi: newHalachicPreferences.kreisiUpleisi || false,
+      chasamSofer: newHalachicPreferences.chasamSofer || false
+    };
+
+    // Recalculate vest onot with new preferences
+    cycle.calculateVestOnot(previousCycles, location, newHalachicPreferences);
+
+    await cycle.save();
+    updatedCount++;
+  }
+
+  logDatabase('recalculate_vest_onot', 'Cycles', { userId, cyclesUpdated: updatedCount });
+
+  return updatedCount;
+};
+
+/**
  * Get calendar events for user's cycles
  * Converts cycles into pre-formatted calendar events
  * @param {String} userId - User ID
@@ -951,5 +1016,6 @@ module.exports = {
   addBedika,
   getActiveCycle,
   getUpcomingVestOnot,
-  getCalendarEvents
+  getCalendarEvents,
+  recalculateAllCycleVestOnot
 };

@@ -91,7 +91,7 @@ const EditUserSettings = () => {
 
             notifications.show({
                 title: 'Success',
-                message: 'Your halachic preferences have been updated. These will apply to all new cycles.',
+                message: 'Your halachic preferences have been updated and applied to all your cycles.',
                 color: 'green',
             });
         } catch (error: any) {
