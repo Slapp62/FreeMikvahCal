@@ -25,8 +25,6 @@ const normalizeCycle = (cycle) => {
   const normalized = cycle.toObject ? cycle.toObject() : { ...cycle };
 
   delete normalized.__v;
-  delete normalized.isDeleted;
-  delete normalized.deletedAt;
 
   return normalized;
 };

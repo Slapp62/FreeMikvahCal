@@ -14,6 +14,7 @@ export interface IRegister {
         ohrZaruah?: boolean;
         kreisiUpleisi?: boolean;
         chasamSofer?: boolean;
+        minimumNiddahDays?: number;
     };
     preferences: {
         email_reminders: boolean;

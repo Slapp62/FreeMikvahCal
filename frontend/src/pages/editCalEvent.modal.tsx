@@ -1,4 +1,4 @@
-import { Modal, Stack, Button, Textarea, Text, Group, Divider } from "@mantine/core"
+import { Modal, Stack, Button, Textarea, Text, Group, Divider } from "@mantine/core";
 import { EventImpl } from '@fullcalendar/core/internal';
 import { notifications } from "@mantine/notifications";
 import { useMediaQuery } from "@mantine/hooks";
@@ -33,6 +33,7 @@ const EditEventModal = ({clicked, close, selectedEvent, tooltipText} : ModalProp
     const [notes, setNotes] = useState(cycle?.notes || '');
     const [isDeleting, setIsDeleting] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     // Detect event type and onah information
     const eventStart = selectedEvent.start ? new Date(selectedEvent.start) : null;
@@ -92,7 +93,7 @@ const EditEventModal = ({clicked, close, selectedEvent, tooltipText} : ModalProp
 
             notifications.show({
                 title: 'Success',
-                message: 'Cycle deleted successfully',
+                message: 'Cycle and all related onah events deleted successfully',
                 color: 'green',
             });
 
@@ -107,6 +108,15 @@ const EditEventModal = ({clicked, close, selectedEvent, tooltipText} : ModalProp
         } finally {
             setIsDeleting(false);
         }
+    };
+
+    const confirmDeleteCycle = () => {
+        setShowDeleteConfirm(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        setShowDeleteConfirm(false);
+        await handleDeleteCycle();
     };
 
     const handleUpdateNotes = async () => {
@@ -137,85 +147,118 @@ const EditEventModal = ({clicked, close, selectedEvent, tooltipText} : ModalProp
     };
 
     return (
-        <Modal
-            opened={clicked}
-            onClose={close}
-            title="Event Details"
-            centered
-            size="md"
-            fullScreen={isMobile}
-            padding={isMobile ? 'md' : 'lg'}
-        >
-            <Stack>
-                <Text size="lg" fw={600}>
-                    {selectedEvent.title}
-                </Text>
-
-                {/* Show event type description tooltip */}
-                {tooltipText && (
-                    <Text size="sm" c="dimmed" fs="italic">
-                        {tooltipText}
+        <>
+            <Modal
+                opened={clicked}
+                onClose={close}
+                title="Event Details"
+                centered
+                size="md"
+                fullScreen={isMobile}
+                padding={isMobile ? 'md' : 'lg'}
+            >
+                <Stack>
+                    <Text size="lg" fw={600}>
+                        {selectedEvent.title}
                     </Text>
-                )}
 
-                {/* Show onah time information for onah events */}
-                {eventStart && eventEnd && onahType && (
-                    <Stack gap="xs">
-                        <Divider />
-                        <Group justify="space-between" wrap="nowrap">
-                            <Text size="sm" fw={500}>Onah Type:</Text>
-                            <Text size="sm">{onahIcon} {onahType === 'day' ? 'Day Onah' : 'Night Onah'}</Text>
-                        </Group>
-                        <Group justify="space-between" wrap="nowrap">
-                            <Text size="sm" fw={500}>Start Time:</Text>
-                            <Text size="sm">{formatTime(eventStart)}</Text>
-                        </Group>
-                        <Group justify="space-between" wrap="nowrap">
-                            <Text size="sm" fw={500}>End Time:</Text>
-                            <Text size="sm">{formatTime(eventEnd)}</Text>
-                        </Group>
-                        <Divider />
-                    </Stack>
-                )}
+                    {/* Show event type description tooltip */}
+                    {tooltipText && (
+                        <Text size="sm" c="dimmed" fs="italic">
+                            {tooltipText}
+                        </Text>
+                    )}
 
-                <Textarea
-                    label="Notes"
-                    placeholder="Enter notes for this cycle"
-                    value={notes}
-                    onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setNotes(e.target.value)}
-                    minRows={3}
-                />
+                    {/* Show onah time information for onah events */}
+                    {eventStart && eventEnd && onahType && (
+                        <Stack gap="xs">
+                            <Divider />
+                            <Group justify="space-between" wrap="nowrap">
+                                <Text size="sm" fw={500}>Onah Type:</Text>
+                                <Text size="sm">{onahIcon} {onahType === 'day' ? 'Day Onah' : 'Night Onah'}</Text>
+                            </Group>
+                            <Group justify="space-between" wrap="nowrap">
+                                <Text size="sm" fw={500}>Start Time:</Text>
+                                <Text size="sm">{formatTime(eventStart)}</Text>
+                            </Group>
+                            <Group justify="space-between" wrap="nowrap">
+                                <Text size="sm" fw={500}>End Time:</Text>
+                                <Text size="sm">{formatTime(eventEnd)}</Text>
+                            </Group>
+                            <Divider />
+                        </Stack>
+                    )}
 
-                <Button
-                    onClick={handleUpdateNotes}
-                    loading={isSaving}
-                    disabled={isDeleting}
-                >
-                    Save Notes
-                </Button>
+                    <Textarea
+                        label="Notes"
+                        placeholder="Enter notes for this cycle"
+                        value={notes}
+                        onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setNotes(e.target.value)}
+                        minRows={3}
+                    />
 
-                {/* Only show delete button for period start events */}
-                {isPeriodStart && (
                     <Button
-                        color="red"
-                        onClick={handleDeleteCycle}
-                        loading={isDeleting}
-                        disabled={isSaving}
+                        onClick={handleUpdateNotes}
+                        loading={isSaving}
+                        disabled={isDeleting}
                     >
-                        Delete Entire Cycle
+                        Save Notes
                     </Button>
-                )}
 
-                <Button
-                    variant="outline"
-                    onClick={close}
-                    disabled={isDeleting || isSaving}
-                >
-                    Cancel
-                </Button>
-            </Stack>
-        </Modal>
+                    {/* Only show delete button for period start events */}
+                    {isPeriodStart && (
+                        <Button
+                            color="red"
+                            onClick={confirmDeleteCycle}
+                            loading={isDeleting}
+                            disabled={isSaving}
+                        >
+                            Delete Entire Cycle
+                        </Button>
+                    )}
+
+                    <Button
+                        variant="outline"
+                        onClick={close}
+                        disabled={isDeleting || isSaving}
+                    >
+                        Cancel
+                    </Button>
+                </Stack>
+            </Modal>
+
+            {/* Delete Confirmation Modal */}
+            <Modal
+                opened={showDeleteConfirm}
+                onClose={() => setShowDeleteConfirm(false)}
+                title="Delete Period"
+                centered
+                size="sm"
+            >
+                <Stack>
+                    <Text size="sm">
+                        Are you sure you want to delete this period? All related onah events will be permanently deleted.
+                    </Text>
+                    <Group justify="flex-end" mt="md">
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowDeleteConfirm(false)}
+                            disabled={isDeleting}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            color="red"
+                            onClick={handleConfirmDelete}
+                            loading={isDeleting}
+                        >
+                            Delete
+                        </Button>
+                    </Group>
+                </Stack>
+            </Modal>
+        </>
     );
 }
 
-export default EditEventModal
+export default EditEventModal;

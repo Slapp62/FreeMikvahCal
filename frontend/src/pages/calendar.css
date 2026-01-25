@@ -331,6 +331,66 @@
   background-color: light-dark(var(--mantine-color-teal-1), var(--mantine-color-dark-4));
 }
 
+/* Bedikah Events - Clean Result */
+.calendar .fc-event.bedikah-clean {
+  border-left-color: var(--mantine-color-green-7);
+  background-color: light-dark(var(--mantine-color-green-0), var(--mantine-color-dark-5));
+}
+
+.calendar .fc-event.bedikah-clean .fc-event-title {
+  color: light-dark(var(--mantine-color-green-8), var(--mantine-color-green-3));
+}
+
+.calendar .fc-event.bedikah-clean:hover {
+  background-color: light-dark(var(--mantine-color-green-1), var(--mantine-color-dark-4));
+}
+
+/* Bedikah Events - Questionable Result */
+.calendar .fc-event.bedikah-questionable {
+  border-left-color: var(--mantine-color-yellow-7);
+  background-color: light-dark(var(--mantine-color-yellow-0), var(--mantine-color-dark-5));
+}
+
+.calendar .fc-event.bedikah-questionable .fc-event-title {
+  color: light-dark(var(--mantine-color-yellow-9), var(--mantine-color-yellow-3));
+}
+
+.calendar .fc-event.bedikah-questionable:hover {
+  background-color: light-dark(var(--mantine-color-yellow-1), var(--mantine-color-dark-4));
+}
+
+/* Bedikah Events - Not Clean Result */
+.calendar .fc-event.bedikah-not-clean, .calendar .fc-event.bedikah-not_clean {
+  border-left-color: var(--mantine-color-red-7);
+  background-color: light-dark(var(--mantine-color-red-0), var(--mantine-color-dark-5));
+}
+
+.calendar .fc-event.bedikah-not-clean .fc-event-title, .calendar .fc-event.bedikah-not_clean .fc-event-title {
+  color: light-dark(var(--mantine-color-red-8), var(--mantine-color-red-3));
+}
+
+.calendar .fc-event.bedikah-not-clean:hover, .calendar .fc-event.bedikah-not_clean:hover {
+  background-color: light-dark(var(--mantine-color-red-1), var(--mantine-color-dark-4));
+}
+
+/* Voided Events */
+.calendar .fc-event.voided {
+  opacity: 0.5;
+  text-decoration: line-through;
+  border-left-style: dashed;
+  background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6));
+  text-wrap: wrap;
+  overflow-wrap: break-word;
+  white-space: wrap;
+}
+
+.calendar .fc-event.voided .fc-event-title {
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-gray-5));
+  overflow-wrap: break-word;
+  white-space: wrap;
+  text-wrap: wrap;
+}
+
 /* Customize the "more" link for hidden events */
 .calendar .fc-daygrid-more-link {
   color: var(--mantine-color-pink-8);
@@ -401,6 +461,33 @@
   border: none !important;
 }
 
+/* Most events should wrap text to next line (day onahs, hefsek, bedikah) */
+.calendar .fc-event.day-onah .fc-event-title,
+.calendar .fc-event.hefsek-tahara .fc-event-title,
+.calendar .fc-event.bedikah-clean .fc-event-title,
+.calendar .fc-event.bedikah-questionable .fc-event-title,
+.calendar .fc-event.bedikah-not-clean .fc-event-title,
+.calendar .fc-event.bedikah-not_clean .fc-event-title {
+  white-space: normal !important;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Night onah events: allow overflow into adjacent cells */
+.calendar .fc-event.night-onah .fc-event-title {
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+
+/* Hide time for bedikah events */
+.calendar .fc-event.bedikah-clean .fc-event-time,
+.calendar .fc-event.bedikah-questionable .fc-event-time,
+.calendar .fc-event.bedikah-not-clean .fc-event-time,
+.calendar .fc-event.bedikah-not_clean .fc-event-time {
+  display: none !important;
+}
+
 /* ========== MOBILE RESPONSIVE STYLES (max-width: 768px) ========== */
 @media (max-width: 768px) {
   .calendar .fc {
@@ -409,6 +496,7 @@
   /* Calendar header toolbar - Mobile */
   .calendar .fc .fc-toolbar {
     padding: 12px 10px;
+    border-radius: 0;
   }
 
   /* Calendar title (e.g., "January 2026" / Hebrew month) - Mobile */
@@ -481,6 +569,25 @@
   .calendar .fc-event.day-onah {
     background-color: transparent !important;
     border: none !important;
+  }
+
+  /* Most events should wrap text to next line (day onahs, hefsek, bedikah) - Mobile */
+  .calendar .fc-event.day-onah .fc-event-title,
+  .calendar .fc-event.hefsek-tahara .fc-event-title,
+  .calendar .fc-event.bedikah-clean .fc-event-title,
+  .calendar .fc-event.bedikah-questionable .fc-event-title,
+  .calendar .fc-event.bedikah-not-clean .fc-event-title,
+  .calendar .fc-event.bedikah-not_clean .fc-event-title {
+    white-space: normal !important;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* Night onah events: allow overflow into adjacent cells - Mobile */
+  .calendar .fc-event.night-onah .fc-event-title {
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
   }
 }
 

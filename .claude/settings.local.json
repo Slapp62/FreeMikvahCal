@@ -45,7 +45,8 @@
       "Bash(npm run typecheck:*)",
       "Bash(npm ls:*)",
       "Bash(yarn list:*)",
-      "Bash(npm config:*)"
+      "Bash(npm config:*)",
+      "Bash(move \"C:\\Users\\simch\\Documents\\Coding\\freeMikvahCal\\frontend\\public\\calendar.ico\" \"C:\\Users\\simch\\Documents\\Coding\\freeMikvahCal\\frontend\\public\\favicon.ico\")"
     ],
     "deny": [],
     "ask": []

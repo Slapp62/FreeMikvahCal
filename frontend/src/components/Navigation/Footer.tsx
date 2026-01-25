@@ -5,7 +5,7 @@ import {
   IconPhone,
   IconCalendar,
   IconHeart,
-} from '@tabler/icons-react';
+} from '../../utils/icons';
 import { Container, Grid, Group, Text, Stack, Box, Anchor, Divider } from '@mantine/core';
 import { Link } from 'react-router-dom';
 

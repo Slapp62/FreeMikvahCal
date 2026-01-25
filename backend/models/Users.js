@@ -55,6 +55,12 @@ const userSchema = new Schema({
     ohrZaruah: { type: Boolean, default: false },      // Separate on preceding onah for all vesetim
     kreisiUpleisi: { type: Boolean, default: false },  // 24-hour onah beinonit (day 30)
     chasamSofer: { type: Boolean, default: false },    // Also observe day 31
+    minimumNiddahDays: {                               // Minimum days before hefsek tahara allowed
+      type: Number,
+      default: 5,
+      min: 4,                                          // Halachic minimum is typically 4-5 days
+      max: 10                                          // Reasonable upper limit
+    },
     _id: false
   },
 

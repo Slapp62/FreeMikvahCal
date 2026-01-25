@@ -1,6 +1,6 @@
 import { FC, useEffect, useState } from 'react';
 import emailjs from '@emailjs/browser';
-import { IconBriefcase, IconUsers, IconWorld } from '@tabler/icons-react';
+import { IconBriefcase, IconUsers, IconWorld } from '../utils/icons';
 import { useLocation } from 'react-router-dom';
 import {
   Box,
@@ -61,7 +61,7 @@ const AboutPage: FC = () => {
 
   const handleSubmit = (values: typeof form.values) => {
     // Replace with your EmailJS service ID, template ID, and public key
-    const serviceID = 'service_5zblm38';
+    const serviceID = 'service_sm2ko9c';
     const templateID = 'template_itsqp9u';
     const publicKey = 'a6IxywqmqlHjFDfxD';
 

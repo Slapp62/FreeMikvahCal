@@ -2,7 +2,7 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin, { DateClickArg } from '@fullcalendar/interaction';
 import { EventClickArg, EventContentArg } from '@fullcalendar/core';
-import { Box, Group, Stack, Title, Text } from '@mantine/core';
+import { Box, Group, Stack, Title, Text, Tooltip, Button, Divider, Popover } from '@mantine/core';
 import './calendar.css';
 import CalendarEventModal from './newCalEvent.modal.tsx';
 import { useState, useRef } from 'react';
@@ -11,7 +11,8 @@ import EditEventModal from './editCalEvent.modal.tsx';
 import { EventImpl } from '@fullcalendar/core/internal';
 import { useMediaQuery } from '@mantine/hooks';
 import { getHebrewMonthRange } from '../utils/hebrewDates.ts';
-import { HDate } from '@hebcal/core';
+import { HDate, Location, Zmanim } from '@hebcal/core';
+import { useUserStore } from '../store/userStore.ts';
 
 // Event type to tooltip text mapping for desktop hover tooltips
 const EVENT_TOOLTIPS: Record<string, string> = {
@@ -26,6 +27,10 @@ const EVENT_TOOLTIPS: Record<string, string> = {
     'onah-beinonit-kreisi': 'Onah Beinonit (Kreisi) - 31-day variant for longer cycles',
     'onah-beinonit-sofer': 'Onah Beinonit (Sofer) - Alternative calculation method',
     'ohr-zaruah': 'Ohr Zaruah - Additional stringency period (day before main veset)',
+    'bedikah-clean': 'Bedikah - Internal examination with clean result',
+    'bedikah-questionable': 'Bedikah - Questionable result, consult rabbinical authority',
+    'bedikah-not-clean': 'Bedikah - Not clean result, voids current period',
+    'bedikah-not_clean': 'Bedikah - Not clean result, voids current period',
 };
 
 // Helper function to get tooltip text from event class names
@@ -36,6 +41,51 @@ const getTooltipText = (classNames: string[]): string => {
         }
     }
     return 'Calendar event - click for details';
+};
+
+// Helper function to format time for tooltips
+const formatTime = (date: Date | null): string => {
+    if (!date) return 'N/A';
+    return date.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    });
+};
+
+// Helper function to calculate sunset and tzeit hakochavim
+const calculateMikvahTimes = (date: Date, userLocation: any): { sunset: string; tzeit: string } | null => {
+    if (!userLocation?.lat || !userLocation?.lng || !userLocation?.timezone) {
+        return null;
+    }
+
+    try {
+        const loc = new Location(
+            userLocation.lat,
+            userLocation.lng,
+            false,
+            userLocation.timezone
+        );
+        const zmanim = new Zmanim(loc, date, false);
+
+        const sunset = zmanim.sunset();
+        const tzeit = zmanim.tzeit();
+
+        const formatZman = (d: Date) => d.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true,
+            timeZone: userLocation.timezone
+        });
+
+        return {
+            sunset: formatZman(sunset),
+            tzeit: formatZman(tzeit)
+        };
+    } catch (error) {
+        console.error('Error calculating zmanim:', error);
+        return null;
+    }
 };
 
 // Helper function to abbreviate event titles on mobile
@@ -59,6 +109,9 @@ const getEventAbbreviation = (title: string, isMobile: boolean): string => {
         'Ohr Zaruah - Veset HaChodesh': 'OZ-VH',
         'Ohr Zaruah - Haflagah': 'OZ-Haf',
         'Ohr Zaruah - Onah Beinonit': 'OZ-OB',
+        'Bedikah - Clean': 'B-C',
+        'Bedikah - Questionable': 'B-Q',
+        'Bedikah - Not Clean': 'B-NC',
     };
 
     return abbreviations[cleanTitle] || cleanTitle;
@@ -67,6 +120,7 @@ const getEventAbbreviation = (title: string, isMobile: boolean): string => {
 export default function CalendarPage() {
     const isMobile = useMediaQuery('(max-width: 768px)');
     const events = useLoadEvents();
+    const user = useUserStore((state) => state.user);
 
     const [clickedDate, setClickedDate] = useState<string>('');
     const calendarRef = useRef<any>(null);
@@ -115,6 +169,14 @@ export default function CalendarPage() {
     };
 
     const handleEventClick = (arg: EventClickArg) => {
+       // On mobile, don't open modal immediately - let the Popover handle it
+       if (isMobile) {
+           arg.jsEvent.preventDefault();
+           arg.jsEvent.stopPropagation();
+           return;
+       }
+
+       // On desktop, open modal on click
        const eventClicked = arg.event;
        const tooltipText = getTooltipText(eventClicked.classNames);
 
@@ -136,12 +198,6 @@ export default function CalendarPage() {
     const eventDidMount = (info: any) => {
         const event = info.event;
         const classNames = event.classNames;
-
-        // Add tooltip for desktop (using native HTML title attribute)
-        if (!isMobile) {
-            const tooltipText = getTooltipText(classNames);
-            info.el.setAttribute('title', tooltipText);
-        }
 
         // Check if this is an onah event
         const isOnahEvent = classNames.some((className: string) =>
@@ -187,11 +243,13 @@ export default function CalendarPage() {
             // Extract the icon from the title and remove it from the text
             let icon = '';
             let cleanTitle = event.title;
+            const isHefsek = event.title.includes('✅');
+            const isMikvahEvent = event.title.includes('🛁');
 
-            if (event.title.includes('✅')) {
+            if (isHefsek) {
                 icon = '✅';
                 cleanTitle = event.title.replace('✅', '').trim();
-            } else if (event.title.includes('🛁')) {
+            } else if (isMikvahEvent) {
                 icon = '🛁';
                 cleanTitle = event.title.replace('🛁', '').trim();
             }
@@ -199,7 +257,13 @@ export default function CalendarPage() {
             // Apply abbreviation on mobile
             const displayTitle = getEventAbbreviation(cleanTitle, isMobile);
 
-            return (
+            // Get tooltip description
+            const tooltipText = getTooltipText(classNames);
+
+            // Format time for tooltip
+            const eventTime = event.start ? formatTime(new Date(event.start)) : 'N/A';
+
+            const eventContent = (
                 <div className="fc-event-main-frame">
                     <div className="fc-event-time">{icon}</div>
                     <div className="fc-event-title-container">
@@ -208,6 +272,84 @@ export default function CalendarPage() {
                         </div>
                     </div>
                 </div>
+            );
+
+            // Calculate zmanim for mikvah events
+            const mikvahTimes = isMikvahEvent && event.start ? calculateMikvahTimes(new Date(event.start), user?.location) : null;
+
+            // Use Popover for mobile (interactive), Tooltip for desktop (hover)
+            if (isMobile) {
+                return (
+                    <Popover width={250} position="top" withArrow shadow="md" clickOutsideEvents={['mousedown', 'touchstart']}>
+                        <Popover.Target>
+                            <div style={{ width: '100%', height: '100%' }}>
+                                {eventContent}
+                            </div>
+                        </Popover.Target>
+                        <Popover.Dropdown>
+                            <Stack gap="xs">
+                                <Text size="sm" fw={600}>{cleanTitle}</Text>
+                                <Text size="xs">{tooltipText}</Text>
+                                {!isMikvahEvent && <Text size="xs" c="dimmed">Time: {eventTime}</Text>}
+                                {isMikvahEvent && mikvahTimes && (
+                                    <>
+                                        <Text size="xs" c="dimmed">Sunset: {mikvahTimes.sunset}</Text>
+                                        <Text size="xs" c="dimmed">Tzeit Hakochavim: {mikvahTimes.tzeit}</Text>
+                                    </>
+                                )}
+                                {isHefsek && <Text size="xs" c="dimmed">Mikvah scheduled 7 days after this</Text>}
+                                <Divider />
+                                <Button
+                                    size="xs"
+                                    variant="light"
+                                    color="pink"
+                                    fullWidth
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedEvent(event);
+                                        setSelectedEventTooltip(tooltipText);
+                                        setEventModalOpened(true);
+                                    }}
+                                >
+                                    More Info
+                                </Button>
+                            </Stack>
+                        </Popover.Dropdown>
+                    </Popover>
+                );
+            }
+
+            // Desktop: Use Tooltip
+            return (
+                <Tooltip
+                    label={
+                        <div style={{ maxWidth: 250 }}>
+                            <Text size="sm" fw={600} mb={4}>{cleanTitle}</Text>
+                            <Text size="xs" mb={8}>{tooltipText}</Text>
+                            {!isMikvahEvent && <Text size="xs" c="dimmed" mb={2}>Time: {eventTime}</Text>}
+                            {isMikvahEvent && mikvahTimes && (
+                                <>
+                                    <Text size="xs" c="dimmed" mb={2}>Sunset: {mikvahTimes.sunset}</Text>
+                                    <Text size="xs" c="dimmed" mb={2}>Tzeit Hakochavim: {mikvahTimes.tzeit}</Text>
+                                </>
+                            )}
+                            {isHefsek && <Text size="xs" c="dimmed" mb={6}>Mikvah scheduled 7 days after this</Text>}
+                            <Divider my={6} />
+                            <Text size="xs" c="blue.4" style={{ fontStyle: 'italic', textAlign: 'center' }}>
+                                Click event for full details
+                            </Text>
+                        </div>
+                    }
+                    position="top"
+                    withArrow
+                    multiline
+                    w={250}
+                    events={{ hover: true, focus: false, touch: false }}
+                >
+                    <div style={{ width: '100%', height: '100%' }}>
+                        {eventContent}
+                    </div>
+                </Tooltip>
             );
         }
 
@@ -234,6 +376,7 @@ export default function CalendarPage() {
                              startDate.getDate() === endDate.getDate();
 
             const icon = isSameDay ? '☀️' : '🌙';
+            const onahType = isSameDay ? 'Day Onah' : 'Night Onah';
 
             // Remove emojis from title (📅, 📏, 🔄, ⏱️) but keep 🩸 for period start
             const cleanTitle = event.title.replace(/[📅📏🔄⏱️]/g, '').trim();
@@ -241,7 +384,14 @@ export default function CalendarPage() {
             // Apply abbreviation on mobile
             const displayTitle = getEventAbbreviation(cleanTitle, isMobile);
 
-            return (
+            // Get tooltip description
+            const tooltipText = getTooltipText(classNames);
+
+            // Format times for tooltip
+            const startTime = formatTime(startDate);
+            const endTime = formatTime(endDate);
+
+            const eventContent = (
                 <div className="fc-event-main-frame">
                     <div className="fc-event-title-container">
                         <div className="fc-event-title fc-sticky">
@@ -250,12 +400,80 @@ export default function CalendarPage() {
                     </div>
                 </div>
             );
+
+            // Use Popover for mobile (interactive), Tooltip for desktop (hover)
+            if (isMobile) {
+                return (
+                    <Popover width={250} position="top" withArrow shadow="md" clickOutsideEvents={['mousedown', 'touchstart']}>
+                        <Popover.Target>
+                            <div style={{ width: '100%', height: '100%' }}>
+                                {eventContent}
+                            </div>
+                        </Popover.Target>
+                        <Popover.Dropdown>
+                            <Stack gap="xs">
+                                <Text size="sm" fw={600}>{cleanTitle}</Text>
+                                <Text size="xs">{tooltipText}</Text>
+                                <Text size="xs" c="dimmed">Type: {onahType}</Text>
+                                <Text size="xs" c="dimmed">Start: {startTime}</Text>
+                                <Text size="xs" c="dimmed">End: {endTime}</Text>
+                                <Divider />
+                                <Button
+                                    size="xs"
+                                    variant="light"
+                                    color="pink"
+                                    fullWidth
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedEvent(event);
+                                        setSelectedEventTooltip(tooltipText);
+                                        setEventModalOpened(true);
+                                    }}
+                                >
+                                    More Info
+                                </Button>
+                            </Stack>
+                        </Popover.Dropdown>
+                    </Popover>
+                );
+            }
+
+            // Desktop: Use Tooltip
+            return (
+                <Tooltip
+                    label={
+                        <div style={{ maxWidth: 250 }}>
+                            <Text size="sm" fw={600} mb={4}>{cleanTitle}</Text>
+                            <Text size="xs" mb={8}>{tooltipText}</Text>
+                            <Text size="xs" c="dimmed" mb={2}>Type: {onahType}</Text>
+                            <Text size="xs" c="dimmed" mb={2}>Start: {startTime}</Text>
+                            <Text size="xs" c="dimmed" mb={6}>End: {endTime}</Text>
+                            <Divider my={6} />
+                            <Text size="xs" c="blue.4" style={{ fontStyle: 'italic', textAlign: 'center' }}>
+                                Click event for full details
+                            </Text>
+                        </div>
+                    }
+                    position="top"
+                    withArrow
+                    multiline
+                    w={250}
+                    events={{ hover: true, focus: false, touch: false }}
+                >
+                    <div style={{ width: '100%', height: '100%' }}>
+                        {eventContent}
+                    </div>
+                </Tooltip>
+            );
         }
 
         // Default rendering for other events
         const displayTitle = getEventAbbreviation(event.title, isMobile);
 
-        return (
+        // Check if this is Shiva Nekiyim event for special tooltip
+        const isShivaNekiyim = classNames.some(className => className === 'shiva-nekiyim');
+
+        const eventContent = (
             <div className="fc-event-main-frame">
                 {eventInfo.timeText && (
                     <div className="fc-event-time">{eventInfo.timeText}</div>
@@ -267,6 +485,86 @@ export default function CalendarPage() {
                 </div>
             </div>
         );
+
+        // Add tooltip for Shiva Nekiyim events
+        if (isShivaNekiyim) {
+            const tooltipText = getTooltipText(classNames);
+            const startDate = event.start ? new Date(event.start) : null;
+            const startTime = startDate ? formatTime(startDate) : 'N/A';
+            const endDate = startDate ? new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000) : null;
+            const endDateStr = endDate ? endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'N/A';
+
+            // Use Popover for mobile (interactive), Tooltip for desktop (hover)
+            if (isMobile) {
+                return (
+                    <Popover width={250} position="top" withArrow shadow="md" clickOutsideEvents={['mousedown', 'touchstart']}>
+                        <Popover.Target>
+                            <div style={{ width: '100%', height: '100%' }}>
+                                {eventContent}
+                            </div>
+                        </Popover.Target>
+                        <Popover.Dropdown>
+                            <Stack gap="xs">
+                                <Text size="sm" fw={600}>Shiva Nekiyim Start</Text>
+                                <Text size="xs">{tooltipText}</Text>
+                                <Text size="xs" c="dimmed">Start: {startTime}</Text>
+                                <Text size="xs" c="dimmed">Ends: {endDateStr} (7 days)</Text>
+                                <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>
+                                    Perform bedikah examinations twice daily (morning & evening)
+                                </Text>
+                                <Divider />
+                                <Button
+                                    size="xs"
+                                    variant="light"
+                                    color="pink"
+                                    fullWidth
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedEvent(event);
+                                        setSelectedEventTooltip(tooltipText);
+                                        setEventModalOpened(true);
+                                    }}
+                                >
+                                    More Info
+                                </Button>
+                            </Stack>
+                        </Popover.Dropdown>
+                    </Popover>
+                );
+            }
+
+            // Desktop: Use Tooltip
+            return (
+                <Tooltip
+                    label={
+                        <div style={{ maxWidth: 250 }}>
+                            <Text size="sm" fw={600} mb={4}>Shiva Nekiyim Start</Text>
+                            <Text size="xs" mb={8}>{tooltipText}</Text>
+                            <Text size="xs" c="dimmed" mb={2}>Start: {startTime}</Text>
+                            <Text size="xs" c="dimmed" mb={2}>Ends: {endDateStr} (7 days)</Text>
+                            <Text size="xs" c="dimmed" mt={4} mb={6} style={{ fontStyle: 'italic' }}>
+                                Perform bedikah examinations twice daily (morning & evening)
+                            </Text>
+                            <Divider my={6} />
+                            <Text size="xs" c="blue.4" style={{ fontStyle: 'italic', textAlign: 'center' }}>
+                                Click event for full details
+                            </Text>
+                        </div>
+                    }
+                    position="top"
+                    withArrow
+                    multiline
+                    w={250}
+                    events={{ hover: true, focus: false, touch: false }}
+                >
+                    <div style={{ width: '100%', height: '100%' }}>
+                        {eventContent}
+                    </div>
+                </Tooltip>
+            );
+        }
+
+        return eventContent;
     };
 
   return (
@@ -338,6 +636,9 @@ export default function CalendarPage() {
                     <Box>OB30 = Onah Beinonit</Box>
                     <Box>OB31 = Kreisi U'Pleisi</Box>
                     <Box>OZ-VH, OZ-Haf, OZ-OB = Ohr Zaruah</Box>
+                    <Box>B-C = Bedikah Clean</Box>
+                    <Box>B-Q = Bedikah Questionable</Box>
+                    <Box>B-NC = Bedikah Not Clean</Box>
                 </Group>
             ) : (
                 // Desktop: Keep icon legend

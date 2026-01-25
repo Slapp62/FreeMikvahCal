@@ -17,8 +17,7 @@ const cleanupOldCycles = async () => {
     });
 
     const result = await Cycles.deleteMany({
-      createdAt: { $lt: twoYearsAgo },
-      isDeleted: false
+      createdAt: { $lt: twoYearsAgo }
     });
 
     const duration = Date.now() - startTime;

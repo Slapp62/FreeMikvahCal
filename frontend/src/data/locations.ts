@@ -221,8 +221,147 @@ export const locations: Location[] = [
   { id: 180, geonameId: 2647400, value: "Gateshead", country: "UK", lat: 54.9526, lng: -1.6038, timezone: "Europe/London" },
   { id: 181, geonameId: 2655603, value: "Birmingham, UK", country: "UK", lat: 52.4862, lng: -1.8904, timezone: "Europe/London" },
   { id: 182, geonameId: 2644688, value: "Leeds", country: "UK", lat: 53.8008, lng: -1.5491, timezone: "Europe/London" },
+  { id: 183, geonameId: 2648579, value: "Glasgow", country: "UK", lat: 55.8642, lng: -4.2518, timezone: "Europe/London" },
+  { id: 184, geonameId: 2650225, value: "Edinburgh", country: "UK", lat: 55.9533, lng: -3.1883, timezone: "Europe/London" },
+  { id: 185, geonameId: 2654710, value: "Brighton", country: "UK", lat: 50.8225, lng: -0.1372, timezone: "Europe/London" },
+  { id: 186, geonameId: 2644668, value: "Liverpool", country: "UK", lat: 53.4084, lng: -2.9916, timezone: "Europe/London" },
 
-  // Additional locations would continue here...
+  // Israel - Additional Cities
+  { id: 187, geonameId: 295530, value: "Beersheba", country: "Israel", lat: 31.2530, lng: 34.7915, timezone: "Asia/Jerusalem" },
+  { id: 188, geonameId: 293807, value: "Rishon LeZion", country: "Israel", lat: 31.9730, lng: 34.7925, timezone: "Asia/Jerusalem" },
+  { id: 189, geonameId: 295620, value: "Bat Yam", country: "Israel", lat: 32.0192, lng: 34.7506, timezone: "Asia/Jerusalem" },
+  { id: 190, geonameId: 295277, value: "Givatayim", country: "Israel", lat: 32.0705, lng: 34.8113, timezone: "Asia/Jerusalem" },
+  { id: 191, geonameId: 294946, value: "Nahariya", country: "Israel", lat: 33.0058, lng: 35.0944, timezone: "Asia/Jerusalem" },
+  { id: 192, geonameId: 294071, value: "Acre", country: "Israel", lat: 32.9278, lng: 35.0836, timezone: "Asia/Jerusalem" },
+  { id: 193, geonameId: 295432, value: "Carmiel", country: "Israel", lat: 32.9186, lng: 35.2956, timezone: "Asia/Jerusalem" },
+  { id: 194, geonameId: 295629, value: "Lod", country: "Israel", lat: 31.9517, lng: 34.8880, timezone: "Asia/Jerusalem" },
+  { id: 195, geonameId: 293918, value: "Ramla", country: "Israel", lat: 31.9292, lng: 34.8671, timezone: "Asia/Jerusalem" },
+  { id: 196, geonameId: 293703, value: "Kiryat Gat", country: "Israel", lat: 31.6100, lng: 34.7642, timezone: "Asia/Jerusalem" },
+
+  // United States - Additional States
+  // Arizona
+  { id: 197, geonameId: 5308655, value: "Phoenix", country: "USA", state: "AZ", lat: 33.4484, lng: -112.0740, timezone: "America/Phoenix" },
+  { id: 198, geonameId: 5313457, value: "Scottsdale", country: "USA", state: "AZ", lat: 33.4942, lng: -111.9261, timezone: "America/Phoenix" },
+
+  // Colorado
+  { id: 199, geonameId: 5419384, value: "Denver", country: "USA", state: "CO", lat: 39.7392, lng: -104.9903, timezone: "America/Denver" },
+
+  // Nevada
+  { id: 200, geonameId: 5506956, value: "Las Vegas", country: "USA", state: "NV", lat: 36.1699, lng: -115.1398, timezone: "America/Los_Angeles" },
+
+  // Washington
+  { id: 201, geonameId: 5809844, value: "Seattle", country: "USA", state: "WA", lat: 47.6062, lng: -122.3321, timezone: "America/Los_Angeles" },
+
+  // Oregon
+  { id: 202, geonameId: 5746545, value: "Portland", country: "USA", state: "OR", lat: 45.5152, lng: -122.6784, timezone: "America/Los_Angeles" },
+
+  // Texas
+  { id: 203, geonameId: 4684888, value: "Dallas", country: "USA", state: "TX", lat: 32.7767, lng: -96.7970, timezone: "America/Chicago" },
+  { id: 204, geonameId: 4699066, value: "Houston", country: "USA", state: "TX", lat: 29.7604, lng: -95.3698, timezone: "America/Chicago" },
+  { id: 205, geonameId: 4671654, value: "Austin", country: "USA", state: "TX", lat: 30.2672, lng: -97.7431, timezone: "America/Chicago" },
+
+  // Missouri
+  { id: 206, geonameId: 4407066, value: "St. Louis", country: "USA", state: "MO", lat: 38.6270, lng: -90.1994, timezone: "America/Chicago" },
+  { id: 207, geonameId: 4393217, value: "Kansas City", country: "USA", state: "MO", lat: 39.0997, lng: -94.5786, timezone: "America/Chicago" },
+
+  // Minnesota
+  { id: 208, geonameId: 5037649, value: "Minneapolis", country: "USA", state: "MN", lat: 45.9375, lng: -93.2010, timezone: "America/Chicago" },
+  { id: 209, geonameId: 5045360, value: "St. Paul", country: "USA", state: "MN", lat: 44.9537, lng: -93.0900, timezone: "America/Chicago" },
+
+  // Wisconsin
+  { id: 210, geonameId: 5263045, value: "Milwaukee", country: "USA", state: "WI", lat: 43.0389, lng: -87.9065, timezone: "America/Chicago" },
+
+  // Tennessee
+  { id: 211, geonameId: 4644585, value: "Nashville", country: "USA", state: "TN", lat: 36.1627, lng: -86.7816, timezone: "America/Chicago" },
+  { id: 212, geonameId: 4641239, value: "Memphis", country: "USA", state: "TN", lat: 35.1495, lng: -90.0490, timezone: "America/Chicago" },
+
+  // North Carolina
+  { id: 213, geonameId: 4460243, value: "Charlotte", country: "USA", state: "NC", lat: 35.2271, lng: -80.8431, timezone: "America/New_York" },
+  { id: 214, geonameId: 4487042, value: "Raleigh", country: "USA", state: "NC", lat: 35.7796, lng: -78.6382, timezone: "America/New_York" },
+  { id: 215, geonameId: 4464368, value: "Durham", country: "USA", state: "NC", lat: 35.9940, lng: -78.8986, timezone: "America/New_York" },
+
+  // Virginia
+  { id: 216, geonameId: 4781708, value: "Richmond", country: "USA", state: "VA", lat: 37.5407, lng: -77.4360, timezone: "America/New_York" },
+
+  // Washington DC
+  { id: 217, geonameId: 4140963, value: "Washington DC", country: "USA", state: "DC", lat: 38.9072, lng: -77.0369, timezone: "America/New_York" },
+
+  // Connecticut
+  { id: 218, geonameId: 4839366, value: "New Haven", country: "USA", state: "CT", lat: 41.3083, lng: -72.9279, timezone: "America/New_York" },
+  { id: 219, geonameId: 4834808, value: "Hartford", country: "USA", state: "CT", lat: 41.7658, lng: -72.6734, timezone: "America/New_York" },
+
+  // Rhode Island
+  { id: 220, geonameId: 5224151, value: "Providence", country: "USA", state: "RI", lat: 41.8240, lng: -71.4128, timezone: "America/New_York" },
+
+  // Kentucky
+  { id: 221, geonameId: 4299276, value: "Louisville", country: "USA", state: "KY", lat: 38.2527, lng: -85.7585, timezone: "America/New_York" },
+
+  // Indiana
+  { id: 222, geonameId: 4259418, value: "Indianapolis", country: "USA", state: "IN", lat: 39.7684, lng: -86.1581, timezone: "America/Indiana/Indianapolis" },
+
+  // Canada - Additional Cities
+  { id: 223, geonameId: 6094817, value: "Ottawa", country: "Canada", lat: 45.4215, lng: -75.6972, timezone: "America/Toronto" },
+  { id: 224, geonameId: 5913490, value: "Calgary", country: "Canada", lat: 51.0447, lng: -114.0719, timezone: "America/Edmonton" },
+  { id: 225, geonameId: 5946768, value: "Edmonton", country: "Canada", lat: 53.5461, lng: -113.4938, timezone: "America/Edmonton" },
+  { id: 226, geonameId: 5969785, value: "Hamilton", country: "Canada", lat: 43.2557, lng: -79.8711, timezone: "America/Toronto" },
+  { id: 227, geonameId: 6167865, value: "Thornhill", country: "Canada", lat: 43.8150, lng: -79.4200, timezone: "America/Toronto" },
+  { id: 228, geonameId: 6182962, value: "Vaughan", country: "Canada", lat: 43.8361, lng: -79.4983, timezone: "America/Toronto" },
+
+  // Europe - France
+  { id: 229, geonameId: 2988507, value: "Paris", country: "France", lat: 48.8566, lng: 2.3522, timezone: "Europe/Paris" },
+  { id: 230, geonameId: 2995469, value: "Marseille", country: "France", lat: 43.2965, lng: 5.3698, timezone: "Europe/Paris" },
+  { id: 231, geonameId: 2996944, value: "Lyon", country: "France", lat: 45.7640, lng: 4.8357, timezone: "Europe/Paris" },
+  { id: 232, geonameId: 2972315, value: "Toulouse", country: "France", lat: 43.6047, lng: 1.4442, timezone: "Europe/Paris" },
+  { id: 233, geonameId: 2990440, value: "Nice", country: "France", lat: 43.7102, lng: 7.2620, timezone: "Europe/Paris" },
+  { id: 234, geonameId: 2973783, value: "Strasbourg", country: "France", lat: 48.5734, lng: 7.7521, timezone: "Europe/Paris" },
+
+  // Europe - Belgium
+  { id: 235, geonameId: 2803138, value: "Antwerp", country: "Belgium", lat: 51.2194, lng: 4.4025, timezone: "Europe/Brussels" },
+  { id: 236, geonameId: 2800866, value: "Brussels", country: "Belgium", lat: 50.8503, lng: 4.3517, timezone: "Europe/Brussels" },
+
+  // Europe - Netherlands
+  { id: 237, geonameId: 2759794, value: "Amsterdam", country: "Netherlands", lat: 52.3676, lng: 4.9041, timezone: "Europe/Amsterdam" },
+  { id: 238, geonameId: 2747891, value: "Rotterdam", country: "Netherlands", lat: 51.9244, lng: 4.4777, timezone: "Europe/Amsterdam" },
+
+  // Europe - Germany
+  { id: 239, geonameId: 2950159, value: "Berlin", country: "Germany", lat: 52.5200, lng: 13.4050, timezone: "Europe/Berlin" },
+  { id: 240, geonameId: 2867714, value: "Munich", country: "Germany", lat: 48.1351, lng: 11.5820, timezone: "Europe/Berlin" },
+  { id: 241, geonameId: 2925533, value: "Frankfurt", country: "Germany", lat: 50.1109, lng: 8.6821, timezone: "Europe/Berlin" },
+
+  // Europe - Switzerland
+  { id: 242, geonameId: 2657896, value: "Zurich", country: "Switzerland", lat: 47.3769, lng: 8.5417, timezone: "Europe/Zurich" },
+  { id: 243, geonameId: 2660646, value: "Geneva", country: "Switzerland", lat: 46.2044, lng: 6.1432, timezone: "Europe/Zurich" },
+
+  // Europe - Hungary
+  { id: 244, geonameId: 3054643, value: "Budapest", country: "Hungary", lat: 47.4979, lng: 19.0402, timezone: "Europe/Budapest" },
+
+  // Europe - Italy
+  { id: 245, geonameId: 3169070, value: "Rome", country: "Italy", lat: 41.9028, lng: 12.4964, timezone: "Europe/Rome" },
+  { id: 246, geonameId: 3173435, value: "Milan", country: "Italy", lat: 45.4642, lng: 9.1900, timezone: "Europe/Rome" },
+
+  // South America - Argentina
+  { id: 247, geonameId: 3435910, value: "Buenos Aires", country: "Argentina", lat: -34.6037, lng: -58.3816, timezone: "America/Argentina/Buenos_Aires" },
+  { id: 248, geonameId: 3838583, value: "Rosario", country: "Argentina", lat: -32.9442, lng: -60.6505, timezone: "America/Argentina/Cordoba" },
+
+  // South America - Brazil
+  { id: 249, geonameId: 3448439, value: "São Paulo", country: "Brazil", lat: -23.5505, lng: -46.6333, timezone: "America/Sao_Paulo" },
+  { id: 250, geonameId: 3451190, value: "Rio de Janeiro", country: "Brazil", lat: -22.9068, lng: -43.1729, timezone: "America/Sao_Paulo" },
+
+  // South America - Chile
+  { id: 251, geonameId: 3871336, value: "Santiago", country: "Chile", lat: -33.4489, lng: -70.6693, timezone: "America/Santiago" },
+
+  // South America - Uruguay
+  { id: 252, geonameId: 3441575, value: "Montevideo", country: "Uruguay", lat: -34.9011, lng: -56.1645, timezone: "America/Montevideo" },
+
+  // Australia
+  { id: 253, geonameId: 2158177, value: "Melbourne", country: "Australia", lat: -37.8136, lng: 144.9631, timezone: "Australia/Melbourne" },
+  { id: 254, geonameId: 2147714, value: "Sydney", country: "Australia", lat: -33.8688, lng: 151.2093, timezone: "Australia/Sydney" },
+  { id: 255, geonameId: 2063523, value: "Perth", country: "Australia", lat: -31.9505, lng: 115.8605, timezone: "Australia/Perth" },
+  { id: 256, geonameId: 2174003, value: "Brisbane", country: "Australia", lat: -27.4698, lng: 153.0251, timezone: "Australia/Brisbane" },
+
+  // South Africa
+  { id: 257, geonameId: 993800, value: "Johannesburg", country: "South Africa", lat: -26.2041, lng: 28.0473, timezone: "Africa/Johannesburg" },
+  { id: 258, geonameId: 3369157, value: "Cape Town", country: "South Africa", lat: -33.9249, lng: 18.4241, timezone: "Africa/Johannesburg" },
 ];
 
 export default locations;

@@ -1,4 +1,4 @@
-import { IconCheck, IconX } from '@tabler/icons-react';
+import { IconCheck, IconX } from '../utils/icons';
 import { Box, Center, Group, PasswordInput, Progress, Text } from '@mantine/core';
 import { useInputState } from '@mantine/hooks';
 

@@ -60,6 +60,13 @@ export interface Cycle {
     kreisiUpleisi: boolean;
     chasamSofer: boolean;
   };
+  periodVoidedInfo?: {
+    isVoided: boolean;
+    voidedDate?: string;
+    voidedByBedikaId?: string;
+    newAnticipatedPeriodDate?: string;
+    notes?: string;
+  };
   bedikot?: any[];
   notes?: string;
   privateNotes?: string;

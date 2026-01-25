@@ -9,22 +9,30 @@ const createCycleSchema = Joi.object({
   startTime: Joi.date()
     .iso()
     .required()
+    .max('now')
     .messages({
-      'date.base': 'Start time must be a valid date',
-      'any.required': 'Onah start time is required'
+      'date.base': 'Period start time must be a valid date',
+      'date.max': 'Period start time cannot be in the future',
+      'any.required': 'Period start time is required. Please select a date and onah type.'
     }),
 
   endTime: Joi.date()
     .iso()
     .required()
+    .greater(Joi.ref('startTime'))
     .messages({
-      'date.base': 'End time must be a valid date',
-      'any.required': 'Onah end time is required'
+      'date.base': 'Period end time must be a valid date',
+      'date.greater': 'Period end time must be after start time',
+      'any.required': 'Period end time is required. This should be automatically calculated.'
     }),
 
   // Optional fields
-  notes: Joi.string().max(500).allow(''),
-  privateNotes: Joi.string().max(500).allow('')
+  notes: Joi.string().max(500).allow('').messages({
+    'string.max': 'Notes cannot exceed 500 characters'
+  }),
+  privateNotes: Joi.string().max(500).allow('').messages({
+    'string.max': 'Private notes cannot exceed 500 characters'
+  })
 });
 
 /**
@@ -33,24 +41,44 @@ const createCycleSchema = Joi.object({
 const updateCycleSchema = Joi.object({
   // Update dates
   hefsekTaharaDate: Joi.object({
-    dateString: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/),
-    timeString: Joi.string().pattern(/^([01]\d|2[0-3]):([0-5]\d)$/)
+    dateString: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/).messages({
+      'string.pattern.base': 'Hefsek Tahara date must be in YYYY-MM-DD format'
+    }),
+    timeString: Joi.string().pattern(/^([01]\d|2[0-3]):([0-5]\d)$/).messages({
+      'string.pattern.base': 'Hefsek Tahara time must be in HH:MM format (24-hour)'
+    })
   }),
 
   shivaNekiyimStartDate: Joi.object({
-    dateString: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/),
-    timeString: Joi.string().pattern(/^([01]\d|2[0-3]):([0-5]\d)$/)
+    dateString: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/).messages({
+      'string.pattern.base': 'Shiva Nekiyim start date must be in YYYY-MM-DD format'
+    }),
+    timeString: Joi.string().pattern(/^([01]\d|2[0-3]):([0-5]\d)$/).messages({
+      'string.pattern.base': 'Shiva Nekiyim start time must be in HH:MM format (24-hour)'
+    })
   }),
 
   mikvahDate: Joi.object({
-    dateString: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/),
-    timeString: Joi.string().pattern(/^([01]\d|2[0-3]):([0-5]\d)$/)
+    dateString: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/).messages({
+      'string.pattern.base': 'Mikvah date must be in YYYY-MM-DD format'
+    }),
+    timeString: Joi.string().pattern(/^([01]\d|2[0-3]):([0-5]\d)$/).messages({
+      'string.pattern.base': 'Mikvah time must be in HH:MM format (24-hour)'
+    })
   }),
 
-  status: Joi.string().valid('niddah', 'shiva_nekiyim', 'completed'),
-  notes: Joi.string().max(500).allow(''),
-  privateNotes: Joi.string().max(500).allow('')
-}).min(1); // At least one field must be updated
+  status: Joi.string().valid('niddah', 'shiva_nekiyim', 'completed').messages({
+    'any.only': 'Status must be one of: niddah, shiva_nekiyim, or completed'
+  }),
+  notes: Joi.string().max(500).allow('').messages({
+    'string.max': 'Notes cannot exceed 500 characters'
+  }),
+  privateNotes: Joi.string().max(500).allow('').messages({
+    'string.max': 'Private notes cannot exceed 500 characters'
+  })
+}).min(1).messages({
+  'object.min': 'At least one field must be provided for update'
+}); // At least one field must be updated
 
 /**
  * Add bedika schema

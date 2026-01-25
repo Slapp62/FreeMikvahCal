@@ -1,5 +1,5 @@
 import { Stack, Title, Text, Button } from "@mantine/core";
-import { IconMoodConfuzed } from "@tabler/icons-react";
+import { IconMoodConfuzed } from "../utils/icons";
 import { Link } from "react-router-dom";
 
 const PageNotFound = () => {

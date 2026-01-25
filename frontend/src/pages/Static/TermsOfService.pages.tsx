@@ -13,7 +13,7 @@ import {
   Stack,
   Box,
 } from '@mantine/core';
-import { IconCalendarStats, IconAlertTriangle, IconShieldLock, IconPray } from '@tabler/icons-react';
+import { IconCalendarStats, IconAlertTriangle, IconShieldLock, IconPray } from '../../utils/icons';
 import { PageMeta } from '../../components/PageMeta';
 
 const MikvahTerms: FC = () => {

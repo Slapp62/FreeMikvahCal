@@ -1,11 +1,13 @@
-import { Button, Stack, Textarea, Radio, Text } from "@mantine/core"
+import { Button, Stack, Textarea, Radio, Text, Alert } from "@mantine/core"
 import { notifications } from "@mantine/notifications"
+import { modals } from "@mantine/modals"
 import { useForm, Controller } from "react-hook-form"
 import { useState, useEffect } from "react"
 import { Location, Zmanim } from "@hebcal/core"
 import { useCycleStore } from "../../store/cycleStore"
 import { useUserStore } from "../../store/userStore"
 import { createCycle } from "../../services/cycleApi"
+import { IconAlertTriangle } from "../../utils/icons"
 
 type PeriodStartValues = {
     onah: 'day' | 'night';
@@ -20,9 +22,12 @@ type Props = {
 const PeriodStartForm = ({ close, dateClicked }: Props) => {
     const addCycle = useCycleStore((state) => state.addCycle);
     const triggerRefetch = useCycleStore((state) => state.triggerRefetch);
+    const cycles = useCycleStore((state) => state.cycles);
     const user = useUserStore((state) => state.user);
 
     const [timeRangeInfo, setTimeRangeInfo] = useState<string>('');
+    const [showOldDateWarning, setShowOldDateWarning] = useState(false);
+    const [showActiveCycleWarning, setShowActiveCycleWarning] = useState(false);
 
     const { register, handleSubmit, control, watch } = useForm<PeriodStartValues>({
         defaultValues: {
@@ -32,6 +37,17 @@ const PeriodStartForm = ({ close, dateClicked }: Props) => {
     });
 
     const selectedOnah = watch('onah');
+
+    // Check for warnings on mount
+    useEffect(() => {
+        // Check if date is more than 60 days in the past
+        const daysAgo = Math.floor((Date.now() - new Date(dateClicked).getTime()) / (1000 * 60 * 60 * 24));
+        setShowOldDateWarning(daysAgo > 60);
+
+        // Check if there are active cycles (niddah status)
+        const activeCycles = cycles.filter((c: any) => c.status === 'niddah');
+        setShowActiveCycleWarning(activeCycles.length > 0);
+    }, [dateClicked, cycles]);
 
     // Calculate and display time range when onah changes
     useEffect(() => {
@@ -144,6 +160,18 @@ const PeriodStartForm = ({ close, dateClicked }: Props) => {
     return (
         <form onSubmit={handleSubmit(onSubmit)}>
             <Stack align='center' justify='center' w='90%' mx='auto' gap="md">
+                {showOldDateWarning && (
+                    <Alert icon={<IconAlertTriangle size={16} />} title="Old Date" color="yellow" w='100%'>
+                        This date is more than 60 days in the past. Please verify this is correct.
+                    </Alert>
+                )}
+
+                {showActiveCycleWarning && (
+                    <Alert icon={<IconAlertTriangle size={16} />} title="Active Cycle" color="orange" w='100%'>
+                        You have an active cycle in progress. Creating a new period will not affect your existing cycle.
+                    </Alert>
+                )}
+
                 <Controller
                     name="onah"
                     control={control}

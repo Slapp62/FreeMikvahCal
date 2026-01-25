@@ -17,7 +17,6 @@ export default defineConfig({
       '@mantine/hooks',
       '@mantine/dates',
       '@mantine/notifications',
-      '@tabler/icons-react',
       'react-router-dom',
       'zustand',
       'axios'
@@ -41,9 +40,7 @@ export default defineConfig({
             '@fullcalendar/daygrid',
             '@fullcalendar/timegrid',
             '@fullcalendar/interaction'
-          ],
-          // Icons
-          'icons': ['@tabler/icons-react']
+          ]
         }
       }
     },

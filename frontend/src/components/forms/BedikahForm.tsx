@@ -48,6 +48,32 @@ const BedikahForm = ({ close, dateClicked }: Props) => {
                 // Pre-fill with most recent cycle (first in array after sort)
                 if (response.cycles.length > 0 && response.cycles[0]._id) {
                     setValue('cycleId', response.cycles[0]._id);
+
+                    // Auto-calculate day number based on hefsek tahara date
+                    const selectedCycle = response.cycles[0];
+                    if (selectedCycle.hefsekTaharaDate) {
+                        // Parse dates as UTC to avoid timezone issues
+                        const hefsekDate = new Date(selectedCycle.hefsekTaharaDate);
+                        const clickedDate = new Date(dateClicked);
+
+                        // Set to midnight UTC for accurate day calculation
+                        hefsekDate.setUTCHours(0, 0, 0, 0);
+                        clickedDate.setUTCHours(0, 0, 0, 0);
+
+                        const daysDiff = Math.round((clickedDate.getTime() - hefsekDate.getTime()) / (1000 * 60 * 60 * 24));
+
+                        console.log('Bedikah day calculation:', {
+                            hefsekDate: hefsekDate.toISOString(),
+                            clickedDate: clickedDate.toISOString(),
+                            daysDiff,
+                            willSet: daysDiff >= 1 && daysDiff <= 7
+                        });
+
+                        // Hefsek is day 0, day after is 1, mikvah day is 7
+                        if (daysDiff >= 1 && daysDiff <= 7) {
+                            setValue('dayNumber', daysDiff);
+                        }
+                    }
                 }
             } catch (error) {
                 console.error('Error fetching active cycles:', error);
@@ -61,7 +87,7 @@ const BedikahForm = ({ close, dateClicked }: Props) => {
             }
         };
         fetchActiveCycles();
-    }, [setValue]);
+    }, [setValue, dateClicked]);
 
     const cycleOptions = activeCycles
         .filter(c => c.niddahOnah?.start) // Only include cycles with valid niddahOnah
@@ -98,9 +124,8 @@ const BedikahForm = ({ close, dateClicked }: Props) => {
 
             const result = await addBedika(formData.cycleId, bedikaData);
 
-            updateCycleInStore(formData.cycleId, {
-                bedikot: result.cycle.bedikot,
-            });
+            // Update the entire cycle in store, including recalculated vest onot
+            updateCycleInStore(formData.cycleId, result.cycle);
 
             notifications.show({
                 title: 'Success',
@@ -108,6 +133,7 @@ const BedikahForm = ({ close, dateClicked }: Props) => {
                 color: 'green',
             });
 
+            // Trigger refetch to reload all events (including recalculated onah events)
             triggerRefetch();
             close();
         } catch (error: any) {

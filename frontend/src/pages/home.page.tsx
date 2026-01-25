@@ -24,7 +24,7 @@ import {
     IconNumber4,
     IconSparkles,
     IconHeart,
-} from "@tabler/icons-react";
+} from "../utils/icons";
 import { Link } from "react-router-dom";
 
 const HomePage = () => {

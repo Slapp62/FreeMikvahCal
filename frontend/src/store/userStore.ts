@@ -17,6 +17,7 @@ export interface User {
     ohrZaruah: boolean;
     kreisiUpleisi: boolean;
     chasamSofer: boolean;
+    minimumNiddahDays?: number;
   };
   profileComplete: boolean;
   onboardingCompleted: boolean;

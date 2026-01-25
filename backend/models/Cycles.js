@@ -102,6 +102,68 @@ const cycleSchema = new Schema({
     _id: false
   },
 
+  // Period voided tracking
+  periodVoidedInfo: {
+    isVoided: { type: Boolean, default: false },
+    voidedDate: { type: Date },
+    voidedByBedikaId: { type: Schema.Types.ObjectId },
+    newAnticipatedPeriodDate: { type: Date },
+    notes: { type: String, maxlength: 200 },
+    anticipatedVestOnot: {
+      vesetHachodesh: {
+        start: Date,
+        end: Date,
+        ohrZaruah: {
+          start: Date,
+          end: Date,
+          _id: false
+        },
+        hebrewDate: String,
+        dayOfWeek: Number,
+        _id: false
+      },
+      haflagah: {
+        start: Date,
+        end: Date,
+        ohrZaruah: {
+          start: Date,
+          end: Date,
+          _id: false
+        },
+        interval: Number,
+        hebrewDate: String,
+        dayOfWeek: Number,
+        _id: false
+      },
+      onahBeinonit: {
+        start: Date,
+        end: Date,
+        ohrZaruah: {
+          start: Date,
+          end: Date,
+          _id: false
+        },
+        kreisiUpleisi: {
+          start: Date,
+          end: Date,
+          _id: false
+        },
+        chasamSofer: {
+          start: Date,
+          end: Date,
+          _id: false
+        },
+        calculatedFrom: Number,
+        averageLength: Number,
+        hebrewDate: String,
+        dayOfWeek: Number,
+        _id: false
+      },
+      _id: false
+    },
+    _id: false
+  },
+
   // Bedikot tracking
   bedikot: [{
     date: { type: Date, required: true },
@@ -142,10 +204,6 @@ const cycleSchema = new Schema({
     _id: false
   },
 
-  // Soft delete
-  isDeleted: { type: Boolean, default: false },
-  deletedAt: { type: Date, default: null },
-
   // Auto-expire after 2 years
   expiresAt: {
     type: Date,
@@ -167,22 +225,35 @@ cycleSchema.index({ userId: 1, 'niddahOnah.start': -1 });
 cycleSchema.index({ userId: 1, status: 1 });
 cycleSchema.index({ userId: 1, 'vestOnot.onahBeinonit': 1 });
 
-// PRE-SAVE HOOK: Update timestamp
+// PRE-SAVE HOOK: Update timestamp and track status changes
 // NOTE: Business logic has been moved to service layer for better separation of concerns
 cycleSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
+
+  // Track previous status for validation
+  if (!this.isNew && this.isModified('status')) {
+    this.$locals.previousStatus = this.$locals.originalStatus;
+  }
+
   next();
 });
 
-// PRE-VALIDATE HOOK: Ensure dates are logical
+// POST-INIT HOOK: Store original status for comparison
+cycleSchema.post('init', function() {
+  this.$locals.originalStatus = this.status;
+});
+
+// PRE-VALIDATE HOOK: Ensure dates are logical and validate bedikot
 cycleSchema.pre('validate', function(next) {
+  // Existing validation: Hefsek cannot be before Niddah start
   if (this.hefsekTaharaDate && this.niddahOnah && this.niddahOnah.start) {
     if (this.hefsekTaharaDate < this.niddahOnah.start) {
       this.invalidate('hefsekTaharaDate',
-        'Hefsek Tahara cannot be before Niddah start');
+        'Hefsek Tahara cannot be before the period start date');
     }
   }
 
+  // Existing validation: Shiva Nekiyim cannot start before Hefsek
   if (this.shivaNekiyimStartDate && this.hefsekTaharaDate) {
     if (this.shivaNekiyimStartDate < this.hefsekTaharaDate) {
       this.invalidate('shivaNekiyimStartDate',
@@ -190,6 +261,7 @@ cycleSchema.pre('validate', function(next) {
     }
   }
 
+  // Existing validation: Mikvah must be at least 7 days after Shiva Nekiyim start
   if (this.mikvahDate && this.shivaNekiyimStartDate) {
     const daysDiff = Math.ceil(
       (this.mikvahDate - this.shivaNekiyimStartDate) / (1000 * 60 * 60 * 24)
@@ -197,6 +269,42 @@ cycleSchema.pre('validate', function(next) {
     if (daysDiff < 7) {
       this.invalidate('mikvahDate',
         'Mikvah must be at least 7 days after Shiva Nekiyim start');
+    }
+  }
+
+  // NEW VALIDATION: Status transitions must follow proper flow
+  if (this.isModified('status')) {
+    const wasNew = !this.isNew && this.$locals.previousStatus;
+    const oldStatus = wasNew ? this.$locals.previousStatus : null;
+    const newStatus = this.status;
+
+    // Status can only transition in this order: niddah -> shiva_nekiyim -> completed
+    if (oldStatus === 'completed' && newStatus !== 'completed') {
+      this.invalidate('status',
+        'Cannot change status after cycle is completed');
+    }
+
+    if (newStatus === 'shiva_nekiyim' && !this.hefsekTaharaDate) {
+      this.invalidate('status',
+        'Cannot change status to shiva_nekiyim without setting Hefsek Tahara date');
+    }
+
+    if (newStatus === 'completed' && !this.mikvahDate) {
+      this.invalidate('status',
+        'Cannot change status to completed without setting Mikvah date');
+    }
+  }
+
+  // NEW VALIDATION: Bedikot must be within shiva nekiyim period
+  if (this.bedikot && this.bedikot.length > 0 && this.shivaNekiyimStartDate && this.mikvahDate) {
+    const shivaNekiyimEnd = new Date(this.mikvahDate);
+
+    for (let i = 0; i < this.bedikot.length; i++) {
+      const bedikah = this.bedikot[i];
+      if (bedikah.date < this.shivaNekiyimStartDate || bedikah.date > shivaNekiyimEnd) {
+        this.invalidate(`bedikot.${i}.date`,
+          `Bedikah date must be within the Shiva Nekiyim period (${this.shivaNekiyimStartDate.toLocaleDateString()} - ${shivaNekiyimEnd.toLocaleDateString()})`);
+      }
     }
   }
 

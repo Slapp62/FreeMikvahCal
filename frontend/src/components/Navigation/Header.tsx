@@ -17,7 +17,8 @@ import { LightDarkToggle } from './LightDarkToggle';
 import { Link } from 'react-router-dom';
 import { useUserStore } from '../../store/userStore';
 import { useAuth } from '../../hooks/useAuth';
-import { IconSettings, IconCalendar } from '@tabler/icons-react';
+import { IconSettings, IconCalendar } from '../../utils/icons';
+import {Image} from '@mantine/core';
 
 export function Header() {
   const user = useUserStore((state) => state.user);
@@ -42,23 +43,15 @@ export function Header() {
           <Flex justify="space-between" align="center" h={70}>
             {/* Logo / Brand */}
             <Link to="/" style={{ textDecoration: 'none' }}>
-              <Group gap="xs">
-                <Box
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 'var(--mantine-radius-md)',
-                    background: 'linear-gradient(135deg, var(--mantine-color-pink-6) 0%, var(--mantine-color-purple-6) 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <IconCalendar size={24} color="white" stroke={2.5} />
+              <Group gap="xs" align="center" justify="center" h={40} p={0}>
+                <Box h={40} w={40}>
+                  <Image src="/flower-icon-512-noBg.png" />
                 </Box>
                 <Text
                   size="xl"
                   fw={800}
+                  h={40}
+                  lh={2}
                   style={{
                     background: 'linear-gradient(135deg, var(--mantine-color-pink-6) 0%, var(--mantine-color-purple-6) 100%)',
                     WebkitBackgroundClip: 'text',
