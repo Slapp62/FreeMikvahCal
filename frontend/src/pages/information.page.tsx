@@ -15,7 +15,8 @@ import {
   Anchor,
   List,
 } from '@mantine/core';
-import { IconBook2, IconInfoCircle } from '../../utils/icons';
+import { Link } from 'react-router-dom';
+import { IconBook2, IconInfoCircle } from '../utils/icons';
 
 const InformationPage: FC = () => {
   const computedColorScheme = useComputedColorScheme('light');
@@ -164,8 +165,8 @@ const InformationPage: FC = () => {
                       nekiyim - one on the first day (morning or evening) and one on the seventh day
                       (morning or evening). Many women perform additional bedikot throughout the week.
                     </Text>
-                    <Text mt="xs">
-                      <strong>Results:</strong>
+                    <Box mt="xs">
+                      <Text component="span"><strong>Results:</strong></Text>
                       <List withPadding mt="xs">
                         <List.Item>
                           <strong>Clean:</strong> No staining detected - the day counts toward the seven
@@ -178,7 +179,7 @@ const InformationPage: FC = () => {
                           beginning
                         </List.Item>
                       </List>
-                    </Text>
+                    </Box>
                     <Text mt="xs">
                       <strong>Example:</strong> Rachel is on Day 4 of her shiva nekiyim. She performs a
                       bedikah in the morning and finds it completely clean. She records this in the app as
@@ -228,9 +229,11 @@ const InformationPage: FC = () => {
                     <Title order={4} c="purple">
                       Onah (עוֹנָה)
                     </Title>
-                    <Text mt="xs">
-                      <strong>Definition:</strong> A halachic time period. Each 24-hour day is divided into
-                      two onot (plural):
+                    <Box mt="xs">
+                      <Text component="span">
+                        <strong>Definition:</strong> A halachic time period. Each 24-hour day is divided into
+                        two onot (plural):
+                      </Text>
                       <List withPadding mt="xs">
                         <List.Item>
                           <strong>Day Onah (Onah Yom):</strong> From sunrise to sunset
@@ -239,7 +242,7 @@ const InformationPage: FC = () => {
                           <strong>Night Onah (Onah Laylah):</strong> From sunset to the next sunrise
                         </List.Item>
                       </List>
-                    </Text>
+                    </Box>
                     <Text mt="xs">
                       <strong>Example:</strong> If a woman's period starts at 2:00 PM on Tuesday (during
                       daylight), she experienced niddah during the "day onah" of Tuesday. If her period
@@ -482,8 +485,8 @@ const InformationPage: FC = () => {
                       <strong>Definition:</strong> A stringency to also observe the onah immediately
                       preceding each vest onot.
                     </Text>
-                    <Text mt="xs">
-                      <strong>How It Works:</strong>
+                    <Box mt="xs">
+                      <Text component="span"><strong>How It Works:</strong></Text>
                       <List withPadding mt="xs">
                         <List.Item>
                           If your veset is during a <strong>day onah</strong>, you also observe the{' '}
@@ -494,7 +497,7 @@ const InformationPage: FC = () => {
                           <strong>day onah</strong> of the same calendar day (which comes before the night)
                         </List.Item>
                       </List>
-                    </Text>
+                    </Box>
                     <Text mt="xs">
                       <strong>Example:</strong> Sarah's veset hachodesh is during the day onah of February
                       15th (sunrise to sunset). With the Ohr Zaruah stringency enabled, she would also
@@ -521,9 +524,11 @@ const InformationPage: FC = () => {
                       <strong>Definition:</strong> A stringency to observe the opposite onah on the same
                       Hebrew calendar day as the onah beinonit.
                     </Text>
-                    <Text mt="xs">
-                      <strong>How It Works:</strong> This applies specifically to the onah beinonit (30-day
-                      veset):
+                    <Box mt="xs">
+                      <Text component="span">
+                        <strong>How It Works:</strong> This applies specifically to the onah beinonit (30-day
+                        veset):
+                      </Text>
                       <List withPadding mt="xs">
                         <List.Item>
                           If your onah beinonit is the <strong>day onah</strong> of day 30, you also
@@ -535,7 +540,7 @@ const InformationPage: FC = () => {
                           also observe the <strong>day onah</strong> of day 30
                         </List.Item>
                       </List>
-                    </Text>
+                    </Box>
                     <Text mt="xs">
                       <strong>Example:</strong> If your period began during the day onah, your onah
                       beinonit is day 29 (the day onah). With Kreisi Upleisi enabled, you would also
@@ -563,16 +568,18 @@ const InformationPage: FC = () => {
                       this stringency adds an additional observation on day 30 in the same onah type as the
                       original period.
                     </Text>
-                    <Text mt="xs">
-                      <strong>Example:</strong> If Rachel's period started during the day onah on March
-                      1st:
+                    <Box mt="xs">
+                      <Text component="span">
+                        <strong>Example:</strong> If Rachel's period started during the day onah on March
+                        1st:
+                      </Text>
                       <List withPadding mt="xs">
                         <List.Item>Standard onah beinonit: day onah of March 29th (day 29)</List.Item>
                         <List.Item>
                           With Chasam Sofer: Also observes the day onah of March 30th (day 30)
                         </List.Item>
                       </List>
-                    </Text>
+                    </Box>
                     <Text mt="xs">
                       <strong>Why "Day 31"?</strong> This is sometimes called "Beinonit 31" because when
                       counting inclusively from day 1, day 30 represents the 31st onah period.
@@ -598,9 +605,11 @@ const InformationPage: FC = () => {
                       <strong>Standard Practice:</strong> The most common custom is 5 complete days,
                       meaning the hefsek tahara is performed on day 5 or later.
                     </Text>
-                    <Text mt="xs">
-                      <strong>Range of Customs:</strong> FreeMikvahCal allows you to set this between 4-10
-                      days, depending on your community's custom or your rabbi's guidance.
+                    <Box mt="xs">
+                      <Text component="span">
+                        <strong>Range of Customs:</strong> FreeMikvahCal allows you to set this between 4-10
+                        days, depending on your community's custom or your rabbi's guidance.
+                      </Text>
                       <List withPadding mt="xs">
                         <List.Item>
                           <strong>4 days:</strong> The absolute halachic minimum (rare)
@@ -613,7 +622,7 @@ const InformationPage: FC = () => {
                           <strong>7+ days:</strong> Some stringent customs or special medical situations
                         </List.Item>
                       </List>
-                    </Text>
+                    </Box>
                     <Text mt="xs">
                       <strong>Example:</strong> If Devorah's period started Monday night and she follows
                       the 5-day minimum, she cannot perform hefsek tahara before Saturday. If she follows a
@@ -697,8 +706,8 @@ const InformationPage: FC = () => {
                       mikvah date falls on a Friday night (Shabbos) or a Jewish holiday, as this may affect
                       mikvah availability.
                     </Text>
-                    <Text mt="xs">
-                      <strong>Holidays Tracked:</strong>
+                    <Box mt="xs">
+                      <Text component="span"><strong>Holidays Tracked:</strong></Text>
                       <List withPadding mt="xs">
                         <List.Item>Shabbos (every Friday night/Saturday)</List.Item>
                         <List.Item>Rosh Hashanah</List.Item>
@@ -709,7 +718,7 @@ const InformationPage: FC = () => {
                         <List.Item>Shavuot</List.Item>
                         <List.Item>And other major holidays</List.Item>
                       </List>
-                    </Text>
+                    </Box>
                     <Text mt="xs">
                       <strong>Note:</strong> Many mikvahs remain open on these nights with modified hours.
                       The app simply alerts you so you can verify availability in advance.
@@ -728,8 +737,8 @@ const InformationPage: FC = () => {
                       defined by sunrise and sunset, and these times vary based on where you are in the
                       world, FreeMikvahCal needs to know your location to calculate accurately.
                     </Text>
-                    <Text mt="xs">
-                      <strong>What We Track:</strong>
+                    <Box mt="xs">
+                      <Text component="span"><strong>What We Track:</strong></Text>
                       <List withPadding mt="xs">
                         <List.Item>
                           <strong>Timezone:</strong> Ensures all dates and times are shown in your local
@@ -743,7 +752,7 @@ const InformationPage: FC = () => {
                           <strong>Daylight Saving Time:</strong> Automatically adjusted throughout the year
                         </List.Item>
                       </List>
-                    </Text>
+                    </Box>
                     <Text mt="xs">
                       <strong>Example:</strong> A woman in New York has different sunrise/sunset times than
                       a woman in Los Angeles or Jerusalem. If all three women's periods started at "2:00 PM
@@ -778,20 +787,22 @@ const InformationPage: FC = () => {
                     <Title order={4} c="purple">
                       Cycle Status Progression
                     </Title>
-                    <Text mt="xs">
-                      <strong>How Cycles Progress:</strong> Each cycle moves through specific stages:
-                    </Text>
-                    <List withPadding mt="xs">
-                      <List.Item>
-                        <strong>Niddah:</strong> From period start until hefsek tahara
-                      </List.Item>
-                      <List.Item>
-                        <strong>Shiva Nekiyim:</strong> From hefsek tahara through the seven clean days
-                      </List.Item>
-                      <List.Item>
-                        <strong>Completed:</strong> After mikvah immersion
-                      </List.Item>
-                    </List>
+                    <Box mt="xs">
+                      <Text component="span">
+                        <strong>How Cycles Progress:</strong> Each cycle moves through specific stages:
+                      </Text>
+                      <List withPadding mt="xs">
+                        <List.Item>
+                          <strong>Niddah:</strong> From period start until hefsek tahara
+                        </List.Item>
+                        <List.Item>
+                          <strong>Shiva Nekiyim:</strong> From hefsek tahara through the seven clean days
+                        </List.Item>
+                        <List.Item>
+                          <strong>Completed:</strong> After mikvah immersion
+                        </List.Item>
+                      </List>
+                    </Box>
                     <Text mt="xs">
                       FreeMikvahCal tracks your current status and guides you through each stage.
                     </Text>
@@ -808,8 +819,8 @@ const InformationPage: FC = () => {
                       <strong>What It Is:</strong> If a bedikah during the shiva nekiyim shows blood (not
                       clean), the entire seven-day count must restart. This is called "voiding" the period.
                     </Text>
-                    <Text mt="xs">
-                      <strong>How It Works:</strong>
+                    <Box mt="xs">
+                      <Text component="span"><strong>How It Works:</strong></Text>
                       <List withPadding mt="xs">
                         <List.Item>
                           When you record a "not clean" bedikah result, FreeMikvahCal marks the cycle as
@@ -823,7 +834,7 @@ const InformationPage: FC = () => {
                           A new hefsek tahara must be performed (after the flow stops again)
                         </List.Item>
                       </List>
-                    </Text>
+                    </Box>
                     <Text mt="xs">
                       <strong>Example:</strong> Sarah was on Day 5 of her shiva nekiyim when she found
                       blood during a bedikah. Her count is voided, and she must wait for the flow to stop,
@@ -838,16 +849,18 @@ const InformationPage: FC = () => {
                     <Title order={4} c="purple">
                       Email Reminders
                     </Title>
-                    <Text mt="xs">
-                      <strong>What's Available:</strong> FreeMikvahCal can send you optional email
-                      reminders for:
+                    <Box mt="xs">
+                      <Text component="span">
+                        <strong>What's Available:</strong> FreeMikvahCal can send you optional email
+                        reminders for:
+                      </Text>
                       <List withPadding mt="xs">
                         <List.Item>When you can perform hefsek tahara (after minimum niddah days)</List.Item>
                         <List.Item>During shiva nekiyim (to remind you to do bedikot)</List.Item>
                         <List.Item>Before mikvah night</List.Item>
                         <List.Item>Before vest onot days</List.Item>
                       </List>
-                    </Text>
+                    </Box>
                     <Text mt="xs">
                       <strong>Privacy:</strong> Reminders can be configured in your settings. All emails
                       are private and use discreet language.
@@ -870,15 +883,15 @@ const InformationPage: FC = () => {
                       in your profile. This helps FreeMikvahCal provide more tailored guidance and defaults
                       that match your community's customs.
                     </Text>
-                    <Text mt="xs">
-                      <strong>Options:</strong>
+                    <Box mt="xs">
+                      <Text component="span"><strong>Options:</strong></Text>
                       <List withPadding mt="xs">
                         <List.Item>Ashkenazi (European heritage)</List.Item>
                         <List.Item>Sephardi (Spanish/Mediterranean heritage)</List.Item>
                         <List.Item>Teimani (Yemenite heritage)</List.Item>
                         <List.Item>Other</List.Item>
                       </List>
-                    </Text>
+                    </Box>
                   </div>
 
                   <Divider />
@@ -888,9 +901,11 @@ const InformationPage: FC = () => {
                     <Title order={4} c="purple">
                       Calendar Visualization
                     </Title>
-                    <Text mt="xs">
-                      <strong>What You See:</strong> FreeMikvahCal displays all your important dates on an
-                      easy-to-read calendar:
+                    <Box mt="xs">
+                      <Text component="span">
+                        <strong>What You See:</strong> FreeMikvahCal displays all your important dates on an
+                        easy-to-read calendar:
+                      </Text>
                       <List withPadding mt="xs">
                         <List.Item>Period start dates (niddah onah)</List.Item>
                         <List.Item>Hefsek tahara date</List.Item>
@@ -899,7 +914,7 @@ const InformationPage: FC = () => {
                         <List.Item>All vest onot (with color coding)</List.Item>
                         <List.Item>Jewish holidays</List.Item>
                       </List>
-                    </Text>
+                    </Box>
                     <Text mt="xs">
                       Everything is color-coded and clearly labeled so you can see your cycle status at a
                       glance.
@@ -928,21 +943,23 @@ const InformationPage: FC = () => {
                     <Title order={4} c="purple">
                       Primary Halachic Sources
                     </Title>
-                    <List withPadding mt="xs">
-                      <List.Item>
-                        <strong>Torah:</strong> Leviticus (Vayikra) chapters 12, 15, 18, and 20
-                      </List.Item>
-                      <List.Item>
-                        <strong>Talmud:</strong> Tractate Niddah
-                      </List.Item>
-                      <List.Item>
-                        <strong>Shulchan Aruch:</strong> Yoreh De'ah, sections 183-200 (laws of family
-                        purity)
-                      </List.Item>
-                      <List.Item>
-                        <strong>Commentaries:</strong> Shach, Taz, Aruch HaShulchan, Mishnah Berurah
-                      </List.Item>
-                    </List>
+                    <Box mt="xs">
+                      <List withPadding>
+                        <List.Item>
+                          <strong>Torah:</strong> Leviticus (Vayikra) chapters 12, 15, 18, and 20
+                        </List.Item>
+                        <List.Item>
+                          <strong>Talmud:</strong> Tractate Niddah
+                        </List.Item>
+                        <List.Item>
+                          <strong>Shulchan Aruch:</strong> Yoreh De'ah, sections 183-200 (laws of family
+                          purity)
+                        </List.Item>
+                        <List.Item>
+                          <strong>Commentaries:</strong> Shach, Taz, Aruch HaShulchan, Mishnah Berurah
+                        </List.Item>
+                      </List>
+                    </Box>
                   </div>
 
                   <Divider />
@@ -952,26 +969,28 @@ const InformationPage: FC = () => {
                     <Title order={4} c="purple">
                       Recommended Educational Resources
                     </Title>
-                    <List withPadding mt="xs">
-                      <List.Item>
-                        <strong>Taharat HaMishpacha classes:</strong> Many communities offer classes for
-                        women on these laws
-                      </List.Item>
-                      <List.Item>
-                        <strong>Nishmat (Yoetzet Halacha program):</strong>{' '}
-                        <Anchor href="https://www.yoatzot.org" target="_blank">
-                          yoatzot.org
-                        </Anchor>{' '}
-                        - Women trained to answer halachic questions
-                      </List.Item>
-                      <List.Item>
-                        <strong>Kallah teacher:</strong> Before marriage, women typically study these laws
-                        with a designated teacher
-                      </List.Item>
-                      <List.Item>
-                        <strong>Your local rabbi:</strong> For personalized halachic guidance
-                      </List.Item>
-                    </List>
+                    <Box mt="xs">
+                      <List withPadding>
+                        <List.Item>
+                          <strong>Taharat HaMishpacha classes:</strong> Many communities offer classes for
+                          women on these laws
+                        </List.Item>
+                        <List.Item>
+                          <strong>Nishmat (Yoetzet Halacha program):</strong>{' '}
+                          <Anchor href="https://www.yoatzot.org" target="_blank">
+                            yoatzot.org
+                          </Anchor>{' '}
+                          - Women trained to answer halachic questions
+                        </List.Item>
+                        <List.Item>
+                          <strong>Kallah teacher:</strong> Before marriage, women typically study these laws
+                          with a designated teacher
+                        </List.Item>
+                        <List.Item>
+                          <strong>Your local rabbi:</strong> For personalized halachic guidance
+                        </List.Item>
+                      </List>
+                    </Box>
                   </div>
 
                   <Divider />
@@ -981,23 +1000,25 @@ const InformationPage: FC = () => {
                     <Title order={4} c="purple">
                       Technical Implementation
                     </Title>
-                    <Text mt="xs">
-                      FreeMikvahCal uses the following technical resources to ensure accuracy:
-                    </Text>
-                    <List withPadding mt="xs">
-                      <List.Item>
-                        <strong>Hebcal:</strong> Open-source library for Hebrew calendar calculations and
-                        zmanim (halachic times)
-                      </List.Item>
-                      <List.Item>
-                        <strong>Astronomical algorithms:</strong> Precise sunrise/sunset calculations based
-                        on geographic coordinates
-                      </List.Item>
-                      <List.Item>
-                        <strong>IANA Timezone Database:</strong> Accurate timezone and daylight saving time
-                        handling
-                      </List.Item>
-                    </List>
+                    <Box mt="xs">
+                      <Text component="span">
+                        FreeMikvahCal uses the following technical resources to ensure accuracy:
+                      </Text>
+                      <List withPadding mt="xs">
+                        <List.Item>
+                          <strong>Hebcal:</strong> Open-source library for Hebrew calendar calculations and
+                          zmanim (halachic times)
+                        </List.Item>
+                        <List.Item>
+                          <strong>Astronomical algorithms:</strong> Precise sunrise/sunset calculations based
+                          on geographic coordinates
+                        </List.Item>
+                        <List.Item>
+                          <strong>IANA Timezone Database:</strong> Accurate timezone and daylight saving time
+                          handling
+                        </List.Item>
+                      </List>
+                    </Box>
                   </div>
 
                   <Divider />
@@ -1013,8 +1034,10 @@ const InformationPage: FC = () => {
                       qualified rabbi. Every woman's situation is unique, and questions frequently arise
                       that require personal guidance.
                     </Text>
-                    <Text mt="xs" c="dimmed">
-                      <strong>When to consult a rabbi:</strong>
+                    <Box mt="xs">
+                      <Text component="span" c="dimmed">
+                        <strong>When to consult a rabbi:</strong>
+                      </Text>
                       <List withPadding mt="xs">
                         <List.Item>Before beginning to observe these laws</List.Item>
                         <List.Item>When choosing which stringencies to observe</List.Item>
@@ -1022,7 +1045,7 @@ const InformationPage: FC = () => {
                         <List.Item>If you have medical conditions affecting your cycle</List.Item>
                         <List.Item>Whenever you have doubts or questions about proper practice</List.Item>
                       </List>
-                    </Text>
+                    </Box>
                     <Text mt="xs" c="dimmed">
                       FreeMikvahCal is a tool to assist you in keeping track of dates and calculations,
                       but it cannot replace the wisdom and guidance of a knowledgeable rabbi or yoetzet

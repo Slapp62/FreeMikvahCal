@@ -5,6 +5,7 @@ export interface HalachicPreferences {
   ohrZaruah?: boolean;
   kreisiUpleisi?: boolean;
   chasamSofer?: boolean;
+  minimumNiddahDays?: number;
 }
 
 export interface UpdateUserData {
@@ -14,6 +15,8 @@ export interface UpdateUserData {
   dateOfBirth?: string;
   location?: {
     city?: string;
+    state?: string;
+    geonameId?: number;
     timezone?: string;
     lat?: number;
     lng?: number;

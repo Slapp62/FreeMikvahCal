@@ -8,15 +8,17 @@ export interface User {
   lastName: string;
   location?: {
     city?: string;
+    state?: string;
+    geonameId?: number;
     timezone: string;
     lat?: number;
     lng?: number;
   };
   ethnicity?: 'ashkenazi' | 'sephardi' | 'teimani' | 'other' | null;
   halachicPreferences?: {
-    ohrZaruah: boolean;
-    kreisiUpleisi: boolean;
-    chasamSofer: boolean;
+    ohrZaruah?: boolean;
+    kreisiUpleisi?: boolean;
+    chasamSofer?: boolean;
     minimumNiddahDays?: number;
   };
   profileComplete: boolean;

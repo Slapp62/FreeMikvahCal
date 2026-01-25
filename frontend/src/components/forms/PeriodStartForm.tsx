@@ -1,6 +1,5 @@
 import { Button, Stack, Textarea, Radio, Text, Alert } from "@mantine/core"
 import { notifications } from "@mantine/notifications"
-import { modals } from "@mantine/modals"
 import { useForm, Controller } from "react-hook-form"
 import { useState, useEffect } from "react"
 import { Location, Zmanim } from "@hebcal/core"
