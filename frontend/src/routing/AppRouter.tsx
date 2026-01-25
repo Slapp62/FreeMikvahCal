@@ -9,6 +9,7 @@ import HomePage from '../pages/home.page';
 
 // Lazy load all other pages
 const AboutPage = lazy(() => import('../pages/about.page'));
+const InformationPage = lazy(() => import('../pages/information.page'));
 const LoginPage = lazy(() => import('../pages/login.page').then(m => ({ default: m.LoginPage })));
 const RegisterPage = lazy(() => import('../pages/register.page'));
 const PageNotFound = lazy(() => import('../pages/404.page'));
@@ -30,6 +31,14 @@ export function AppRouter() {
           element={
             <Suspense fallback={<LoadingOverlay visible />}>
               <AboutPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="information"
+          element={
+            <Suspense fallback={<LoadingOverlay visible />}>
+              <InformationPage />
             </Suspense>
           }
         />

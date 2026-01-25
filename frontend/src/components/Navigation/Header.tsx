@@ -44,7 +44,7 @@ export function Header() {
             {/* Logo / Brand */}
             <Link to="/" style={{ textDecoration: 'none' }}>
               <Group gap="xs" align="center" justify="center" h={40} p={0}>
-                <Box h={40} w={40}>
+                <Box h={40} w={40} >
                   <Image src="/flower-icon-512-noBg.png" />
                 </Box>
                 <Text
@@ -75,6 +75,11 @@ export function Header() {
               <Link to="/about" style={{ textDecoration: 'none' }}>
                 <Text fw={600} c="dimmed" style={{ transition: 'color 150ms' }} className="nav-link">
                   About
+                </Text>
+              </Link>
+              <Link to="/information" style={{ textDecoration: 'none' }}>
+                <Text fw={600} c="dimmed" style={{ transition: 'color 150ms' }} className="nav-link">
+                  Information
                 </Text>
               </Link>
               {user && (
@@ -160,6 +165,11 @@ export function Header() {
               <Link to="/about" onClick={closeDrawer} style={{ textDecoration: 'none' }}>
                 <Text fw={600} c="secondary" size="lg">
                   About
+                </Text>
+              </Link>
+              <Link to="/information" onClick={closeDrawer} style={{ textDecoration: 'none' }}>
+                <Text fw={600} c="secondary" size="lg">
+                  Information
                 </Text>
               </Link>
               {user && (

@@ -72,6 +72,9 @@ export function Footer() {
               <Anchor component={Link} to="/about" c="dimmed" size="sm" style={{ textDecoration: 'none' }}>
                 About
               </Anchor>
+              <Anchor component={Link} to="/information" c="dimmed" size="sm" style={{ textDecoration: 'none' }}>
+                Information
+              </Anchor>
               <Anchor component={Link} to="/about#contact" c="dimmed" size="sm" style={{ textDecoration: 'none' }}>
                 Contact Us
               </Anchor>

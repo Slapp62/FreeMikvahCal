@@ -105,62 +105,15 @@ const cycleSchema = new Schema({
   // Period voided tracking
   periodVoidedInfo: {
     isVoided: { type: Boolean, default: false },
-    voidedDate: { type: Date },
-    voidedByBedikaId: { type: Schema.Types.ObjectId },
-    newAnticipatedPeriodDate: { type: Date },
-    notes: { type: String, maxlength: 200 },
-    anticipatedVestOnot: {
-      vesetHachodesh: {
-        start: Date,
-        end: Date,
-        ohrZaruah: {
-          start: Date,
-          end: Date,
-          _id: false
-        },
-        hebrewDate: String,
-        dayOfWeek: Number,
-        _id: false
-      },
-      haflagah: {
-        start: Date,
-        end: Date,
-        ohrZaruah: {
-          start: Date,
-          end: Date,
-          _id: false
-        },
-        interval: Number,
-        hebrewDate: String,
-        dayOfWeek: Number,
-        _id: false
-      },
-      onahBeinonit: {
-        start: Date,
-        end: Date,
-        ohrZaruah: {
-          start: Date,
-          end: Date,
-          _id: false
-        },
-        kreisiUpleisi: {
-          start: Date,
-          end: Date,
-          _id: false
-        },
-        chasamSofer: {
-          start: Date,
-          end: Date,
-          _id: false
-        },
-        calculatedFrom: Number,
-        averageLength: Number,
-        hebrewDate: String,
-        dayOfWeek: Number,
-        _id: false
-      },
+    originalNiddahOnah: {
+      start: { type: Date },
+      end: { type: Date },
       _id: false
     },
+    voidedHefsekTaharaDate: { type: Date },
+    voidedDate: { type: Date },
+    voidedByBedikaId: { type: Schema.Types.ObjectId },
+    notes: { type: String, maxlength: 200 },
     _id: false
   },
 

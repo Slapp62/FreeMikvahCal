@@ -1,4 +1,4 @@
-import { Button, Stack, Textarea, Select, NumberInput, Radio } from "@mantine/core"
+import { Button, Stack, Textarea, Text, Select, NumberInput, Radio, Group } from "@mantine/core"
 import { TimeInput } from "@mantine/dates"
 import { notifications } from "@mantine/notifications"
 import { useForm, Controller } from "react-hook-form"
@@ -201,15 +201,17 @@ const BedikahForm = ({ close, dateClicked }: Props) => {
                     control={control}
                     render={({ field }) => (
                         <Radio.Group
-                            label="Time of Day"
                             required
                             {...field}
+                            mx='auto'
+                            w='100%'
                         >
-                            <Stack mt="xs">
+                            <Group mt="xs">
+                                <Text>Time of Day:</Text>
                                 <Radio value="morning" label="Morning" />
                                 <Radio value="evening" label="Evening" />
                                 <Radio value="both" label="Both" />
-                            </Stack>
+                            </Group>
                         </Radio.Group>
                     )}
                 />

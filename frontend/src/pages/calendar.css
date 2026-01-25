@@ -391,6 +391,19 @@
   text-wrap: wrap;
 }
 
+/* Voided Original Period Start - dimmed and strikethrough */
+.calendar .fc-event.voided-original {
+  opacity: 0.5;
+  text-decoration: line-through;
+  border-left-style: dashed;
+  background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6));
+}
+
+.calendar .fc-event.voided-original .fc-event-title {
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-gray-5));
+  text-decoration: line-through;
+}
+
 /* Customize the "more" link for hidden events */
 .calendar .fc-daygrid-more-link {
   color: var(--mantine-color-pink-8);
