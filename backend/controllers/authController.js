@@ -41,28 +41,35 @@ const register = async (req, res, next) => {
 
 const verifyEmail = async (req, res, next) => {
   try {
-    const { token } = req.params;
-    const tokenHash = crypto
-      .createHash('sha256')
-      .update(token)
-      .digest('hex');
+    const token = req.query.token;
+    const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
-    const user = await Users.findOne({
-      'emailVerification.tokenHash': tokenHash,
-      'emailVerification.expiresAt': { $gt: new Date() }
-    });
-
-    const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173'; // set this in .env
-
-    if (!user) {
+    if (!token) {
+      // no token provided
       return res.redirect(`${FRONTEND_URL}/verify?status=failed`);
     }
 
+    // hash token to compare with DB
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+    // find user with matching token that is not expired
+    const user = await Users.findOne({
+      'emailVerification.tokenHash': tokenHash,
+      'emailVerification.expiresAt': { $gt: new Date() },
+    });
+
+    if (!user) {
+      // token invalid or expired
+      return res.redirect(`${FRONTEND_URL}/verify?status=failed`);
+    }
+
+    // mark email as verified
     user.emailVerified = true;
-    user.emailVerification = undefined;
+    user.emailVerification = undefined; // remove verification token
     await user.save();
 
-    res.redirect(`${FRONTEND_URL}/verify?status=success`);
+    // redirect to frontend success page
+    return res.redirect(`${FRONTEND_URL}/verify?status=success`);
   } catch (err) {
     next(err);
   }
