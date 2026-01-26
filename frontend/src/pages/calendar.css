@@ -542,8 +542,8 @@
   .calendar .fc-event {
     background-color: transparent;
     font-size: 0.5rem; /* Event text size (uses rem for consistency) */
-    padding: 1px 3px; /* Compact padding */
-    margin: 1px; /* Tight spacing between events */
+    padding: 0.5px; /* Minimal padding for maximum text space */
+    margin: 0.5px; /* Minimal margin for maximum text space */
     border-left-width: 3px;
     overflow: visible;
     text-wrap: nowrap;
@@ -564,18 +564,55 @@
   /* Calendar day cell height - Mobile (affects how square/rectangular cells are) */
   .calendar .fc .fc-daygrid-day {
     min-height: 100px; /* Cell height - adjust for more/less square cells */
+    padding: 0.5px; /* Minimal padding for maximum text space */
   }
 
   /* Day name headers (Sun, Mon, Tue, etc.) - Mobile */
   .calendar .fc .fc-col-header-cell {
-    padding: 4px 2px !important;
+    padding: 0.5px !important; /* Minimal padding for maximum text space */
     font-size: 0.6em !important; /* Day names size (very small to save space) */
   }
 
   /* Inner padding of day cells - Mobile */
   .calendar .fc .fc-daygrid-day-frame {
-    padding: 1px; /* Reduced to 1px for more compact mobile layout */
+    padding: 0.5px; /* Minimal padding for maximum text space */
     overflow: visible; /* Allow events to overflow into adjacent cells */
+  }
+
+  /* Custom day cell content - Mobile */
+  .custom-day-cell {
+    padding: 0.5px !important; /* Minimal padding for maximum text space */
+    margin: 0 !important;
+  }
+
+  /* Day top area (contains date numbers) - Mobile */
+  .calendar .fc-daygrid-day-top {
+    padding: 0.5px !important;
+    margin: 0 !important;
+  }
+
+  /* Day events container - Mobile */
+  .calendar .fc-daygrid-day-events {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Harness for events - Mobile */
+  .calendar .fc-daygrid-event-harness {
+    margin: 0.5px 0 !important;
+  }
+
+  /* Event main content - Mobile */
+  .calendar .fc-event-main {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Event title container - Mobile */
+  .calendar .fc-event-title {
+    padding: 0 !important;
+    margin: 0 !important;
+    gap: 0.5px !important;
   }
 
   /* Remove background for day onah events in mobile view */
