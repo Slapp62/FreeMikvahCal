@@ -1,5 +1,8 @@
 const authService = require('../services/authService');
+const sendVerificationEmail = require('../services/brevoService');
 const passport = require('passport');
+const crypto = require('crypto');
+const Users = require('../models/Users');
 
 /**
  * Register a new user
@@ -12,7 +15,13 @@ const register = async (req, res, next) => {
       userAgent: req.get('user-agent')
     };
 
-    const user = await authService.register(req.body, metadata);
+    const { user, verificationToken } = await authService.register(req.body, metadata);
+
+    try {
+      await sendVerificationEmail(user.email, user.firstName, verificationToken);
+    } catch (err) {
+      console.error('Email failed to send:', err);
+    }
 
     // Log the user in after registration
     req.login(user, (err) => {
@@ -21,7 +30,7 @@ const register = async (req, res, next) => {
       }
 
       res.status(201).json({
-        message: 'Registration successful',
+        message: 'Registration successful. Please check your email to verify your account.',
         user
       });
     });
@@ -29,6 +38,36 @@ const register = async (req, res, next) => {
     next(error);
   }
 };
+
+const verifyEmail = async (req, res, next) => {
+  try {
+    const { token } = req.params;
+    const tokenHash = crypto
+      .createHash('sha256')
+      .update(token)
+      .digest('hex');
+
+    const user = await Users.findOne({
+      'emailVerification.tokenHash': tokenHash,
+      'emailVerification.expiresAt': { $gt: new Date() }
+    });
+
+    const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173'; // set this in .env
+
+    if (!user) {
+      return res.redirect(`${FRONTEND_URL}/verify?status=failed`);
+    }
+
+    user.emailVerified = true;
+    user.emailVerification = undefined;
+    await user.save();
+
+    res.redirect(`${FRONTEND_URL}/verify?status=success`);
+  } catch (err) {
+    next(err);
+  }
+};
+
 
 /**
  * Login user
@@ -131,6 +170,7 @@ module.exports = {
   register,
   login,
   logout,
+  verifyEmail,
   getSession,
   changePassword
 };

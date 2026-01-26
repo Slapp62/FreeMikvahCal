@@ -8,6 +8,8 @@ const { validateRegister, validateLogin, validateChangePassword } = require('../
 // POST /api/auth/register
 router.post('/register', authLimiter, validateRegister, authController.register);
 
+router.get('/verify-email/:token', authController.verifyEmail);
+
 // POST /api/auth/login
 router.post('/login', authLimiter, validateLogin, authController.login);
 

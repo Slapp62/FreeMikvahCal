@@ -1,4 +1,5 @@
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const Users = require('../models/Users');
 const Preferences = require('../models/Preferences');
 const { throwError } = require('../utils/functionHandlers');
@@ -45,6 +46,17 @@ const register = async (userData, metadata = {}) => {
     onboardingCompleted: false
   });
 
+  // Generate verification token
+  const verificationToken = crypto.randomBytes(32).toString('hex'); // raw token sent via email
+  const tokenHash = crypto.createHash('sha256').update(verificationToken).digest('hex'); // stored in DB
+
+  // Attach to user
+  user.emailVerification = {
+    tokenHash,
+    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h expiry
+    sentAt: new Date()
+  };  
+
   await user.save();
 
   // Create default preferences
@@ -54,7 +66,11 @@ const register = async (userData, metadata = {}) => {
 
   logAuth('register', user._id, { email: user.email });
 
-  return normalizeUser(user);
+  // Return normalized user + verification token
+  return {
+    user: normalizeUser(user),
+    verificationToken // plain token to send in email
+  };
 };
 
 /**

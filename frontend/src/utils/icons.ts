@@ -7,6 +7,7 @@
 export {
   IconAlertTriangle,
   IconBell,
+  IconBook,
   IconBook2,
   IconBrandGithub,
   IconBriefcase,
@@ -28,6 +29,7 @@ export {
   IconNumber4,
   IconPhone,
   IconPray,
+  IconScale,
   IconSettings,
   IconShieldLock,
   IconSparkles,

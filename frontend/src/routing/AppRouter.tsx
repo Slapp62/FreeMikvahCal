@@ -6,6 +6,7 @@ import { LoadingOverlay } from '@mantine/core';
 
 // Eagerly load home page (first thing users see)
 import HomePage from '../pages/home.page';
+import VerifyPage from '../pages/accountConfirmation.page';
 
 // Lazy load all other pages
 const AboutPage = lazy(() => import('../pages/about.page'));
@@ -54,6 +55,12 @@ export function AppRouter() {
             </Suspense>
           }
         />
+
+        <Route 
+          path="/verify" 
+          element={<VerifyPage />} 
+        />
+        
         <Route
           path="login"
           element={

@@ -79,7 +79,7 @@ export function Header() {
               </Link>
               <Link to="/information" style={{ textDecoration: 'none' }}>
                 <Text fw={600} c="dimmed" style={{ transition: 'color 150ms' }} className="nav-link">
-                  Information
+                  Glossary
                 </Text>
               </Link>
               {user && (
@@ -169,7 +169,7 @@ export function Header() {
               </Link>
               <Link to="/information" onClick={closeDrawer} style={{ textDecoration: 'none' }}>
                 <Text fw={600} c="secondary" size="lg">
-                  Information
+                  Glossary
                 </Text>
               </Link>
               {user && (

@@ -69,7 +69,34 @@ const userSchema = new Schema({
   isDeleted: { type: Boolean, default: false },
   deletedAt: { type: Date, default: null },
   emailVerified: { type: Boolean, default: false },
-  emailVerificationToken: String,
+  emailVerification: {
+    tokenHash: String,          // hashed token
+    expiresAt: Date,            // expiration time
+    sentAt: Date,               // last time verification email was sent
+    _id: false
+  },
+  emailPreferences: {
+    verificationEmails: { type: Boolean, default: true },
+
+    reminders: {
+      enabled: { type: Boolean, default: true },
+
+      advanceNoticeHours: {
+        type: Number,
+        default: 48,            // e.g. 2 days before
+        min: 1,
+        max: 168                // up to 7 days
+      }
+    },
+
+    _id: false
+  },
+  emailMeta: {
+    lastEmailSentAt: Date,
+    bounced: { type: Boolean, default: false },
+    _id: false
+  },
+
 
   // Security
   loginAttempts: { type: Number, default: 0 },

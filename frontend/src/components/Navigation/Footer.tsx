@@ -73,7 +73,7 @@ export function Footer() {
                 About
               </Anchor>
               <Anchor component={Link} to="/information" c="dimmed" size="sm" style={{ textDecoration: 'none' }}>
-                Information
+                Glossary
               </Anchor>
               <Anchor component={Link} to="/about#contact" c="dimmed" size="sm" style={{ textDecoration: 'none' }}>
                 Contact Us
