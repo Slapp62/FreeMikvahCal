@@ -798,8 +798,10 @@ const getCalendarEvents = async (userId, options = {}) => {
           let title = `🔍 Morning Bedikah (Day ${bedikah.dayNumber})`;
 
           // Special labeling for unclean bedikah that caused void
+          let className = `bedikah bedikah-${result}`;
           if (isUncleanBedikah && result === 'not_clean') {
-            title = `🔍 Unclean Bedikah - New Period Start`;
+            title = `🩸 New Period Start (Unclean Bedikah)`;
+            className = 'niddah-start bedikah-not_clean'; // Use niddah-start class for delete functionality
           }
           // Voided bedikot (those before the unclean bedikah)
           else if (isVoided && !isUncleanBedikah) {
@@ -811,7 +813,7 @@ const getCalendarEvents = async (userId, options = {}) => {
             title: title,
             start: bedikah.date,
             end: bedikah.date, // Same day event (will wrap, not overflow)
-            className: `bedikah bedikah-${result}`,
+            className: className,
             groupID: cycle._id,
           });
         }
@@ -821,8 +823,10 @@ const getCalendarEvents = async (userId, options = {}) => {
           let title = `🔍 Evening Bedikah (Day ${bedikah.dayNumber})`;
 
           // Special labeling for unclean bedikah that caused void
+          let className = `bedikah bedikah-${result}`;
           if (isUncleanBedikah && result === 'not_clean') {
-            title = `🔍 Unclean Bedikah - New Period Start`;
+            title = `🩸 New Period Start (Unclean Bedikah)`;
+            className = 'niddah-start bedikah-not_clean'; // Use niddah-start class for delete functionality
           }
           // Voided bedikot (those before the unclean bedikah)
           else if (isVoided && !isUncleanBedikah) {
@@ -834,7 +838,7 @@ const getCalendarEvents = async (userId, options = {}) => {
             title: title,
             start: bedikah.date,
             end: bedikah.date, // Same day event (will wrap, not overflow)
-            className: `bedikah bedikah-${result}`,
+            className: className,
             groupID: cycle._id,
           });
         }

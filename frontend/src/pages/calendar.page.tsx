@@ -2,7 +2,7 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin, { DateClickArg } from '@fullcalendar/interaction';
 import { EventClickArg, EventContentArg } from '@fullcalendar/core';
-import { Box, Group, Stack, Title, Text, Tooltip, Button, Divider, Popover } from '@mantine/core';
+import { Box, Group, Stack, Text, Tooltip, Button, Divider, Popover } from '@mantine/core';
 import './calendar.css';
 import CalendarEventModal from './newCalEvent.modal.tsx';
 import { useState, useRef } from 'react';
@@ -568,9 +568,8 @@ export default function CalendarPage() {
     };
 
   return (
-    <Stack className="calendar" w='100%' maw={{ base: '100%', sm: 1200 }} px={{ base: 0, sm: 'md' }} mx='auto' align='center' justify='center'>
-        <Title order={1} mt={10} ta='center'>Mikvah Calendar</Title>
-        <Text fw={500} fz={isMobile ? 'lg' : 'xl'}>Click on a day to enter a new event. Click on an existing event to edit it.</Text>
+    <Stack className="calendar" maw={{ base: '100%', md: '90%' }} px={{ base: 0, sm: 'md' }} mx='auto' align='center' justify='center'>
+        <Text fw={500} fz={isMobile ? 'lg' : 'xl'} mt={10}>Click on a day to enter a new event. Click on an existing event to edit it.</Text>
         <Text fz={isMobile ? 'sm' : 'md'}>*Do not rely on the times provided until the last minute. They are estimates.</Text>
 
         <FullCalendar
@@ -603,7 +602,7 @@ export default function CalendarPage() {
                     flexDirection: isMobile ? 'column' : 'row',
                     justifyContent: isMobile ? 'flex-start' : 'space-between',
                     alignItems: 'flex-start',
-                    padding: isMobile ? '0.5px' : '4px'
+                    padding: isMobile ? '0.5px' : '5px'
                   }}
                 >
                   <Text className="gregorian-number" style={{ flex: '0 0 auto' }}>{arg.dayNumberText}</Text>

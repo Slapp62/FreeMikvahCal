@@ -3,8 +3,8 @@
 /* Customizing the entire calendar container */
 .calendar .fc {
   background-color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-7));
-  border: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
-  border-radius: var(--mantine-radius-md);
+  border: rgb(218, 93, 93) solid 1px;
+  border-radius: none;
   box-shadow: var(--mantine-shadow-sm);
   font-family: var(--mantine-font-family);
 }
@@ -14,9 +14,6 @@
   background: linear-gradient(135deg, var(--mantine-color-pink-8) 0%, var(--mantine-color-pink-6) 100%);
   color: white;
   padding: 16px 20px;
-  border-top-left-radius: var(--mantine-radius-md);
-  border-top-right-radius: var(--mantine-radius-md);
-  border: none;
   margin-bottom: 0;
 }
 
@@ -199,6 +196,20 @@
 
 .calendar .fc-event.niddah-start:hover {
   background-color: light-dark(var(--mantine-color-pink-1), var(--mantine-color-dark-4));
+}
+
+/* New period start from unclean bedikah - override bedikah styles to look like period start */
+.calendar .fc-event.niddah-start.bedikah-not_clean {
+  border-left-color: var(--mantine-color-pink-7) !important;
+  background-color: light-dark(var(--mantine-color-pink-0), var(--mantine-color-dark-5)) !important;
+}
+
+.calendar .fc-event.niddah-start.bedikah-not_clean .fc-event-title {
+  color: light-dark(var(--mantine-color-pink-8), var(--mantine-color-pink-3)) !important;
+}
+
+.calendar .fc-event.niddah-start.bedikah-not_clean:hover {
+  background-color: light-dark(var(--mantine-color-pink-1), var(--mantine-color-dark-4)) !important;
 }
 
 .calendar .fc-event.hefsek-tahara {

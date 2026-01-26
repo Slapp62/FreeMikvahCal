@@ -1,0 +1,40 @@
+.kofi-donation-popup {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 280px;
+  z-index: 1000;
+  animation: slideIn 0.4s ease-out;
+  background: var(--mantine-color-body);
+}
+
+.kofi-close-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+.cta-text {
+  color: light-dark(var(--mantine-color-gray-9), var(--mantine-color-gray-5))
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .kofi-donation-popup {
+    bottom: 10px;
+    right: 10px;
+    width: calc(100vw - 20px);
+    max-width: 280px;
+  }
+}

@@ -8,6 +8,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { AppRouter } from "./routing/AppRouter.tsx";
 import myTheme from "./styles/theme";
 import ErrorBoundary from "./components/ErrorCatching/ErrorBoundary";
+import { KofiDonationPopup } from "./components/KofiDonationPopup";
 
 export default function App() {
   // Global error handlers
@@ -40,6 +41,7 @@ export default function App() {
             <AppRouter />
           </BrowserRouter>
         </ErrorBoundary>
+        <KofiDonationPopup />
       </MantineProvider>
     </HelmetProvider>
   );
