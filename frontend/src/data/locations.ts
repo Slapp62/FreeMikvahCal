@@ -128,7 +128,7 @@ export const locations: Location[] = [
   { id: 101, geonameId: 4932869, value: "Canton", country: "USA", state: "MA", lat: 42.1784, lng: -71.1448, timezone: "America/New_York" },
   { id: 102, geonameId: 4953902, value: "Malden", country: "USA", state: "MA", lat: 42.4251, lng: -71.0662, timezone: "America/New_York" },
   { id: 103, geonameId: 4945283, value: "Framingham", country: "USA", state: "MA", lat: 42.2793, lng: -71.4162, timezone: "America/New_York" },
-  { id: 104, geonameId: 4931378, value: "Brighton", country: "USA", state: "MA", lat: 42.3520, lng: -71.1468, timezone: "America/New_York" },
+  { id: 104, geonameId: 4931378, value: "Brighton - MA", country: "USA", state: "MA", lat: 42.3520, lng: -71.1468, timezone: "America/New_York" },
   { id: 105, geonameId: 4952487, value: "Lexington", country: "USA", state: "MA", lat: 42.4430, lng: -71.2290, timezone: "America/New_York" },
   { id: 106, geonameId: 4955336, value: "Natick", country: "USA", state: "MA", lat: 42.2835, lng: -71.3495, timezone: "America/New_York" },
   { id: 107, geonameId: 4939647, value: "Chestnut Hill", country: "USA", state: "MA", lat: 42.3176, lng: -71.1642, timezone: "America/New_York" },
@@ -223,7 +223,7 @@ export const locations: Location[] = [
   { id: 182, geonameId: 2644688, value: "Leeds", country: "UK", lat: 53.8008, lng: -1.5491, timezone: "Europe/London" },
   { id: 183, geonameId: 2648579, value: "Glasgow", country: "UK", lat: 55.8642, lng: -4.2518, timezone: "Europe/London" },
   { id: 184, geonameId: 2650225, value: "Edinburgh", country: "UK", lat: 55.9533, lng: -3.1883, timezone: "Europe/London" },
-  { id: 185, geonameId: 2654710, value: "Brighton", country: "UK", lat: 50.8225, lng: -0.1372, timezone: "Europe/London" },
+  { id: 185, geonameId: 2654710, value: "Brighton - UK", country: "UK", lat: 50.8225, lng: -0.1372, timezone: "Europe/London" },
   { id: 186, geonameId: 2644668, value: "Liverpool", country: "UK", lat: 53.4084, lng: -2.9916, timezone: "Europe/London" },
 
   // Israel - Additional Cities
