@@ -603,7 +603,7 @@ export default function CalendarPage() {
                     flexDirection: isMobile ? 'column' : 'row',
                     justifyContent: isMobile ? 'flex-start' : 'space-between',
                     alignItems: 'flex-start',
-                    padding: '4px'
+                    padding: isMobile ? '0.5px' : '4px'
                   }}
                 >
                   <Text className="gregorian-number" style={{ flex: '0 0 auto' }}>{arg.dayNumberText}</Text>
@@ -613,7 +613,7 @@ export default function CalendarPage() {
                     style={{
                       textAlign: isMobile ? 'left' : 'right',
                       flex: '0 0 auto',
-                      marginTop: isMobile ? '2px' : '0'
+                      marginTop: isMobile ? '0.5px' : '0'
                     }}
                   >
                     {morningDate.getDate()}-{eveningDate.getDate()} {morningDate.getMonthName()}
