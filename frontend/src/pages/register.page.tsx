@@ -22,6 +22,7 @@ import { notifications } from '@mantine/notifications';
 import { useAuth } from '../hooks/useAuth';
 import { searchLocations, Location } from '../services/locationApi';
 import { VerificationModal } from '../components/modals/VerificationModal';
+import { User, useUserStore } from '../store/userStore';
 
 type RegisterFormValues = {
   firstName: string;
@@ -45,9 +46,11 @@ type RegisterFormValues = {
 const RegisterPage = () => {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const navigate = useNavigate();
+  const setUser = useUserStore((state) => state.setUser);
   const { register: registerAuth, isLoading } = useAuth();
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState('');
+  const [userData, setUserData] = useState<any>(null);
   const [locations, setLocations] = useState<Location[]>([]);
   const [locationOptions, setLocationOptions] = useState<string[]>([]);
 
@@ -104,7 +107,7 @@ const RegisterPage = () => {
       return;
     }
 
-    await registerAuth({
+    const { data  } = await registerAuth({
       email: formData.email,
       password: formData.password,
       firstName: formData.firstName,
@@ -128,17 +131,20 @@ const RegisterPage = () => {
       },
     });
 
+    setUserData(data?.user);
     setRegisteredEmail(formData.email);
     setShowVerifyModal(true);
   };
 
-  const handleVerifySuccess = () => {
+  const handleVerifySuccess = (user: User) => {
     setShowVerifyModal(false);
+    setUser(user);
     notifications.show({
       title: 'Verified!',
       message: 'Your account is now active.',
       color: 'teal',
     });
+
     navigate('/calendar');
   };
 
@@ -286,7 +292,7 @@ const RegisterPage = () => {
               </Fieldset>
             </Group>
 
-            <Paper withBorder shadow="md" p="md" radius="md" my="md" bg="gray.1"> 
+            <Paper withBorder shadow="md" p="md" radius="md" my="md" bg="red.1"> 
               <Checkbox
                 label="I consent to data processing for the purpose of using this service (required)"
                 error={errors.dataProcessingConsent?.message}
