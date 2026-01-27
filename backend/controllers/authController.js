@@ -41,7 +41,7 @@ const register = async (req, res, next) => {
 
 const verifyEmail = async (req, res, next) => {
   try {
-    const token = req.query.token;
+    const token = req.params.token;
     const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
     if (!token) {
