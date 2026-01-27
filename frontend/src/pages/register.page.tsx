@@ -237,7 +237,8 @@ const RegisterPage = () => {
               control={control}
               render={({ field }) => (
                 <Select
-                  label="Jewish Ethnicity (optional)"
+                  label="Halachic Custom"
+                  description="This will be used to set the default halachic custom for your account. You can change this later in your settings."
                   placeholder="Select ethnicity"
                   clearable
                   data={[
@@ -249,14 +250,6 @@ const RegisterPage = () => {
                   {...field}
                 />
               )}
-            />
-
-            <Checkbox
-              label="I consent to data processing for the purpose of using this service (required)"
-              error={errors.dataProcessingConsent?.message}
-              {...register('dataProcessingConsent', {
-                required: 'You must consent to data processing to use this service',
-              })}
             />
 
             <Group grow={!isMobile} wrap={isMobile ? 'wrap' : 'nowrap'} align="flex-start">
@@ -276,6 +269,16 @@ const RegisterPage = () => {
                 </Stack>
               </Fieldset>
             </Group>
+
+            <Paper withBorder shadow="md" p="md" radius="md" my="md" bg="gray.1"> 
+              <Checkbox
+                label="I consent to data processing for the purpose of using this service (required)"
+                error={errors.dataProcessingConsent?.message}
+                {...register('dataProcessingConsent', {
+                  required: 'You must consent to data processing to use this service',
+                })}
+              />
+            </Paper>
 
             <Button type="submit" fullWidth mt="lg" loading={isLoading}>
               Create Account

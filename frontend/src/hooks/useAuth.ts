@@ -67,7 +67,7 @@ export const useAuth = () => {
         color: 'green',
       });
 
-      navigate('/calendar');
+      navigate('/post-register', { state: { email: data.email } });
       return { success: true };
     } catch (error: any) {
       console.error('Registration error:', error);

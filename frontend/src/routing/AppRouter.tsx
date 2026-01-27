@@ -6,13 +6,14 @@ import { LoadingOverlay } from '@mantine/core';
 
 // Eagerly load home page (first thing users see)
 import HomePage from '../pages/home.page';
-import VerifyPage from '../pages/accountConfirmation.page';
 
 // Lazy load all other pages
 const AboutPage = lazy(() => import('../pages/about.page'));
 const InformationPage = lazy(() => import('../pages/information.page'));
 const LoginPage = lazy(() => import('../pages/login.page').then(m => ({ default: m.LoginPage })));
 const RegisterPage = lazy(() => import('../pages/register.page'));
+const VerifyPage = lazy(() => import('../pages/accountConfirmation.page'));
+const PostRegisterPage = lazy(() => import('../pages/postRegister.pages'));
 const PageNotFound = lazy(() => import('../pages/404.page'));
 const CalendarPage = lazy(() => import('../pages/calendar.page'));
 const EditUserSettings = lazy(() => import('../pages/editUserSettings.page'));
@@ -59,6 +60,11 @@ export function AppRouter() {
         <Route 
           path="/verify-email" 
           element={<VerifyPage />} 
+        />
+        
+        <Route 
+          path="/post-register" 
+          element={<PostRegisterPage />} 
         />
         
         <Route

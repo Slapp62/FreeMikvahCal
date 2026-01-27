@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Container, Paper, Title, Button, Loader, Center } from '@mantine/core';
 import axiosInstance from '../utils/axiosConfig';
+import { useUserStore } from '../store/userStore';
 
 type ApiStatus = 'loading' | 'success' | 'failed';
 type ApiReason = 'no-token' | 'invalid-token' | 'server-error' | null;
@@ -25,7 +26,8 @@ export default function VerifyPage() {
 
       try {
         // Use your instance! No need for full URL or /api prefix
-        await axiosInstance.get(`/auth/verify-email/${token}`);
+        const response = await axiosInstance.get(`/auth/verify-email/${token}`);
+        useUserStore.getState().setUser(response.data.user);
         setApiStatus('success');
       } catch (error: any) {
         setApiStatus('failed');
@@ -41,7 +43,7 @@ export default function VerifyPage() {
 
   // Message Logic
   const getMessage = () => {
-    if (apiStatus === 'success') return 'Your email has been verified successfully!';
+    if (apiStatus === 'success') return 'Your email has been verified successfully! You can close this window.';
     if (apiStatus === 'loading') return 'Verifying your email...';
     
     switch (apiReason) {
@@ -65,8 +67,8 @@ export default function VerifyPage() {
         )}
 
         {apiStatus === 'success' && (
-          <Button fullWidth mt="xl" color="rose" onClick={() => navigate('/login')}>
-            Go to Login
+          <Button fullWidth mt="xl" color="rose" onClick={() => navigate('/calendar')}>
+            Go to Calendar
           </Button>
         )}
         

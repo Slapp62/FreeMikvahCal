@@ -95,10 +95,10 @@ export function Header() {
             <Group gap="md" visibleFrom="md">
               {!user ? (
                 <>
-                  <Button component={Link} to="/login" variant="subtle" color="secondary">
+                  <Button component={Link} to="/login" variant="outline" color="secondary" size="md">
                     Login
                   </Button>
-                  <Button component={Link} to="/register" variant="gradient" gradient={{ from: 'pink', to: 'purple' }}>
+                  <Button component={Link} to="/register" variant="gradient" gradient={{ from: 'pink', to: 'purple' }} size="md">
                     Sign Up
                   </Button>
                 </>
@@ -107,7 +107,7 @@ export function Header() {
                   <ActionIcon component={Link} to="/settings" variant="subtle" color="secondary" size="lg">
                     <IconSettings size={20} />
                   </ActionIcon>
-                  <Button variant="subtle" color="secondary" onClick={logoutHandler}>
+                  <Button variant="subtle" color="secondary" onClick={logoutHandler} size="md">
                     Logout
                   </Button>
                 </>

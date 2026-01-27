@@ -67,14 +67,16 @@ const verifyEmail = async (req, res, next) => {
       });
     }
 
-    // 4. Update User
-    user.emailVerified = true;
-    user.emailVerification = undefined;
-    await user.save();
-
-    // 5. Success Response
-    return res.status(200).json({ 
-      status: 'success' 
+    // 3. AUTOMATIC LOGIN
+    // req.login is a Passport.js method that establishes the session
+    req.login(user, (err) => {
+      if (err) return next(err);
+      
+      // Send success - the browser will now save the session cookie
+      return res.status(200).json({ 
+        status: 'success',
+        user: normalizeUser(user) // Send user data so frontend can update store
+      });
     });
 
   } catch (err) {
@@ -83,6 +85,36 @@ const verifyEmail = async (req, res, next) => {
   }
 };
 
+const resendVerification = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const user = await Users.findOne({ email: email.toLowerCase() });
+
+    // If no user or already verified, just return success (security best practice)
+    if (!user || user.emailVerified) {
+      return res.status(200).json({ message: 'If an account exists, a new link has been sent.' });
+    }
+
+    // Generate NEW token and hash
+    const newToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(newToken).digest('hex');
+
+    // Update user with new token and new expiry
+    user.emailVerification = {
+      tokenHash,
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      sentAt: new Date()
+    };
+    await user.save();
+
+    // Send the email
+    await sendVerificationEmail(user.email, user.firstName, newToken);
+
+    res.status(200).json({ message: 'Verification email resent.' });
+  } catch (error) {
+    next(error);
+  }
+};
 
 /**
  * Login user
@@ -186,6 +218,7 @@ module.exports = {
   login,
   logout,
   verifyEmail,
+  resendVerification,
   getSession,
   changePassword
 };
