@@ -57,7 +57,7 @@ export function AppRouter() {
         />
 
         <Route 
-          path="/verify" 
+          path="/verify-email" 
           element={<VerifyPage />} 
         />
         

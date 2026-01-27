@@ -42,35 +42,43 @@ const register = async (req, res, next) => {
 const verifyEmail = async (req, res, next) => {
   try {
     const token = req.params.token;
-    const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
+    // 1. Check if token exists in request
     if (!token) {
-      // no token provided
-      return res.redirect(`${FRONTEND_URL}/verify?status=failed&reason=no-token`);
+      return res.status(400).json({ 
+        status: 'failed', 
+        reason: 'no-token' 
+      });
     }
 
-    // hash token to compare with DB
+    // 2. Hash and Find User
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
-    // find user with matching token that is not expired
     const user = await Users.findOne({
       'emailVerification.tokenHash': tokenHash,
       'emailVerification.expiresAt': { $gt: new Date() },
     });
 
+    // 3. Handle Invalid/Expired Token
     if (!user) {
-      // token invalid or expired
-      return res.redirect(`${FRONTEND_URL}/verify?status=failed&reason=invalid-token`);
+      return res.status(400).json({ 
+        status: 'failed', 
+        reason: 'invalid-token' 
+      });
     }
 
-    // mark email as verified
+    // 4. Update User
     user.emailVerified = true;
-    user.emailVerification = undefined; // remove verification token
+    user.emailVerification = undefined;
     await user.save();
 
-    // redirect to frontend success page
-    return res.redirect(`${FRONTEND_URL}/verify?status=success`);
+    // 5. Success Response
+    return res.status(200).json({ 
+      status: 'success' 
+    });
+
   } catch (err) {
+    // This will trigger your global error handler (sends 500)
     next(err);
   }
 };
