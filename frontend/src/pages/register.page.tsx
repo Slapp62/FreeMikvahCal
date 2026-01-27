@@ -50,7 +50,6 @@ const RegisterPage = () => {
   const { register: registerAuth, isLoading } = useAuth();
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState('');
-  const [userData, setUserData] = useState<any>(null);
   const [locations, setLocations] = useState<Location[]>([]);
   const [locationOptions, setLocationOptions] = useState<string[]>([]);
 
@@ -107,7 +106,7 @@ const RegisterPage = () => {
       return;
     }
 
-    const { data  } = await registerAuth({
+    await registerAuth({
       email: formData.email,
       password: formData.password,
       firstName: formData.firstName,
@@ -131,7 +130,6 @@ const RegisterPage = () => {
       },
     });
 
-    setUserData(data?.user);
     setRegisteredEmail(formData.email);
     setShowVerifyModal(true);
   };
