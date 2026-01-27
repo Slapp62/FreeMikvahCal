@@ -1,5 +1,6 @@
 const authService = require('../services/authService');
 const sendVerificationEmail = require('../services/brevoService');
+const { normalizeUser } = require('../utils/normalizeResponses');
 const passport = require('passport');
 const crypto = require('crypto');
 const Users = require('../models/Users');
@@ -43,15 +44,10 @@ const verifyEmail = async (req, res, next) => {
   try {
     const token = req.params.token;
 
-    // 1. Check if token exists in request
     if (!token) {
-      return res.status(400).json({ 
-        status: 'failed', 
-        reason: 'no-token' 
-      });
+      return res.status(400).json({ status: 'failed', reason: 'no-token' });
     }
 
-    // 2. Hash and Find User
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
     const user = await Users.findOne({
@@ -59,28 +55,26 @@ const verifyEmail = async (req, res, next) => {
       'emailVerification.expiresAt': { $gt: new Date() },
     });
 
-    // 3. Handle Invalid/Expired Token
     if (!user) {
-      return res.status(400).json({ 
-        status: 'failed', 
-        reason: 'invalid-token' 
-      });
+      return res.status(400).json({ status: 'failed', reason: 'invalid-token' });
     }
 
-    // 3. AUTOMATIC LOGIN
-    // req.login is a Passport.js method that establishes the session
+    // IMPORTANT: Save the verification status FIRST
+    user.emailVerified = true;
+    user.emailVerification = undefined;
+    await user.save();
+
+    // Now log them in
     req.login(user, (err) => {
       if (err) return next(err);
       
-      // Send success - the browser will now save the session cookie
       return res.status(200).json({ 
         status: 'success',
-        user: normalizeUser(user) // Send user data so frontend can update store
+        user: normalizeUser(user) 
       });
     });
 
   } catch (err) {
-    // This will trigger your global error handler (sends 500)
     next(err);
   }
 };
