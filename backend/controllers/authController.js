@@ -14,6 +14,7 @@ const register = async (req, res, next) => {
       userAgent: req.get('user-agent')
     };
 
+    // authService.register should now return a 6-digit 'code' instead of a 'verificationToken'
     const { user, code } = await authService.register(req.body, metadata);
 
     try {
@@ -22,6 +23,8 @@ const register = async (req, res, next) => {
       console.error('Email failed to send:', err);
     }
 
+    // Note: We do NOT req.login here anymore because the user 
+    // needs to enter the PIN in the modal first.
     res.status(201).json({
       message: 'Registration successful. Please enter the code sent to your email.',
       email: user.email // Helpful for the frontend modal
@@ -97,7 +100,102 @@ const resendVerification = async (req, res, next) => {
   }
 };
 
-// ... (login, logout, getSession, changePassword remain the same)
+/**
+ * Login user
+ * POST /api/auth/login
+ */
+const login = (req, res, next) => {
+  passport.authenticate('local', async (err, user, info) => {
+    if (err) {
+      return next(err);
+    }
+
+    if (!user) {
+      return res.status(401).json({
+        message: info.message || 'Invalid credentials'
+      });
+    }
+
+    req.login(user, async (err) => {
+      if (err) {
+        return next(err);
+      }
+
+      try {
+        // Get full user data
+        const userData = await authService.login(user._id);
+
+        res.status(200).json({
+          message: 'Login successful',
+          user: userData
+        });
+      } catch (error) {
+        next(error);
+      }
+    });
+  })(req, res, next);
+};
+
+/**
+ * Logout user
+ * POST /api/auth/logout
+ */
+const logout = (req, res, next) => {
+  req.logout((err) => {
+    if (err) {
+      return next(err);
+    }
+
+    req.session.destroy((err) => {
+      if (err) {
+        return next(err);
+      }
+
+      res.clearCookie('connect.sid');
+      res.status(200).json({
+        message: 'Logout successful'
+      });
+    });
+  });
+};
+
+/**
+ * Get current session
+ * GET /api/auth/session
+ */
+const getSession = async (req, res, next) => {
+  try {
+    if (req.isAuthenticated()) {
+      const user = await authService.getUserById(req.user._id);
+      res.status(200).json({
+        authenticated: true,
+        user
+      });
+    } else {
+      res.status(200).json({
+        authenticated: false,
+        user: null
+      });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Change password
+ * POST /api/auth/change-password
+ */
+const changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const result = await authService.changePassword(req.user._id, currentPassword, newPassword);
+
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
 
 module.exports = {
   register,
