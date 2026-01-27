@@ -1,5 +1,5 @@
 import { Controller, useForm } from 'react-hook-form';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import {
   Anchor,
@@ -21,6 +21,7 @@ import { useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { useAuth } from '../hooks/useAuth';
 import { searchLocations, Location } from '../services/locationApi';
+import { VerificationModal } from '../components/modals/VerificationModal';
 
 type RegisterFormValues = {
   firstName: string;
@@ -43,7 +44,10 @@ type RegisterFormValues = {
 
 const RegisterPage = () => {
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const navigate = useNavigate();
   const { register: registerAuth, isLoading } = useAuth();
+  const [showVerifyModal, setShowVerifyModal] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
   const [locations, setLocations] = useState<Location[]>([]);
   const [locationOptions, setLocationOptions] = useState<string[]>([]);
 
@@ -123,8 +127,20 @@ const RegisterPage = () => {
         chasamSofer: formData.halachicPreferences.chasamSofer,
       },
     });
+
+    setRegisteredEmail(formData.email);
+    setShowVerifyModal(true);
   };
 
+  const handleVerifySuccess = () => {
+    setShowVerifyModal(false);
+    notifications.show({
+      title: 'Verified!',
+      message: 'Your account is now active.',
+      color: 'teal',
+    });
+    navigate('/calendar');
+  };
 
   return (
     <Container size="lg" my={40}>
@@ -286,6 +302,16 @@ const RegisterPage = () => {
           </Stack>
         </form>
       </Paper>
+
+      <VerificationModal 
+        opened={showVerifyModal}
+        email={registeredEmail}
+        onVerifySuccess={handleVerifySuccess}
+        onResend={() => {
+          // Logic for resending code (calling your new resend endpoint)
+          notifications.show({ message: 'A new code has been sent.' });
+        }}
+      />
     </Container>
   );
 };

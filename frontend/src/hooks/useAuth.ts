@@ -59,20 +59,11 @@ export const useAuth = () => {
     setIsLoading(true);
     try {
       const response = await registerApi(data);
-      setUser(response.user);
 
-      notifications.show({
-        title: 'Welcome to FreeMikvahCal!',
-        message: 'Your account has been created successfully',
-        color: 'green',
-      });
-
-      navigate('/post-register', { state: { email: data.email } });
-      return { success: true };
+      return { success: true, data: response }; 
     } catch (error: any) {
       console.error('Registration error:', error);
-
-      const message = error.response?.data?.message || error.message || 'Please check your information and try again';
+      const message = error.response?.data?.message || error.message || 'Registration failed';
 
       notifications.show({
         title: 'Registration failed',
@@ -85,6 +76,7 @@ export const useAuth = () => {
       setIsLoading(false);
     }
   };
+
 
   /**
    * Logout user

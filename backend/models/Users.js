@@ -70,7 +70,7 @@ const userSchema = new Schema({
   deletedAt: { type: Date, default: null },
   emailVerified: { type: Boolean, default: false },
   emailVerification: {
-    tokenHash: String,          // hashed token
+    code: String,          // verification code
     expiresAt: Date,            // expiration time
     sentAt: Date,               // last time verification email was sent
     _id: false
