@@ -46,7 +46,7 @@ const verifyEmail = async (req, res, next) => {
 
     if (!token) {
       // no token provided
-      return res.redirect(`${FRONTEND_URL}/verify?status=failed`);
+      return res.redirect(`${FRONTEND_URL}/verify?status=failed&reason=no-token`);
     }
 
     // hash token to compare with DB
@@ -60,7 +60,7 @@ const verifyEmail = async (req, res, next) => {
 
     if (!user) {
       // token invalid or expired
-      return res.redirect(`${FRONTEND_URL}/verify?status=failed`);
+      return res.redirect(`${FRONTEND_URL}/verify?status=failed&reason=invalid-token`);
     }
 
     // mark email as verified

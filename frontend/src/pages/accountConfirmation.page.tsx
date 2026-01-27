@@ -4,13 +4,18 @@ import { Container, Paper, Title, Button } from '@mantine/core';
 export default function VerifyPage() {
   const [searchParams] = useSearchParams();
   const status = searchParams.get('status'); // 'success' or 'failed'
+  const reason = searchParams.get('reason'); // 'no-token' or 'invalid-token'
   const navigate = useNavigate();
 
   let message;
   if (status === 'success') {
     message = 'Your email has been verified successfully!';
   } else if (status === 'failed') {
-    message = 'Invalid or expired verification link.';
+    if (reason === 'no-token') {
+      message = 'No verification token provided.';
+    } else if (reason === 'invalid-token') {
+      message = 'Invalid or expired verification link.';
+    }
   } else {
     message = 'Verifying...';
   }
