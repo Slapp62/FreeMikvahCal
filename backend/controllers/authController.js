@@ -23,8 +23,6 @@ const register = async (req, res, next) => {
       console.error('Email failed to send:', err);
     }
 
-    // Note: We do NOT req.login here anymore because the user 
-    // needs to enter the PIN in the modal first.
     res.status(201).json({
       message: 'Registration successful. Please enter the code sent to your email.',
       email: user.email // Helpful for the frontend modal

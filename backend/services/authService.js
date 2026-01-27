@@ -67,7 +67,7 @@ const register = async (userData, metadata = {}) => {
   // Return normalized user + verification token
   return {
     user: normalizeUser(user),
-    verificationToken // plain token to send in email
+    code: verificationCode // plain token to send in email
   };
 };
 
