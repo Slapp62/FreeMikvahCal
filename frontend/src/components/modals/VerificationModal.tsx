@@ -32,7 +32,7 @@ export function VerificationModal({ opened, email, onVerifySuccess, onResend }: 
   };
 
   return (
-    <Modal opened={opened} onClose={() => {}} withCloseButton={true} centered title="Verify Your Account" >
+    <Modal opened={opened} onClose={() => {}} withCloseButton={true} closeOnEscape={true} centered title="Verify Your Account" >
       <Stack align="center" gap="md">
         <Text size="sm" ta="center">
           We sent a 6-digit code to <b>{email}</b>. Please enter it below.
@@ -43,6 +43,7 @@ export function VerificationModal({ opened, email, onVerifySuccess, onResend }: 
 
         <PinInput 
           length={6} 
+          size="lg"
           type="number" 
           value={code} 
           onChange={setCode}

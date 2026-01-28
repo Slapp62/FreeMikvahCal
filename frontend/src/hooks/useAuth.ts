@@ -5,6 +5,7 @@ import { useCycleStore } from '../store/cycleStore';
 import { login as loginApi, register as registerApi, logout as logoutApi, getSession } from '../services/authApi';
 import { notifications } from '@mantine/notifications';
 import type { LoginData, RegisterData } from '../services/authApi';
+import axiosInstance from '../utils/axiosConfig';
 
 /**
  * Custom hook for authentication operations
@@ -77,7 +78,37 @@ export const useAuth = () => {
     }
   };
 
+  const completeProfile = async (data: RegisterData) => {
+    try {
+    // Use an 'updateProfile' service call instead of 'registerAuth'
+    const response = await axiosInstance.patch('/auth/complete-profile', {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      location: {
+        city: data.location?.city,
+        geonameId: data.location?.geonameId,
+        lat: data.location?.lat,
+        lng: data.location?.lng,
+        timezone: data.location?.timezone || 'UTC',
+      },
+      halachicPreferences: data.halachicPreferences,
+      ethnicity: data.ethnicity,
+    });
 
+    // Update your local state with the full user object
+    setUser(response.data.user);
+    
+    navigate('/calendar');
+
+    notifications.show({
+      title: 'Profile completed',
+      message: 'You have successfully completed your profile',
+      color: 'blue',
+    });
+  } catch (error) {
+    notifications.show({ title: 'Error', message: 'Failed to save profile', color: 'red' });
+  }
+  }
   /**
    * Logout user
    */
@@ -126,6 +157,7 @@ export const useAuth = () => {
   return {
     login,
     register,
+    completeProfile,
     logout,
     checkSession,
     isLoading,

@@ -4,24 +4,25 @@ import { User } from '../store/userStore';
 export interface RegisterData {
   email: string;
   password: string;
-  firstName: string;
-  lastName: string;
-  location: {
+  firstName?: string;
+  lastName?: string;
+  ethnicity?: 'ashkenazi' | 'sephardi' | 'teimani' | 'other';
+  location?: {
     city?: string;
-    timezone: string;
+    timezone?: string;
     geonameId?: number;
     lat?: number;
     lng?: number;
   };
-  consents: {
-    dataProcessing: {
+  consents?: {
+    dataProcessing?: {
       granted: boolean;
     };
   };
-  halachicPreferences: {
-    ohrZaruah: boolean;
-    kreisiUpleisi: boolean;
-    chasamSofer: boolean;
+  halachicPreferences?: {
+    ohrZaruah?: boolean;
+    kreisiUpleisi?: boolean;
+    chasamSofer?: boolean;
   };
 }
 

@@ -10,6 +10,7 @@ router.post('/register', authLimiter, validateRegister, authController.register)
 
 router.post('/verify-code', authController.verifyCode);
 router.post('/resend-verification', authController.resendVerification);
+router.patch('/complete-profile', authController.completeProfile);
 // POST /api/auth/login
 router.post('/login', authLimiter, validateLogin, authController.login);
 

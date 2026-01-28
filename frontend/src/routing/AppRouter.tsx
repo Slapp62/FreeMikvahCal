@@ -12,6 +12,7 @@ const AboutPage = lazy(() => import('../pages/about.page'));
 const InformationPage = lazy(() => import('../pages/information.page'));
 const LoginPage = lazy(() => import('../pages/login.page').then(m => ({ default: m.LoginPage })));
 const RegisterPage = lazy(() => import('../pages/register.page'));
+const CompleteProfilePage = lazy(() => import('../pages/completeProfile.page'));
 const VerifyPage = lazy(() => import('../pages/accountConfirmation.page'));
 const PostRegisterPage = lazy(() => import('../pages/postRegister.pages'));
 const PageNotFound = lazy(() => import('../pages/404.page'));
@@ -65,6 +66,11 @@ export function AppRouter() {
         <Route 
           path="/post-register" 
           element={<PostRegisterPage />} 
+        />
+
+        <Route 
+          path="/complete-profile" 
+          element={<CompleteProfilePage />} 
         />
         
         <Route

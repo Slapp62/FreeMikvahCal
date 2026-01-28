@@ -99,6 +99,40 @@ const resendVerification = async (req, res, next) => {
 };
 
 /**
+ * Update User Profile (Step 2 of Registration)
+ * PATCH /api/auth/complete-profile
+ */
+const completeProfile = async (req, res, next) => {
+  try {
+    // req.user is available because the user verified their PIN and logged in
+    const userId = req.user._id; 
+    const { firstName, lastName, location, halachicPreferences, ethnicity } = req.body;
+
+    const updatedUser = await Users.findByIdAndUpdate(
+      userId,
+      {
+        $set: {
+          firstName,
+          lastName,
+          location,
+          halachicPreferences,
+          ethnicity,
+          profileCompleted: true // Useful flag to track if they finished setup
+        }
+      },
+      { new: true, runValidators: true }
+    );
+
+    res.status(200).json({
+      message: 'Profile completed successfully',
+      user: normalizeUser(updatedUser)
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * Login user
  * POST /api/auth/login
  */
@@ -197,6 +231,7 @@ const changePassword = async (req, res, next) => {
 
 module.exports = {
   register,
+  completeProfile,
   login,
   logout,
   verifyCode,
