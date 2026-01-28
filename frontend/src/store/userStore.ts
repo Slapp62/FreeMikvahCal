@@ -4,8 +4,7 @@ import { persist } from 'zustand/middleware';
 export interface User {
   _id: string;
   email: string;
-  firstName: string;
-  lastName: string;
+  googleId?: string;
   location?: {
     city?: string;
     state?: string;
@@ -14,7 +13,7 @@ export interface User {
     lat?: number;
     lng?: number;
   };
-  ethnicity?: 'ashkenazi' | 'sephardi' | 'teimani' | 'other' | null;
+  halachicCustom?: 'ashkenazi' | 'sephardi' | 'chabad' | 'manual' | null;
   halachicPreferences?: {
     ohrZaruah?: boolean;
     kreisiUpleisi?: boolean;

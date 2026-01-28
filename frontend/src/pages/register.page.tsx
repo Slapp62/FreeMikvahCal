@@ -16,8 +16,8 @@ import {
 import { notifications } from '@mantine/notifications';
 import { useAuth } from '../hooks/useAuth';
 import { VerificationModal } from '../components/modals/VerificationModal';
+import { GoogleSignInButton } from '../components/auth/GoogleSignInButton';
 import { IRegister } from '../Types_Interfaces';
-import { IconBrandGoogle } from '../utils/icons';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -36,9 +36,7 @@ export default function RegisterPage() {
     const result = await registerAuth({
       email: data.email,
       password: data.password,
-      firstName: 'John',
-      lastName: 'Doe',
-      ethnicity: 'other',
+      halachicCustom: 'manual',
       location: {
         city: 'New York',
         timezone: 'UTC',
@@ -85,11 +83,15 @@ export default function RegisterPage() {
 
         <form onSubmit={handleSubmit(onSubmit)}>
           <Stack gap="md">
+            <GoogleSignInButton />
+
+            <Divider label="or continue with email" labelPosition="center" />
+
             <TextInput
               label="Email"
               placeholder="your@email.com"
               required
-              {...register('email', { 
+              {...register('email', {
                 required: 'Email is required',
                 pattern: { value: /^\S+@\S+$/, message: 'Invalid email' }
               })}
@@ -107,12 +109,6 @@ export default function RegisterPage() {
               error={errors.password?.message}
               description="8+ characters with a mix of letters and numbers"
             />
-
-            <Divider label="or" my="xs"/>
-
-            <Button disabled fullWidth size="md" loading={isLoading} variant="outline" leftSection={<IconBrandGoogle />} >
-              Continue with Google (Coming Soon)
-            </Button>
 
             <Button type="submit" fullWidth size="md" loading={isLoading} mt="md">
               Get Started

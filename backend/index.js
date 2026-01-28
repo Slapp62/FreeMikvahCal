@@ -1,9 +1,9 @@
 require('dotenv').config();
-const { validateEnv } = require('./utils/validateEnv');
+const { validateEnv } = require('./src/shared/utils/validate-env');
 const app = require('./app');
-const { connectDB } = require('./database/dbService');
-const logger = require('./config/logger');
-const { scheduleCycleCleanup } = require('./cronJobs/cycleCleanup');
+const { connectDB } = require('./src/shared/services/database.service');
+const logger = require('./src/shared/config/logger');
+const { scheduleCycleCleanup } = require('./src/shared/cron/cronJobs/cycleCleanup');
 
 // Validate environment variables before starting
 try {

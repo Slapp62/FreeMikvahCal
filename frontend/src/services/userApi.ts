@@ -9,8 +9,6 @@ export interface HalachicPreferences {
 }
 
 export interface UpdateUserData {
-  firstName?: string;
-  lastName?: string;
   phoneNumber?: string;
   dateOfBirth?: string;
   location?: {
@@ -21,7 +19,7 @@ export interface UpdateUserData {
     lat?: number;
     lng?: number;
   };
-  ethnicity?: 'ashkenazi' | 'sephardi' | 'teimani' | 'other' | null;
+  halachicCustom?: 'ashkenazi' | 'sephardi' | 'chabad' | 'manual' | null;
   halachicPreferences?: HalachicPreferences;
 }
 

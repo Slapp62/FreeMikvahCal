@@ -2,14 +2,14 @@ const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
 const session = require('express-session');
-const passport = require('./config/passport');
-const sessionConfig = require('./config/sessionConfig');
+const passport = require('./src/shared/config/passport');
+const sessionConfig = require('./src/shared/config/session.config');
 const mongoSanitize = require('express-mongo-sanitize');
-const correlationId = require('./middleware/logging/correlationId');
-const httpLogger = require('./middleware/logging/httpLogger');
-const errorLogger = require('./middleware/logging/errorLogger');
-const { handleError } = require('./utils/functionHandlers');
-const mainRouter = require('./routes/main');
+const correlationId = require('./src/shared/middleware/correlation-id');
+const httpLogger = require('./src/shared/middleware/http-logger');
+const errorLogger = require('./src/shared/middleware/error-logger');
+const { handleError } = require('./src/shared/utils/error-handlers');
+const featureRoutes = require('./src/features');
 const path = require('path');
 
 const app = express();
@@ -107,8 +107,8 @@ app.use(session(sessionConfig));
 app.use(passport.initialize());
 app.use(passport.session());
 
-// API Routes
-app.use('/api', mainRouter);
+// API Routes (feature-based vertical slices)
+app.use('/api', featureRoutes);
 
 if (process.env.NODE_ENV === 'production') {
   // Serve static files from the public folder

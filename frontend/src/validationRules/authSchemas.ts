@@ -48,8 +48,8 @@ export const registerSchema = Joi.object({
       'any.only': 'Passwords must match',
       'any.required': 'Please confirm your password',
     }),
-  ethnicity: Joi.string()
-    .valid('ashkenazi', 'sephardi', 'teimani', 'other')
+  halachicCustom: Joi.string()
+    .valid('ashkenazi', 'sephardi', 'chabad', 'manual')
     .optional()
     .allow(null, ''),
   location: Joi.string()

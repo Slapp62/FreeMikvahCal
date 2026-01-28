@@ -1,13 +1,13 @@
-import { Container, Title, Paper, Stack, Checkbox, Button, Text, Divider, Alert, NumberInput, Autocomplete, Group, Modal } from "@mantine/core";
+import { Container, Title, Paper, Stack, Checkbox, Button, Text, Divider, Alert, NumberInput, Autocomplete, Group, Modal, Badge } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useState, useEffect, ChangeEvent } from "react";
 import { useUserStore } from "../store/userStore";
 import { updateCurrentUser, getCurrentUser } from "../services/userApi";
 import { searchLocations, Location } from "../services/locationApi";
-import { IconInfoCircle, IconMapPin } from "../utils/icons";
+import { IconInfoCircle, IconMapPin, IconBrandGoogle, IconCheck } from "../utils/icons";
 
 const EditUserSettings = () => {
-    //const user = useUserStore((state) => state.user);
+    const user = useUserStore((state) => state.user);
     const updateUser = useUserStore((state) => state.updateUser);
     const [loading, setLoading] = useState(false);
     const [isFetching, setIsFetching] = useState(true);
@@ -25,6 +25,9 @@ const EditUserSettings = () => {
     const [selectedLocation, setSelectedLocation] = useState<string>('');
     const [locationModalOpened, setLocationModalOpened] = useState(false);
     const [locationLoading, setLocationLoading] = useState(false);
+
+    // Local state for Google account linking
+    const [hasGoogleLinked, setHasGoogleLinked] = useState(false);
 
     // Fetch current user data on mount to get latest preferences
     useEffect(() => {
@@ -47,6 +50,9 @@ const EditUserSettings = () => {
                     setCurrentLocation(cityDisplay);
                     setCurrentTimezone(userData.location.timezone || 'UTC');
                 }
+
+                // Set Google account linking status
+                setHasGoogleLinked(!!userData.googleId);
             } catch (error) {
                 console.error('Error fetching user data:', error);
                 notifications.show({
@@ -103,6 +109,15 @@ const EditUserSettings = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleLinkGoogle = () => {
+        // Get the API base URL from environment
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ||
+            (import.meta.env.PROD ? '/api' : 'http://localhost:5000/api');
+
+        // Redirect to backend Google OAuth endpoint
+        window.location.href = `${API_BASE_URL}/auth/google`;
     };
 
     const handleLocationUpdate = async () => {
@@ -207,6 +222,45 @@ const EditUserSettings = () => {
                         >
                             Change Location
                         </Button>
+                    </Group>
+                </Stack>
+            </Paper>
+
+            {/* Google Account Linking Section */}
+            <Title order={3} mb={15}>Connected Accounts</Title>
+            <Alert icon={<IconInfoCircle size={16} />} color="blue" mb={15}>
+                Link your Google account for quick sign-in without entering your password.
+            </Alert>
+
+            <Paper shadow="sm" p="lg" withBorder mb={30}>
+                <Stack gap="md">
+                    <Group justify="space-between" align="center">
+                        <div style={{ flex: 1 }}>
+                            <Group gap="xs" mb={4}>
+                                <IconBrandGoogle size={20} />
+                                <Text size="sm" fw={500}>Google Account</Text>
+                                {hasGoogleLinked && (
+                                    <Badge color="green" size="sm" leftSection={<IconCheck size={12} />}>
+                                        Linked
+                                    </Badge>
+                                )}
+                            </Group>
+                            <Text size="xs" c="dimmed">
+                                {hasGoogleLinked
+                                    ? 'Your Google account is connected. You can sign in with Google anytime.'
+                                    : 'Link your Google account to enable one-click sign-in.'}
+                            </Text>
+                        </div>
+                        {!hasGoogleLinked && (
+                            <Button
+                                variant="light"
+                                color="blue"
+                                leftSection={<IconBrandGoogle size={16} />}
+                                onClick={handleLinkGoogle}
+                            >
+                                Link Google
+                            </Button>
+                        )}
                     </Group>
                 </Stack>
             </Paper>

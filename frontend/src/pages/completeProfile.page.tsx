@@ -1,5 +1,5 @@
 import { Controller, useForm } from 'react-hook-form';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import {
   Anchor,
@@ -13,7 +13,6 @@ import {
   Select,
   Stack,
   Text,
-  TextInput,
   Title,
 } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
@@ -22,12 +21,10 @@ import { useAuth } from '../hooks/useAuth';
 import { searchLocations, Location } from '../services/locationApi';
 
 type RegisterFormValues = {
-  firstName: string;
-  lastName: string;
   email: string;
   password: string;
   confirmPassword: string;
-  ethnicity: 'ashkenazi' | 'sephardi' | 'teimani' | 'other';
+  halachicCustom: 'ashkenazi' | 'sephardi' | 'chabad' | 'manual';
   location: string;
   dataProcessingConsent: boolean;
   preferences: {
@@ -49,12 +46,10 @@ const CompleteProfile = () => {
   const { register, control, handleSubmit, formState: { errors } } = useForm<RegisterFormValues>({
     mode: 'onBlur',
     defaultValues: {
-      firstName: '',
-      lastName: '',
       email: '',
       password: '',
       confirmPassword: '',
-      ethnicity: undefined,
+      halachicCustom: undefined,
       location: '',
       dataProcessingConsent: false,
       preferences: {
@@ -102,8 +97,7 @@ const CompleteProfile = () => {
     await completeProfile({
       email: formData.email,
       password: formData.password,
-      firstName: formData.firstName,
-      lastName: formData.lastName,
+      halachicCustom: formData.halachicCustom,
       location: {
         city: selectedLocation.value,
         geonameId: selectedLocation.geonameId,
@@ -140,36 +134,6 @@ const CompleteProfile = () => {
       <Paper withBorder shadow="md" p={30} mt={30} radius="md">
         <form onSubmit={handleSubmit(onSubmit)}>
           <Stack gap="md">
-            <Group grow={!isMobile} wrap={isMobile ? 'wrap' : 'nowrap'}>
-              <TextInput
-                label="First Name"
-                placeholder="John"
-                required
-                error={errors.firstName?.message}
-                {...register('firstName', {
-                  required: 'First name is required',
-                  minLength: {
-                    value: 2,
-                    message: 'First name must be at least 2 characters',
-                  },
-                })}
-              />
-
-              <TextInput
-                label="Last Name"
-                placeholder="Doe"
-                required
-                error={errors.lastName?.message}
-                {...register('lastName', {
-                  required: 'Last name is required',
-                  minLength: {
-                    value: 2,
-                    message: 'Last name must be at least 2 characters',
-                  },
-                })}
-              />
-            </Group>
-
             <Controller
               name="location"
               control={control}
@@ -187,19 +151,19 @@ const CompleteProfile = () => {
             />
 
             <Controller
-              name="ethnicity"
+              name="halachicCustom"
               control={control}
               render={({ field }) => (
                 <Select
                   label="Halachic Custom"
                   description="This will be used to set the default halachic custom for your account. You can change this later in your settings."
-                  placeholder="Select ethnicity"
+                  placeholder="Select halachic custom"
                   clearable
                   data={[
                     { value: 'ashkenazi', label: 'Ashkenazi' },
                     { value: 'sephardi', label: 'Sephardi' },
-                    { value: 'teimani', label: 'Teimani' },
-                    { value: 'other', label: 'Other' },
+                    { value: 'chabad', label: 'Chabad' },
+                    { value: 'manual', label: 'Manual Setting' },
                   ]}
                   {...field}
                 />

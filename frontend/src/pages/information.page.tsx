@@ -872,14 +872,14 @@ const InformationPage: FC = () => {
                   {/* Community Traditions */}
                   <div>
                     <Title order={4} c="purple">
-                      Community Traditions (Minhagim)
+                      Halachic Custom (Minhagim)
                     </Title>
                     <Text mt="xs">
                       <strong>What It Is:</strong> Different Jewish communities (Ashkenazi, Sephardi,
-                      Yemenite, etc.) may have varying customs regarding tahara laws.
+                      Chabad, etc.) may have varying customs regarding tahara laws.
                     </Text>
                     <Text mt="xs">
-                      <strong>How We Use It:</strong> You can specify your ethnicity/community background
+                      <strong>How We Use It:</strong> You can specify your halachic custom/community background
                       in your profile. This helps FreeMikvahCal provide more tailored guidance and defaults
                       that match your community's customs.
                     </Text>
@@ -888,8 +888,8 @@ const InformationPage: FC = () => {
                       <List withPadding mt="xs">
                         <List.Item>Ashkenazi (European heritage)</List.Item>
                         <List.Item>Sephardi (Spanish/Mediterranean heritage)</List.Item>
-                        <List.Item>Teimani (Yemenite heritage)</List.Item>
-                        <List.Item>Other</List.Item>
+                        <List.Item>Chabad (Chabad-Lubavitch custom)</List.Item>
+                        <List.Item>Manual Setting (Custom preferences)</List.Item>
                       </List>
                     </Box>
                   </div>

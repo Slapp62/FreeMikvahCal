@@ -82,8 +82,6 @@ export const useAuth = () => {
     try {
     // Use an 'updateProfile' service call instead of 'registerAuth'
     const response = await axiosInstance.patch('/auth/complete-profile', {
-      firstName: data.firstName,
-      lastName: data.lastName,
       location: {
         city: data.location?.city,
         geonameId: data.location?.geonameId,
@@ -92,12 +90,12 @@ export const useAuth = () => {
         timezone: data.location?.timezone || 'UTC',
       },
       halachicPreferences: data.halachicPreferences,
-      ethnicity: data.ethnicity,
+      halachicCustom: data.halachicCustom,
     });
 
     // Update your local state with the full user object
     setUser(response.data.user);
-    
+
     navigate('/calendar');
 
     notifications.show({

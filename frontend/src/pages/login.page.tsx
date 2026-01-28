@@ -1,8 +1,10 @@
+import { useEffect } from 'react';
 import {
   Anchor,
   Button,
   Checkbox,
   Container,
+  Divider,
   Group,
   Paper,
   PasswordInput,
@@ -10,11 +12,13 @@ import {
   TextInput,
   Title,
 } from '@mantine/core';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { joiResolver } from '@hookform/resolvers/joi';
+import { notifications } from '@mantine/notifications';
 import { useAuth } from '../hooks/useAuth';
 import { loginSchema } from '../validationRules/authSchemas';
+import { GoogleSignInButton } from '../components/auth/GoogleSignInButton';
 import classes from './login.module.css';
 
 type LoginFormValues = {
@@ -24,6 +28,39 @@ type LoginFormValues = {
 
 export function LoginPage() {
   const { login, isLoading } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Handle OAuth errors from URL params
+  useEffect(() => {
+    const error = searchParams.get('error');
+    const message = searchParams.get('message');
+
+    if (error) {
+      notifications.show({
+        title: 'Authentication Error',
+        message: message || 'An error occurred during sign in. Please try again.',
+        color: 'red',
+      });
+
+      // Clear the error params from URL
+      searchParams.delete('error');
+      searchParams.delete('message');
+      setSearchParams(searchParams);
+    }
+
+    // Handle session expired message
+    const session = searchParams.get('session');
+    if (session === 'expired') {
+      notifications.show({
+        title: 'Session Expired',
+        message: 'Your session has expired. Please sign in again.',
+        color: 'yellow',
+      });
+
+      searchParams.delete('session');
+      setSearchParams(searchParams);
+    }
+  }, [searchParams, setSearchParams]);
 
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormValues>({
     mode: 'onBlur',
@@ -49,6 +86,10 @@ export function LoginPage() {
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <Paper withBorder shadow="md" p={30} mt={30} radius="md">
+          <GoogleSignInButton />
+
+          <Divider label="or continue with email" labelPosition="center" my="lg" />
+
           <TextInput
             label="Email"
             placeholder="your@email.com"

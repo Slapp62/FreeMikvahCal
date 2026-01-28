@@ -4,9 +4,7 @@ import { User } from '../store/userStore';
 export interface RegisterData {
   email: string;
   password: string;
-  firstName?: string;
-  lastName?: string;
-  ethnicity?: 'ashkenazi' | 'sephardi' | 'teimani' | 'other';
+  halachicCustom?: 'ashkenazi' | 'sephardi' | 'chabad' | 'manual';
   location?: {
     city?: string;
     timezone?: string;
@@ -83,10 +81,21 @@ export const changePassword = async (currentPassword: string, newPassword: strin
   return response.data;
 };
 
+/**
+ * Link Google account to current user
+ */
+export const linkGoogleAccount = async (googleId: string): Promise<AuthResponse> => {
+  const response = await axiosInstance.post<AuthResponse>('/auth/link-google', {
+    googleId,
+  });
+  return response.data;
+};
+
 export default {
   register,
   login,
   logout,
   getSession,
   changePassword,
+  linkGoogleAccount,
 };

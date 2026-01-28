@@ -2,7 +2,7 @@ export interface IRegister {
     _id?: string;
     email: string;
     password: string;
-    ethnicity?: 'ashkenazi' | 'sephardi' | 'teimani' | 'other';
+    halachicCustom?: 'ashkenazi' | 'sephardi' | 'chabad' | 'manual';
     location?: {
         city?: string;
         geonameId?: number;
