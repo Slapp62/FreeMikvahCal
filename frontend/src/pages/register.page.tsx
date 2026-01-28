@@ -5,6 +5,7 @@ import {
   Anchor,
   Button,
   Container,
+  Divider,
   Paper,
   PasswordInput,
   Stack,
@@ -16,6 +17,7 @@ import { notifications } from '@mantine/notifications';
 import { useAuth } from '../hooks/useAuth';
 import { VerificationModal } from '../components/modals/VerificationModal';
 import { IRegister } from '../Types_Interfaces';
+import { IconBrandGoogle } from '../utils/icons';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -105,6 +107,12 @@ export default function RegisterPage() {
               error={errors.password?.message}
               description="8+ characters with a mix of letters and numbers"
             />
+
+            <Divider label="or" my="xs"/>
+
+            <Button disabled fullWidth size="md" loading={isLoading} variant="outline" leftSection={<IconBrandGoogle />} >
+              Continue with Google (Coming Soon)
+            </Button>
 
             <Button type="submit" fullWidth size="md" loading={isLoading} mt="md">
               Get Started

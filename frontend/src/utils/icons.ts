@@ -8,6 +8,7 @@ export {
   IconAlertTriangle,
   IconBell,
   IconBook,
+  IconBrandGoogle,
   IconBook2,
   IconBrandGithub,
   IconBriefcase,

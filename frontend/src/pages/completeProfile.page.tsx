@@ -20,7 +20,6 @@ import { useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { useAuth } from '../hooks/useAuth';
 import { searchLocations, Location } from '../services/locationApi';
-import { User, useUserStore } from '../store/userStore';
 
 type RegisterFormValues = {
   firstName: string;
@@ -43,7 +42,6 @@ type RegisterFormValues = {
 
 const CompleteProfile = () => {
   const isMobile = useMediaQuery('(max-width: 768px)');
-  const navigate = useNavigate();
   const { completeProfile, isLoading } = useAuth();
   const [locations, setLocations] = useState<Location[]>([]);
   const [locationOptions, setLocationOptions] = useState<string[]>([]);
