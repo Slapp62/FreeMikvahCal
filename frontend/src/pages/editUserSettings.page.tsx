@@ -7,7 +7,6 @@ import { searchLocations, Location } from "../services/locationApi";
 import { IconInfoCircle, IconMapPin, IconBrandGoogle, IconCheck } from "../utils/icons";
 
 const EditUserSettings = () => {
-    const user = useUserStore((state) => state.user);
     const updateUser = useUserStore((state) => state.updateUser);
     const [loading, setLoading] = useState(false);
     const [isFetching, setIsFetching] = useState(true);

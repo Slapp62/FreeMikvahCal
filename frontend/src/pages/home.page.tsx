@@ -10,6 +10,7 @@ import {
     Box,
     ThemeIcon,
     SimpleGrid,
+    Flex,
 } from "@mantine/core";
 import {
     IconCalendarEvent,
@@ -26,8 +27,11 @@ import {
     IconHeart,
 } from "../utils/icons";
 import { Link } from "react-router-dom";
+import { HeroAuthCard } from "../components/auth/HeroAuthCard";
+import { useUserStore } from "../store/userStore";
 
 const HomePage = () => {
+    const isAuthenticated = useUserStore((state) => state.isAuthenticated);
     return (
         <Box>
             {/* Hero Section */}
@@ -38,24 +42,73 @@ const HomePage = () => {
                 }}
             >
                 <Container size="lg">
-                    <Stack align="center" gap="xl">
-                        <Title
-                            order={1}
-                            ta="center"
-                            c="pink.7"
-                            fw={800}
-                            style={{background: 'linear-gradient(135deg, var(--mantine-color-pink-6) 0%, var(--mantine-color-purple-6) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', lineHeight: 1.2, fontSize: 'clamp(2rem, 5vw, 3.5rem)' }}
-                        >
-                            The Free Mikvah Calendar
-                        </Title>
-                        <Title order={2} ta="center" c="pink.6" fw={500} style={{ fontSize: 'clamp(1.2rem, 3vw, 1.8rem)' }}>
-                            Making family purity easy for everyone
-                        </Title>
-                        <Text size="xl" ta="center" c="pink.8" maw={700}>
-                            Automatically calculate halachic dates, track your cycle, and receive reminders
-                            — all customized to your minhagim. 100% free, forever.
-                        </Text>
-                        <Group gap="md" mt="md" justify="center" wrap="wrap">
+                    <Flex
+                        gap="xl"
+                        align="center"
+                        justify="space-between"
+                        direction={{ base: 'column', md: 'row' }}
+                    >
+                        <Stack gap="xl" style={{ flex: 1 }}>
+                            <Title
+                                order={1}
+                                ta={{ base: 'center', md: 'left' }}
+                                c="pink.7"
+                                fw={800}
+                                style={{background: 'linear-gradient(135deg, var(--mantine-color-pink-6) 0%, var(--mantine-color-purple-6) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', lineHeight: 1.2, fontSize: 'clamp(2rem, 5vw, 3.5rem)' }}
+                            >
+                                The Free Mikvah Calendar
+                            </Title>
+                            <Title order={2} ta={{ base: 'center', md: 'left' }} c="pink.6" fw={500} style={{ fontSize: 'clamp(1.2rem, 3vw, 1.8rem)' }}>
+                                Making family purity easy for everyone
+                            </Title>
+                            <Text size="xl" ta={{ base: 'center', md: 'left' }} c="pink.8">
+                                Automatically calculate halachic dates, track your cycle, and receive reminders
+                                — all customized to your minhagim. 100% free, forever.
+                            </Text>
+                            <Group gap="md" mt="md" justify={{ base: 'center', md: 'flex-start' }} wrap="wrap" visibleFrom="md" display={isAuthenticated ? 'none' : undefined}>
+                                <Button
+                                    component={Link}
+                                    to="/register"
+                                    size="xl"
+                                    radius="md"
+                                    variant="white"
+                                    c="pink.6"
+                                    style={{
+                                        fontWeight: 700,
+                                        boxShadow: '0 4px 14px rgba(0, 0, 0, 0.2)',
+                                    }}
+                                >
+                                    Get Started Free
+                                </Button>
+                                <Button
+                                    component={Link}
+                                    to="/about"
+                                    size="xl"
+                                    radius="md"
+                                    variant="subtle"
+                                    c="pink.6"
+                                    style={{
+                                        borderColor: 'pink.6',
+                                        borderWidth: 2,
+                                    }}
+                                >
+                                    Learn More
+                                </Button>
+                            </Group>
+                            <Text size="sm" c="pink.8" ta={{ base: 'center', md: 'left' }} hiddenFrom="md">
+                                Join hundreds of women tracking their cycles with confidence
+                            </Text>
+                        </Stack>
+
+                        {/* Auth Card - Desktop Only & Only for Non-Authenticated Users */}
+                        {!isAuthenticated && (
+                            <Box visibleFrom="md">
+                                <HeroAuthCard />
+                            </Box>
+                        )}
+
+                        {/* Mobile CTA Buttons */}
+                        <Group gap="md" mt="md" justify="center" wrap="wrap" hiddenFrom="md">
                             <Button
                                 component={Link}
                                 to="/register"
@@ -85,10 +138,14 @@ const HomePage = () => {
                                 Learn More
                             </Button>
                         </Group>
-                        <Text size="sm" c="pink.8" mt="xs">
+                    </Flex>
+
+                    {/* Desktop Only Text */}
+                    {!isAuthenticated && (
+                        <Text size="sm" c="pink.8" mt="xl" ta="center" visibleFrom="md">
                             Join hundreds of women tracking their cycles with confidence
                         </Text>
-                    </Stack>
+                    )}
                 </Container>
             </Box>
 

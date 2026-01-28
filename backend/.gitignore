@@ -1,10 +1,16 @@
 # Dependencies
 node_modules/
 
-# Environment
+# Environment Variables
+# Never commit actual environment files with secrets
 .env
 .env.local
+.env.development
 .env.production
+.env.*.local
+
+# Keep these tracked:
+# .env.example (template for others)
 
 # Build outputs
 dist/
