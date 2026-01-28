@@ -53,7 +53,9 @@
       "Bash(test:*)",
       "Bash(move \"C:\\Users\\simch\\Documents\\Coding\\freeMikvahCal\\backend\\config\\logger.js\" \"C:\\Users\\simch\\Documents\\Coding\\freeMikvahCal\\backend\\src\\shared\\config\\logger.js\")",
       "Bash(move:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(for file in src/**/*.js)",
+      "Bash(del:*)"
     ],
     "deny": [],
     "ask": []

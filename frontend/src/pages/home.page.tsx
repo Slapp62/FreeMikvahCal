@@ -65,7 +65,7 @@ const HomePage = () => {
                                 Automatically calculate halachic dates, track your cycle, and receive reminders
                                 — all customized to your minhagim. 100% free, forever.
                             </Text>
-                            <Group gap="md" mt="md" justify={{ base: 'center', md: 'flex-start' }} wrap="wrap" visibleFrom="md" display={isAuthenticated ? 'none' : undefined}>
+                            <Group gap="md" mt="md" justify="flex-start" wrap="wrap" visibleFrom="md" display={isAuthenticated ? 'none' : undefined}>
                                 <Button
                                     component={Link}
                                     to="/register"
