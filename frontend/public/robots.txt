@@ -1,0 +1,19 @@
+# robots.txt for FreeMikvahCal
+# Allow all search engines to crawl all public pages
+
+User-agent: *
+Allow: /
+
+# Disallow private/auth-only pages
+Disallow: /calendar
+Disallow: /settings
+Disallow: /complete-profile
+Disallow: /verify-email
+Disallow: /post-register
+
+# Allow login and registration pages (for brand searches)
+Allow: /login
+Allow: /register
+
+# Sitemap location
+Sitemap: https://freemikvahcal.com/sitemap.xml
