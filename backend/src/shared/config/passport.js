@@ -126,14 +126,15 @@ passport.use(new LocalStrategy(
   }
 ));
 
-// Google OAuth Strategy
-passport.use(new GoogleStrategy(
-  {
-    clientID: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: process.env.GOOGLE_CALLBACK_URL,
-    passReqToCallback: true
-  },
+// Google OAuth Strategy - Only initialize if credentials are provided
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_CALLBACK_URL) {
+  passport.use(new GoogleStrategy(
+    {
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: process.env.GOOGLE_CALLBACK_URL,
+      passReqToCallback: true
+    },
   async (req, accessToken, refreshToken, profile, done) => {
     try {
       const email = profile.emails?.[0]?.value;
@@ -243,6 +244,9 @@ passport.use(new GoogleStrategy(
       return done(error);
     }
   }
-));
+  ));
+} else {
+  logger.warn('Google OAuth credentials not configured - Google sign-in will be disabled');
+}
 
 module.exports = passport;
