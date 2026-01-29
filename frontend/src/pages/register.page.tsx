@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -18,13 +18,23 @@ import { useAuth } from '../hooks/useAuth';
 import { VerificationModal } from '../components/modals/VerificationModal';
 import { GoogleSignInButton } from '../components/auth/GoogleSignInButton';
 import { IRegister } from '../Types_Interfaces';
+import axiosInstance from '../utils/axiosConfig';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
   const { register: registerAuth, isLoading } = useAuth();
-  
+
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [tempEmail, setTempEmail] = useState('');
+
+  // Check if user has pending verification on mount
+  useEffect(() => {
+    const pendingEmail = sessionStorage.getItem('pending-verification-email');
+    if (pendingEmail) {
+      setTempEmail(pendingEmail);
+      setShowVerifyModal(true);
+    }
+  }, []);
 
   const { register, handleSubmit, formState: { errors } } = useForm<IRegister>({
     mode: 'onBlur',
@@ -58,19 +68,38 @@ export default function RegisterPage() {
 
     if (result.success) {
       setTempEmail(data.email);
+      sessionStorage.setItem('pending-verification-email', data.email);
       setShowVerifyModal(true);
     }
   };
 
   const handleVerifySuccess = () => {
     setShowVerifyModal(false);
+    sessionStorage.removeItem('pending-verification-email');
     notifications.show({
       title: 'Email Verified!',
-      message: 'Now, let’s finish setting up your account.',
+      message: 'Now, let us finish setting up your account.',
       color: 'teal',
     });
     // Redirect to the full settings form
     navigate('/complete-profile');
+  };
+
+  const handleResendCode = async () => {
+    try {
+      await axiosInstance.post('/auth/resend-verification', { email: tempEmail });
+      notifications.show({
+        title: 'Code Resent',
+        message: 'A new verification code has been sent to your email.',
+        color: 'green',
+      });
+    } catch (error: any) {
+      notifications.show({
+        title: 'Error',
+        message: error.response?.data?.message || 'Failed to resend code. Please try again.',
+        color: 'red',
+      });
+    }
   };
 
   return (
@@ -124,14 +153,11 @@ export default function RegisterPage() {
         </Text>
       </Paper>
 
-      <VerificationModal 
+      <VerificationModal
         opened={showVerifyModal}
         email={tempEmail}
         onVerifySuccess={handleVerifySuccess}
-        onResend={() => {
-           // Your existing resend logic
-           notifications.show({ message: 'New code sent!' });
-        }}
+        onResend={handleResendCode}
       />
     </Container>
   );

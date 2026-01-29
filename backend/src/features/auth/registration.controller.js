@@ -117,7 +117,7 @@ const completeProfile = async (req, res, next) => {
           location,
           halachicPreferences,
           halachicCustom,
-          profileCompleted: true // Useful flag to track if they finished setup
+          profileComplete: true // Useful flag to track if they finished setup
         }
       },
       { new: true, runValidators: true }

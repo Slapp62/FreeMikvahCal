@@ -12,7 +12,7 @@ const { recalculateAllCycleVestOnot } = require('../cycle-tracking/cycle.service
 const getUser = async (userId) => {
   const user = await Users.findById(userId);
 
-  if (!user || user.isDeleted) {
+  if (!user) {
     throwError(404, 'User not found');
   }
 
@@ -25,7 +25,7 @@ const getUser = async (userId) => {
 const updateUser = async (userId, updateData) => {
   const user = await Users.findById(userId);
 
-  if (!user || user.isDeleted) {
+  if (!user) {
     throwError(404, 'User not found');
   }
 
@@ -140,24 +140,47 @@ const updatePreferences = async (userId, updateData) => {
 };
 
 /**
- * Soft delete user
+ * Hard delete user and all associated data
+ * Creates an analytics log entry without personal information
  */
 const deleteUser = async (userId) => {
   const user = await Users.findById(userId);
 
-  if (!user || user.isDeleted) {
+  if (!user) {
     throwError(404, 'User not found');
   }
 
-  user.isDeleted = true;
-  user.deletedAt = new Date();
-  user.isActive = false;
+  // Import models for cascade delete
+  const Cycle = require('../cycle-tracking/cycle.model');
+  const DeletedUserLog = require('./deletedUserLog.model');
 
-  await user.save();
+  // Calculate account age for analytics
+  const accountAgeInDays = Math.floor((Date.now() - user.createdAt) / (1000 * 60 * 60 * 24));
 
-  logDatabase('soft_delete', 'Users', { userId });
+  // Count cycles for analytics
+  const cycleCount = await Cycle.countDocuments({ userId });
 
-  return { message: 'User account deleted successfully' };
+  // Create analytics log entry (NO personal information)
+  await DeletedUserLog.create({
+    deletedAt: new Date(),
+    userCreatedAt: user.createdAt,
+    deletionMethod: 'manual',
+    metadata: {
+      hadGoogleAccount: !!user.googleId,
+      totalCycles: cycleCount,
+      accountAgeInDays
+    }
+  });
+
+  // Delete all user cycles
+  await Cycle.deleteMany({ userId });
+
+  // Hard delete the user
+  await Users.findByIdAndDelete(userId);
+
+  logDatabase('hard_delete', 'Users', { userId });
+
+  return { message: 'User account and all data permanently deleted' };
 };
 
 /**

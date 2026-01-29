@@ -6,7 +6,7 @@ import './KofiDonationPopup.css';
 export function KofiDonationPopup() {
   const [isVisible, setIsVisible] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
-
+  const [autoDismiss, setAutoDismiss] = useState(false);
   useEffect(() => {
     // Check if user has dismissed the popup in this session
     const dismissed = sessionStorage.getItem('kofi-popup-dismissed');
@@ -15,12 +15,27 @@ export function KofiDonationPopup() {
       return;
     }
 
-    // Show popup after 3 seconds
+    // Show popup after 1 second
     const timer = setTimeout(() => {
       setIsVisible(true);
-    }, 3000);
+    }, 1000);
 
-    return () => clearTimeout(timer);
+    // Start slide-out animation after 10 seconds (1s + 10s = 11s total)
+    const dismissTimer = setTimeout(() => {
+      setAutoDismiss(true);
+    }, 11000);
+
+    // Completely remove popup after animation completes (1s + 10s + 0.4s animation)
+    const removeTimer = setTimeout(() => {
+      setIsDismissed(true);
+      sessionStorage.setItem('kofi-popup-dismissed', 'true');
+    }, 11400);
+
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(dismissTimer);
+      clearTimeout(removeTimer);
+    };
   }, []);
 
   const handleClose = () => {
@@ -39,7 +54,7 @@ export function KofiDonationPopup() {
 
   return (
     <Paper
-      className="kofi-donation-popup"
+      className={autoDismiss ? 'kofi-donation-popup-auto-dismiss' : 'kofi-donation-popup'}
       shadow="lg"
       p="md"
       radius="md"

@@ -16,10 +16,6 @@ const login = async (userId) => {
     throwError(404, 'User not found');
   }
 
-  if (user.isDeleted) {
-    throwError(403, 'Account has been deleted');
-  }
-
   if (!user.isActive) {
     throwError(403, 'Account is inactive');
   }
@@ -39,7 +35,7 @@ const login = async (userId) => {
 const getUserById = async (userId) => {
   const user = await Users.findById(userId);
 
-  if (!user || user.isDeleted) {
+  if (!user) {
     throwError(404, 'User not found');
   }
 

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Anchor,
   Button,
@@ -12,13 +12,15 @@ import {
   TextInput,
   Title,
 } from '@mantine/core';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { joiResolver } from '@hookform/resolvers/joi';
 import { notifications } from '@mantine/notifications';
 import { useAuth } from '../hooks/useAuth';
 import { loginSchema } from '../validationRules/authSchemas';
 import { GoogleSignInButton } from '../components/auth/GoogleSignInButton';
+import { VerificationModal } from '../components/modals/VerificationModal';
+import axiosInstance from '../utils/axiosConfig';
 import classes from './login.module.css';
 
 type LoginFormValues = {
@@ -27,8 +29,11 @@ type LoginFormValues = {
 };
 
 export function LoginPage() {
+  const navigate = useNavigate();
   const { login, isLoading } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [showVerifyModal, setShowVerifyModal] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState('');
 
   // Handle OAuth errors from URL params
   useEffect(() => {
@@ -68,7 +73,57 @@ export function LoginPage() {
   });
 
   const onSubmit = async (formData: LoginFormValues) => {
-    await login(formData);
+    const result = await login(formData);
+
+    // Check if login failed due to unverified email
+    if (result && !result.success && result.error && result.error.toLowerCase().includes('not verified')) {
+      setUnverifiedEmail(formData.email);
+
+      // Auto-resend verification code
+      try {
+        await axiosInstance.post('/auth/resend-verification', { email: formData.email });
+        notifications.show({
+          title: 'Account Not Verified',
+          message: 'We have sent a new verification code to your email.',
+          color: 'yellow',
+        });
+        setShowVerifyModal(true);
+      } catch (error) {
+        notifications.show({
+          title: 'Verification Required',
+          message: 'Please verify your account before logging in.',
+          color: 'yellow',
+        });
+        setShowVerifyModal(true);
+      }
+    }
+  };
+
+  const handleVerifySuccess = () => {
+    setShowVerifyModal(false);
+    notifications.show({
+      title: 'Email Verified!',
+      message: 'Now, let us finish setting up your account.',
+      color: 'teal',
+    });
+    navigate('/complete-profile');
+  };
+
+  const handleResendCode = async () => {
+    try {
+      await axiosInstance.post('/auth/resend-verification', { email: unverifiedEmail });
+      notifications.show({
+        title: 'Code Resent',
+        message: 'A new verification code has been sent to your email.',
+        color: 'green',
+      });
+    } catch (error: any) {
+      notifications.show({
+        title: 'Error',
+        message: error.response?.data?.message || 'Failed to resend code. Please try again.',
+        color: 'red',
+      });
+    }
   };  
     
   return (
@@ -119,6 +174,13 @@ export function LoginPage() {
           </Button>
         </Paper>
       </form>
+
+      <VerificationModal
+        opened={showVerifyModal}
+        email={unverifiedEmail}
+        onVerifySuccess={handleVerifySuccess}
+        onResend={handleResendCode}
+      />
     </Container>
   );
 }

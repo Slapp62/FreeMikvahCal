@@ -36,10 +36,11 @@ const HomePage = () => {
         <Box>
             {/* Hero Section */}
             <Box
-                py={80}
+                py={60}
                 style={{
                     background: 'linear-gradient(135deg, light-dark(var(--mantine-color-pink-3), var(--mantine-color-dark-9)) 0%,  light-dark(var(--mantine-color-purple-3), var(--mantine-color-dark-9)) 100%)',
                 }}
+                
             >
                 <Container size="lg">
                     <Flex
@@ -47,8 +48,9 @@ const HomePage = () => {
                         align="center"
                         justify="space-between"
                         direction={{ base: 'column', md: 'row' }}
+                        
                     >
-                        <Stack gap="xl" style={{ flex: 1 }}>
+                        <Stack gap={"xl"} style={{ flex: 1 }}>
                             <Title
                                 order={1}
                                 ta={{ base: 'center', md: 'left' }}
@@ -61,7 +63,7 @@ const HomePage = () => {
                             <Title order={2} ta={{ base: 'center', md: 'left' }} c="pink.6" fw={500} style={{ fontSize: 'clamp(1.2rem, 3vw, 1.8rem)' }}>
                                 Making family purity easy for everyone
                             </Title>
-                            <Text size="xl" ta={{ base: 'center', md: 'left' }} c="pink.8">
+                            <Text size="xl" w="80%" ta={{ base: 'center', md: 'left' }} c="pink.8">
                                 Automatically calculate halachic dates, track your cycle, and receive reminders
                                 — all customized to your minhagim. 100% free, forever.
                             </Text>
@@ -95,9 +97,6 @@ const HomePage = () => {
                                     Learn More
                                 </Button>
                             </Group>
-                            <Text size="sm" c="pink.8" ta={{ base: 'center', md: 'left' }} hiddenFrom="md">
-                                Join hundreds of women tracking their cycles with confidence
-                            </Text>
                         </Stack>
 
                         {/* Auth Card - Desktop Only & Only for Non-Authenticated Users */}
@@ -139,13 +138,6 @@ const HomePage = () => {
                             </Button>
                         </Group>
                     </Flex>
-
-                    {/* Desktop Only Text */}
-                    {!isAuthenticated && (
-                        <Text size="sm" c="pink.8" mt="xl" ta="center" visibleFrom="md">
-                            Join hundreds of women tracking their cycles with confidence
-                        </Text>
-                    )}
                 </Container>
             </Box>
 

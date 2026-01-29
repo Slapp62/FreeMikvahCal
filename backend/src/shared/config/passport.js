@@ -37,8 +37,7 @@ passport.use(new LocalStrategy(
     try {
       // Find user
       const user = await Users.findOne({
-        email: email.toLowerCase(),
-        isDeleted: false
+        email: email.toLowerCase()
       });
 
       if (!user) {
@@ -150,8 +149,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.
 
       // Step 1: Search for user by googleId
       let user = await Users.findOne({
-        googleId: profile.id,
-        isDeleted: false
+        googleId: profile.id
       });
 
       if (user) {
@@ -171,8 +169,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.
 
       // Step 2: Search for user by email (for account linking)
       user = await Users.findOne({
-        email: email.toLowerCase(),
-        isDeleted: false
+        email: email.toLowerCase()
       });
 
       if (user) {

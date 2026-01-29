@@ -7,8 +7,10 @@ import {
   Button,
   Checkbox,
   Container,
+  Divider,
   Fieldset,
   Group,
+  NumberInput,
   Paper,
   Select,
   Stack,
@@ -34,6 +36,7 @@ type RegisterFormValues = {
     ohrZaruah: boolean;
     kreisiUpleisi: boolean;
     chasamSofer: boolean;
+    minimumNiddahDays: number;
   };
 };
 
@@ -43,7 +46,7 @@ const CompleteProfile = () => {
   const [locations, setLocations] = useState<Location[]>([]);
   const [locationOptions, setLocationOptions] = useState<string[]>([]);
 
-  const { register, control, handleSubmit, formState: { errors } } = useForm<RegisterFormValues>({
+  const { register, control, handleSubmit, formState: { errors }, watch, setValue } = useForm<RegisterFormValues>({
     mode: 'onBlur',
     defaultValues: {
       email: '',
@@ -59,9 +62,23 @@ const CompleteProfile = () => {
         ohrZaruah: false,
         kreisiUpleisi: false,
         chasamSofer: false,
+        minimumNiddahDays: 5,
       },
     },
   });
+
+  // Watch halachicCustom to auto-update minimumNiddahDays
+  const halachicCustom = watch('halachicCustom');
+
+  // Auto-update minimumNiddahDays based on halachic custom
+  useEffect(() => {
+    if (halachicCustom === 'sephardi') {
+      setValue('halachicPreferences.minimumNiddahDays', 4);
+    } else if (halachicCustom === 'ashkenazi' || halachicCustom === 'chabad') {
+      setValue('halachicPreferences.minimumNiddahDays', 5);
+    }
+    // Don't auto-update for 'manual' - let user keep their choice
+  }, [halachicCustom, setValue]);
 
   // Load initial locations on mount
   useEffect(() => {
@@ -114,6 +131,7 @@ const CompleteProfile = () => {
         ohrZaruah: formData.halachicPreferences.ohrZaruah,
         kreisiUpleisi: formData.halachicPreferences.kreisiUpleisi,
         chasamSofer: formData.halachicPreferences.chasamSofer,
+        minimumNiddahDays: formData.halachicPreferences.minimumNiddahDays,
       },
     });
   };
@@ -170,6 +188,22 @@ const CompleteProfile = () => {
               )}
             />
 
+            <Controller
+              name="halachicPreferences.minimumNiddahDays"
+              control={control}
+              render={({ field }) => (
+                <NumberInput
+                  label="Minimum Days Before Hefsek Tahara"
+                  description="The minimum number of days that must pass from the start of your period before performing hefsek tahara. Default is 5 days (4 for Sephardi custom)."
+                  placeholder="Enter number of days"
+                  min={1}
+                  max={14}
+                  {...field}
+                  onChange={(value) => field.onChange(value || 5)}
+                />
+              )}
+            />
+
             <Group grow={!isMobile} wrap={isMobile ? 'wrap' : 'nowrap'} align="flex-start">
               <Fieldset legend="Halachic Preferences">
                 <Stack gap="xs">
@@ -188,14 +222,48 @@ const CompleteProfile = () => {
               </Fieldset>
             </Group>
 
-            <Paper withBorder shadow="md" p="md" radius="md" my="md" bg="red.1"> 
-              <Checkbox
-                label="I consent to data processing for the purpose of using this service (required)"
-                error={errors.dataProcessingConsent?.message}
-                {...register('dataProcessingConsent', {
-                  required: 'You must consent to data processing to use this service',
-                })}
-              />
+            <Divider my="md" />
+
+            <Paper
+              withBorder
+              p="lg"
+              radius="md"
+              style={{
+                borderColor: 'var(--mantine-color-blue-6)',
+                borderWidth: '2px',
+                backgroundColor: 'light-dark(var(--mantine-color-blue-0), var(--mantine-color-dark-6))'
+              }}
+            >
+              <Stack gap="sm">
+                <Text size="sm" fw={600} c="blue.7">
+                  Data Processing Consent
+                </Text>
+
+                <Text size="xs" c="dimmed" style={{ lineHeight: 1.6 }}>
+                  By creating an account, you acknowledge that FreeMikvahCal will collect and process
+                  your personal information (including email address, location data, and cycle information)
+                  for the purpose of providing calendar calculations and reminders. Your data will be
+                  stored securely and will not be shared with third parties except as required by law.
+                </Text>
+
+                <Text size="xs" c="dimmed" style={{ lineHeight: 1.6 }}>
+                  You may request deletion of your data at any time by contacting us. For more information,
+                  please review our Privacy Policy.
+                </Text>
+
+                <Checkbox
+                  mt="xs"
+                  label={
+                    <Text size="sm" fw={500}>
+                      I consent to the collection and processing of my personal data as described above (Required)
+                    </Text>
+                  }
+                  error={errors.dataProcessingConsent?.message}
+                  {...register('dataProcessingConsent', {
+                    required: 'You must consent to data processing to use this service',
+                  })}
+                />
+              </Stack>
             </Paper>
 
             <Button type="submit" fullWidth mt="lg" loading={isLoading}>

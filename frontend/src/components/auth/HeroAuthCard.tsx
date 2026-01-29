@@ -117,7 +117,7 @@ export function HeroAuthCard() {
 
         <Tabs.Panel value="login" pt="md">
           <form onSubmit={handleLoginSubmit(onLoginSubmit)}>
-            <Stack gap="sm">
+            <Stack gap="md">
               <GoogleSignInButton />
 
               <Divider label="or" labelPosition="center" size="xs" />
@@ -125,7 +125,7 @@ export function HeroAuthCard() {
               <TextInput
                 label="Email"
                 placeholder="your@email.com"
-                size="sm"
+                size="md"
                 error={loginErrors.email?.message}
                 {...loginRegister('email')}
               />
@@ -133,12 +133,12 @@ export function HeroAuthCard() {
               <PasswordInput
                 label="Password"
                 placeholder="Your password"
-                size="sm"
+                size="md"
                 error={loginErrors.password?.message}
                 {...loginRegister('password')}
               />
 
-              <Button type="submit" fullWidth mt="xs" loading={isLoading}>
+              <Button type="submit" size="md" fullWidth mt="xs" loading={isLoading}>
                 Sign In
               </Button>
             </Stack>
@@ -147,7 +147,7 @@ export function HeroAuthCard() {
 
         <Tabs.Panel value="signup" pt="md">
           <form onSubmit={handleSignupSubmit(onSignupSubmit)}>
-            <Stack gap="sm">
+            <Stack gap="md">
               <GoogleSignInButton />
 
               <Divider label="or" labelPosition="center" size="xs" />
@@ -155,7 +155,7 @@ export function HeroAuthCard() {
               <TextInput
                 label="Email"
                 placeholder="your@email.com"
-                size="sm"
+                size="md"
                 error={signupErrors.email?.message}
                 {...signupRegister('email', {
                   required: 'Email is required',
@@ -166,7 +166,7 @@ export function HeroAuthCard() {
               <PasswordInput
                 label="Password"
                 placeholder="Your password"
-                size="sm"
+                size="md"
                 error={signupErrors.password?.message}
                 {...signupRegister('password', {
                   required: 'Password is required',
@@ -174,7 +174,7 @@ export function HeroAuthCard() {
                 })}
               />
 
-              <Button type="submit" fullWidth mt="xs" loading={isLoading}>
+              <Button type="submit" fullWidth mt="xs" size="md" loading={isLoading}>
                 Get Started
               </Button>
             </Stack>

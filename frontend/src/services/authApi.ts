@@ -21,6 +21,7 @@ export interface RegisterData {
     ohrZaruah?: boolean;
     kreisiUpleisi?: boolean;
     chasamSofer?: boolean;
+    minimumNiddahDays?: number;
   };
 }
 

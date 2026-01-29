@@ -1,0 +1,29 @@
+.announcement-banner-wrapper {
+  position: sticky;
+  top: 0;
+  z-index: 101;
+  width: 100%;
+  background: var(--mantine-color-body);
+  border-bottom: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-5));
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.announcement-banner-container {
+  padding: 0.5rem;
+  width: 100%;
+  background-color: light-dark(var(--mantine-color-pink-1), var(--mantine-color-dark-3));
+}
+
+.announcement-banner-alert {
+  border: none;
+  box-shadow: none;
+  margin-inline: auto;
+  width: fit-content;
+  background: transparent;
+}
+
+@media (max-width: 768px) {
+  .announcement-banner-container {
+    padding: 0.5rem;
+  }
+}

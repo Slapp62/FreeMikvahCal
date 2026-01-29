@@ -55,7 +55,9 @@
       "Bash(move:*)",
       "Bash(curl:*)",
       "Bash(for file in src/**/*.js)",
-      "Bash(del:*)"
+      "Bash(del:*)",
+      "Bash(git push:*)",
+      "Bash(git reset:*)"
     ],
     "deny": [],
     "ask": []

@@ -64,8 +64,6 @@ const userSchema = new Schema({
 
   // Account Status
   isActive: { type: Boolean, default: true },
-  isDeleted: { type: Boolean, default: false },
-  deletedAt: { type: Date, default: null },
   emailVerified: { type: Boolean, default: false },
   emailVerification: {
     code: String,          // verification code
@@ -128,7 +126,6 @@ const userSchema = new Schema({
 
 // Indexes
 userSchema.index({ email: 1, isActive: 1 });
-userSchema.index({ isDeleted: 1, deletedAt: 1 });
 
 // Hash password before saving (if modified)
 userSchema.pre('save', async function(next) {

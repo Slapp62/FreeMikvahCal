@@ -1,13 +1,16 @@
-import { Container, Title, Paper, Stack, Checkbox, Button, Text, Divider, Alert, NumberInput, Autocomplete, Group, Modal, Badge } from "@mantine/core";
+import { Container, Title, Paper, Stack, Checkbox, Button, Text, Divider, Alert, NumberInput, Autocomplete, Group, Modal, Badge, TextInput } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useState, useEffect, ChangeEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import { useUserStore } from "../store/userStore";
-import { updateCurrentUser, getCurrentUser } from "../services/userApi";
+import { updateCurrentUser, getCurrentUser, deleteAccount } from "../services/userApi";
 import { searchLocations, Location } from "../services/locationApi";
-import { IconInfoCircle, IconMapPin, IconBrandGoogle, IconCheck } from "../utils/icons";
+import { IconInfoCircle, IconMapPin, IconBrandGoogle, IconCheck, IconTrash, IconAlertTriangle } from "../utils/icons";
 
 const EditUserSettings = () => {
+    const navigate = useNavigate();
     const updateUser = useUserStore((state) => state.updateUser);
+    const clearUser = useUserStore((state) => state.clearUser);
     const [loading, setLoading] = useState(false);
     const [isFetching, setIsFetching] = useState(true);
 
@@ -27,6 +30,11 @@ const EditUserSettings = () => {
 
     // Local state for Google account linking
     const [hasGoogleLinked, setHasGoogleLinked] = useState(false);
+
+    // Local state for delete account
+    const [deleteModalOpened, setDeleteModalOpened] = useState(false);
+    const [deleteConfirmText, setDeleteConfirmText] = useState('');
+    const [deleteLoading, setDeleteLoading] = useState(false);
 
     // Fetch current user data on mount to get latest preferences
     useEffect(() => {
@@ -167,6 +175,42 @@ const EditUserSettings = () => {
             });
         } finally {
             setLocationLoading(false);
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        if (deleteConfirmText.toLowerCase() !== 'delete my account') {
+            notifications.show({
+                title: 'Validation Error',
+                message: 'Please type "delete my account" to confirm',
+                color: 'red',
+            });
+            return;
+        }
+
+        setDeleteLoading(true);
+        try {
+            await deleteAccount();
+
+            // Clear user state
+            clearUser();
+
+            notifications.show({
+                title: 'Account Deleted',
+                message: 'Your account and all associated data have been permanently deleted.',
+                color: 'green',
+            });
+
+            // Redirect to home page
+            navigate('/');
+        } catch (error: any) {
+            notifications.show({
+                title: 'Error',
+                message: error.response?.data?.message || 'Failed to delete account',
+                color: 'red',
+            });
+        } finally {
+            setDeleteLoading(false);
         }
     };
 
@@ -344,6 +388,38 @@ const EditUserSettings = () => {
                 </Stack>
             </Paper>
 
+            {/* Danger Zone - Delete Account Section */}
+            <Title order={3} my={15} c="red">Danger Zone</Title>
+            <Alert icon={<IconAlertTriangle size={16} />} color="red" mb={15}>
+                Deleting your account is permanent and cannot be undone. All your data, including cycles, settings, and personal information will be permanently deleted.
+            </Alert>
+
+            <Paper shadow="sm" p="lg" withBorder mb={30} style={{ borderColor: 'var(--mantine-color-red-6)' }}>
+                <Stack gap="md">
+                    <div>
+                        <Text size="sm" fw={600} c="red" mb={4}>Delete Account</Text>
+                        <Text size="xs" c="dimmed" mb="md">
+                            Once you delete your account, there is no going back. This action will:
+                        </Text>
+                        <Stack gap={4} ml="md">
+                            <Text size="xs" c="dimmed">• Permanently delete all your cycle data and history</Text>
+                            <Text size="xs" c="dimmed">• Remove all your personal information and settings</Text>
+                            <Text size="xs" c="dimmed">• Revoke access to your account immediately</Text>
+                            <Text size="xs" c="dimmed">• Delete all associated data from our servers</Text>
+                        </Stack>
+                    </div>
+
+                    <Button
+                        color="red"
+                        variant="light"
+                        leftSection={<IconTrash size={16} />}
+                        onClick={() => setDeleteModalOpened(true)}
+                    >
+                        Delete My Account
+                    </Button>
+                </Stack>
+            </Paper>
+
             {/* Location Update Modal */}
             <Modal
                 opened={locationModalOpened}
@@ -387,6 +463,71 @@ const EditUserSettings = () => {
                             disabled={!selectedLocation}
                         >
                             Update Location
+                        </Button>
+                    </Group>
+                </Stack>
+            </Modal>
+
+            {/* Delete Account Confirmation Modal */}
+            <Modal
+                opened={deleteModalOpened}
+                onClose={() => {
+                    setDeleteModalOpened(false);
+                    setDeleteConfirmText('');
+                }}
+                title={
+                    <Group gap="xs">
+                        <IconAlertTriangle size={24} color="var(--mantine-color-red-6)" />
+                        <Text fw={600} c="red">Delete Account - Are You Sure?</Text>
+                    </Group>
+                }
+                size="md"
+                centered
+            >
+                <Stack gap="md">
+                    <Alert icon={<IconAlertTriangle size={16} />} color="red" variant="light">
+                        <Text size="sm" fw={600} mb={4}>This action cannot be undone!</Text>
+                        <Text size="xs">
+                            All your data will be permanently deleted from our servers. This includes:
+                        </Text>
+                        <Stack gap={2} mt={8}>
+                            <Text size="xs">• All cycle tracking data and history</Text>
+                            <Text size="xs">• Personal information and settings</Text>
+                            <Text size="xs">• Halachic preferences and calculations</Text>
+                            <Text size="xs">• Your account credentials</Text>
+                        </Stack>
+                    </Alert>
+
+                    <div>
+                        <Text size="sm" fw={500} mb={8}>
+                            To confirm deletion, please type <Text span c="red" fw={700}>"delete my account"</Text> below:
+                        </Text>
+                        <TextInput
+                            placeholder="Type: delete my account"
+                            value={deleteConfirmText}
+                            onChange={(e) => setDeleteConfirmText(e.currentTarget.value)}
+                            error={deleteConfirmText && deleteConfirmText.toLowerCase() !== 'delete my account' ? 'Text does not match' : undefined}
+                        />
+                    </div>
+
+                    <Group justify="flex-end" mt="md">
+                        <Button
+                            variant="subtle"
+                            onClick={() => {
+                                setDeleteModalOpened(false);
+                                setDeleteConfirmText('');
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            color="red"
+                            leftSection={<IconTrash size={16} />}
+                            onClick={handleDeleteAccount}
+                            loading={deleteLoading}
+                            disabled={deleteConfirmText.toLowerCase() !== 'delete my account'}
+                        >
+                            Delete My Account Permanently
                         </Button>
                     </Group>
                 </Stack>

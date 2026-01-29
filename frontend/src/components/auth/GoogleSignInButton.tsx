@@ -23,8 +23,10 @@ export function GoogleSignInButton({
     <Button
       fullWidth={fullWidth}
       variant="default"
-      leftSection={<IconBrandGoogle size={18} />}
+      leftSection={<IconBrandGoogle size={25} />}
       onClick={handleGoogleSignIn}
+      size="md"
+      c='pink'
     >
       {text}
     </Button>

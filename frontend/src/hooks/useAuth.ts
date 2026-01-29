@@ -34,7 +34,13 @@ export const useAuth = () => {
         color: 'green',
       });
 
-      navigate('/calendar');
+      // Check if user needs to complete their profile
+      if (!response.user.profileComplete) {
+        navigate('/complete-profile');
+      } else {
+        navigate('/calendar');
+      }
+
       return { success: true };
     } catch (error: any) {
       console.error('Login error:', error);
@@ -96,13 +102,14 @@ export const useAuth = () => {
     // Update your local state with the full user object
     setUser(response.data.user);
 
-    navigate('/calendar');
-
     notifications.show({
       title: 'Profile completed',
       message: 'You have successfully completed your profile',
       color: 'blue',
     });
+
+    // Use replace to force navigation and avoid route guard issues
+    navigate('/calendar', { replace: true });
   } catch (error) {
     notifications.show({ title: 'Error', message: 'Failed to save profile', color: 'red' });
   }

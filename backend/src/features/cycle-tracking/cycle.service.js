@@ -652,10 +652,9 @@ const recalculateAllCycleVestOnot = async (userId, newHalachicPreferences) => {
     timezone: user.location.timezone
   };
 
-  // Get all non-deleted cycles for the user
+  // Get all cycles for the user
   const cycles = await Cycles.find({
-    userId,
-    isDeleted: false
+    userId
   }).sort({ 'niddahOnah.start': -1 });
 
   let updatedCount = 0;

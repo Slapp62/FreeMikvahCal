@@ -8,6 +8,16 @@
   background: var(--mantine-color-body);
 }
 
+.kofi-donation-popup-auto-dismiss {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 280px;
+  z-index: 1000;
+  animation: slideOut 0.4s ease-out forwards;
+  background: var(--mantine-color-body);
+}
+
 .kofi-close-button {
   position: absolute;
   top: 8px;
@@ -29,9 +39,20 @@
   }
 }
 
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
 /* Mobile responsive */
 @media (max-width: 768px) {
-  .kofi-donation-popup {
+  .kofi-donation-popup,
+  .kofi-donation-popup-auto-dismiss {
     bottom: 10px;
     right: 10px;
     width: calc(100vw - 20px);

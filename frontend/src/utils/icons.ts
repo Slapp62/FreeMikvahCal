@@ -35,6 +35,7 @@ export {
   IconShieldLock,
   IconSparkles,
   IconSun,
+  IconTrash,
   IconUsers,
   IconWorld,
   IconX,
