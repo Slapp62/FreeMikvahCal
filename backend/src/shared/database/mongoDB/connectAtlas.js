@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { logDatabase } = require('../../utils/log-helpers');
 
 const connectAtlas = async () => {
   const uri = process.env.MONGO_ATLAS_URI;
@@ -12,7 +13,10 @@ const connectAtlas = async () => {
     w: 'majority'
   });
 
-  console.log('Connected to MongoDB Atlas');
+  logDatabase('connect', 'MongoDB', {
+    connectionType: 'atlas',
+    environment: process.env.NODE_ENV || 'development'
+  });
 };
 
 module.exports = connectAtlas;

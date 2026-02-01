@@ -1,29 +1,8 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
-const bcrypt = require('bcryptjs');
 
-const userSchema = new Schema({
-  // Authentication
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true,
-    trim: true,
-    match: [/^\S+@\S+\.\S+$/, 'Invalid email format']
-  },
-  password: {
-    type: String,
-    required: function() { return !this.googleId; },
-    minlength: 8
-  },
-  googleId: {
-    type: String,
-    unique: true,
-    sparse: true
-  },
-
-  // Profile
+const profileSchema = new Schema({
+  // Profile Information
   phoneNumber: { type: String, trim: true },
   dateOfBirth: { type: Date },
 
@@ -62,15 +41,22 @@ const userSchema = new Schema({
     _id: false
   },
 
-  // Account Status
-  isActive: { type: Boolean, default: true },
-  emailVerified: { type: Boolean, default: false },
-  emailVerification: {
-    code: String,          // verification code
-    expiresAt: Date,            // expiration time
-    sentAt: Date,               // last time verification email was sent
+  // Calendar Preferences (merged from Preferences model)
+  hebrewCalendar: { type: Boolean, default: true },
+  defaultCycleLength: { type: Number, default: 28, min: 20, max: 40 },
+
+  // Notifications (merged from Preferences model)
+  notifications: {
+    enabled: { type: Boolean, default: true },
+    hefsekTaharaReminder: { type: Boolean, default: true },
+    shivaNekiyimReminder: { type: Boolean, default: true },
+    mikvahReminder: { type: Boolean, default: true },
+    vestOnotReminder: { type: Boolean, default: true },
+    reminderTime: { type: String, default: '09:00' },
     _id: false
   },
+
+  // Email Preferences
   emailPreferences: {
     verificationEmails: { type: Boolean, default: true },
 
@@ -93,15 +79,30 @@ const userSchema = new Schema({
     _id: false
   },
 
+  // Privacy (merged from Preferences model)
+  privacyMode: { type: Boolean, default: false },
 
-  // Security
-  loginAttempts: { type: Number, default: 0 },
-  lockoutUntil: { type: Date, default: null },
-  lastLogin: { type: Date },
+  // Display (merged from Preferences model)
+  language: {
+    type: String,
+    enum: ['he', 'en'],
+    default: 'he'
+  },
 
-  // Password Reset
-  resetPasswordToken: String,
-  resetPasswordExpires: Date,
+  // Data Retention (merged from Preferences model)
+  dataRetention: {
+    keepCycles: {
+      type: Number,
+      default: 24,
+      min: 12,
+      max: 48
+    },
+    autoDelete: {
+      type: Boolean,
+      default: true
+    },
+    _id: false
+  },
 
   // Profile Status
   profileComplete: { type: Boolean, default: false },
@@ -125,50 +126,12 @@ const userSchema = new Schema({
 });
 
 // Indexes
-userSchema.index({ email: 1, isActive: 1 });
+profileSchema.index({ 'location.geonameId': 1 });
 
-// Hash password before saving (if modified)
-userSchema.pre('save', async function(next) {
+// Update timestamp on save
+profileSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
-
-  // Only hash the password if it has been modified (or is new)
-  if (!this.isModified('password') || !this.password) {
-    return next();
-  }
-
-  try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Custom validation
-userSchema.pre('validate', function(next) {
-  if (!this.password && !this.googleId) {
-    next(new Error('User must have either password or Google account'));
-  }
   next();
 });
 
-// Instance method to link Google account
-userSchema.methods.linkGoogle = async function(googleId) {
-  if (this.googleId) {
-    throw new Error('Google account already linked');
-  }
-
-  // Check if googleId is already used by another user
-  const existingUser = await mongoose.model('Users').findOne({ googleId });
-  if (existingUser && !existingUser._id.equals(this._id)) {
-    throw new Error('This Google account is already linked to another user');
-  }
-
-  this.googleId = googleId;
-  this.emailVerified = true;
-
-  return this.save();
-};
-
-module.exports = mongoose.model('Users', userSchema);
+module.exports = mongoose.model('Profiles', profileSchema);

@@ -2,8 +2,8 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const bcrypt = require('bcryptjs');
-const Users = require('../../features/auth/auth.model');
-const Preferences = require('../../features/auth/preferences.model');
+const Auths = require('../../features/auth/models/auth.model');
+const Profiles = require('../../features/user-profile/models/profile.model');
 const logger = require('./logger');
 const { logSecurity, logAuth, logError } = require('../utils/log-helpers');
 
@@ -15,7 +15,22 @@ passport.serializeUser((user, done) => {
 // Deserialize user
 passport.deserializeUser(async (id, done) => {
   try {
-    const user = await Users.findById(id).select('-password');
+    // id is the Profile._id (user ID)
+    const profile = await Profiles.findById(id);
+    if (!profile) {
+      return done(null, false);
+    }
+
+    // Optionally fetch auth data for complete user object
+    const auth = await Auths.findOne({ userId: id });
+
+    // Combine profile + auth data
+    const user = {
+      _id: profile._id,
+      ...profile.toObject(),
+      ...auth?.toObject()
+    };
+
     done(null, user);
   } catch (error) {
     logError(error, {
@@ -35,12 +50,12 @@ passport.use(new LocalStrategy(
   },
   async (req, email, password, done) => {
     try {
-      // Find user
-      const user = await Users.findOne({
+      // Find auth record (email + password in Auths model)
+      const auth = await Auths.findOne({
         email: email.toLowerCase()
-      });
+      }).select('+password');
 
-      if (!user) {
+      if (!auth) {
         logSecurity('login_failed', {
           email: email.toLowerCase(),
           reason: 'user_not_found',
@@ -52,12 +67,12 @@ passport.use(new LocalStrategy(
       }
 
       // Check account lockout
-      if (user.lockoutUntil && user.lockoutUntil > Date.now()) {
+      if (auth.lockoutUntil && auth.lockoutUntil > Date.now()) {
         logSecurity('login_blocked', {
           email: email.toLowerCase(),
-          userId: user._id,
+          userId: auth.userId,
           reason: 'account_locked',
-          lockoutUntil: user.lockoutUntil,
+          lockoutUntil: auth.lockoutUntil,
           ip: req.ip,
           correlationId: req.correlationId
         });
@@ -67,46 +82,56 @@ passport.use(new LocalStrategy(
       }
 
       // Verify password
-      const isMatch = await bcrypt.compare(password, user.password);
+      const isMatch = await bcrypt.compare(password, auth.password);
 
       if (!isMatch) {
         // Increment login attempts
-        user.loginAttempts += 1;
+        auth.loginAttempts += 1;
 
-        if (user.loginAttempts >= 5) {
-          user.lockoutUntil = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+        if (auth.loginAttempts >= 5) {
+          auth.lockoutUntil = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
 
           logSecurity('account_locked', {
             email: email.toLowerCase(),
-            userId: user._id,
+            userId: auth.userId,
             reason: 'too_many_failed_attempts',
-            loginAttempts: user.loginAttempts,
-            lockoutUntil: user.lockoutUntil,
+            loginAttempts: auth.loginAttempts,
+            lockoutUntil: auth.lockoutUntil,
             ip: req.ip,
             correlationId: req.correlationId
           });
         } else {
           logSecurity('login_failed', {
             email: email.toLowerCase(),
-            userId: user._id,
+            userId: auth.userId,
             reason: 'invalid_password',
-            loginAttempts: user.loginAttempts,
+            loginAttempts: auth.loginAttempts,
             ip: req.ip,
             correlationId: req.correlationId
           });
         }
 
-        await user.save();
+        await auth.save();
         return done(null, false, { message: 'Invalid credentials' });
       }
 
       // Reset login attempts on success
-      user.loginAttempts = 0;
-      user.lockoutUntil = null;
-      user.lastLogin = Date.now();
-      await user.save();
+      auth.loginAttempts = 0;
+      auth.lockoutUntil = null;
+      auth.lastLogin = Date.now();
+      await auth.save();
 
-      logAuth('login_success', user._id, {
+      // Fetch profile for combined user object
+      const profile = await Profiles.findById(auth.userId);
+
+      // Create user object for session (use Profile._id as user._id)
+      const user = {
+        _id: profile._id, // Profile ID is the user ID
+        ...profile.toObject(),
+        ...auth.toObject()
+      };
+
+      logAuth('login_success', profile._id, {
         email: email.toLowerCase(),
         ip: req.ip,
         userAgent: req.headers['user-agent'],
@@ -147,18 +172,27 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.
         return done(null, false, { message: 'Email is required from Google profile' });
       }
 
-      // Step 1: Search for user by googleId
-      let user = await Users.findOne({
+      // Step 1: Search for auth by googleId
+      let auth = await Auths.findOne({
         googleId: profile.id
       });
 
-      if (user) {
+      if (auth) {
         // Existing Google user - update last login
-        user.lastLogin = Date.now();
-        await user.save();
+        auth.lastLogin = Date.now();
+        await auth.save();
 
-        logAuth('google_login_success', user._id, {
-          email: user.email,
+        // Fetch profile for combined user object
+        const userProfile = await Profiles.findById(auth.userId);
+
+        const user = {
+          _id: userProfile._id,
+          ...userProfile.toObject(),
+          ...auth.toObject()
+        };
+
+        logAuth('google_login_success', userProfile._id, {
+          email: auth.email,
           method: 'google_existing',
           ip: req.ip,
           correlationId: req.correlationId
@@ -167,25 +201,34 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.
         return done(null, user);
       }
 
-      // Step 2: Search for user by email (for account linking)
-      user = await Users.findOne({
+      // Step 2: Search for auth by email (for account linking)
+      auth = await Auths.findOne({
         email: email.toLowerCase()
       });
 
-      if (user) {
-        // Account linking: User exists with email but no googleId
-        user.googleId = profile.id;
-        user.emailVerified = true; // Google has verified the email
-        user.lastLogin = Date.now();
+      if (auth) {
+        // Account linking: Auth exists with email but no googleId
+        auth.googleId = profile.id;
+        auth.emailVerified = true; // Google has verified the email
+        auth.lastLogin = Date.now();
 
         // Reset any account lockout since Google verified them
-        user.loginAttempts = 0;
-        user.lockoutUntil = null;
+        auth.loginAttempts = 0;
+        auth.lockoutUntil = null;
 
-        await user.save();
+        await auth.save();
 
-        logAuth('google_account_linked', user._id, {
-          email: user.email,
+        // Fetch profile for combined user object
+        const userProfile = await Profiles.findById(auth.userId);
+
+        const user = {
+          _id: userProfile._id,
+          ...userProfile.toObject(),
+          ...auth.toObject()
+        };
+
+        logAuth('google_account_linked', userProfile._id, {
+          email: auth.email,
           method: 'google_link_existing',
           ip: req.ip,
           correlationId: req.correlationId
@@ -195,36 +238,70 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.
       }
 
       // Step 3: Create new user with Google account
-      const newUser = new Users({
-        email: email.toLowerCase(),
-        googleId: profile.id,
-        emailVerified: true, // Google has already verified the email
-        profileComplete: false, // Still needs to complete profile
+      // Create Profile FIRST
+      const newProfile = new Profiles({
+        profileComplete: false,
         onboardingCompleted: false,
         location: {
           city: '',
-          timezone: 'UTC' // Default, will be updated in complete-profile
+          timezone: 'UTC'
         },
         consents: {
           dataProcessing: {
-            granted: true, // Assumed by OAuth flow
+            granted: true,
             timestamp: new Date(),
             ipAddress: req.ip,
             userAgent: req.headers['user-agent']
           }
         },
+        // Merge default preferences
+        hebrewCalendar: true,
+        defaultCycleLength: 28,
+        notifications: {
+          enabled: true,
+          hefsekTaharaReminder: true,
+          shivaNekiyimReminder: true,
+          mikvahReminder: true,
+          vestOnotReminder: true,
+          reminderTime: '09:00'
+        },
+        privacyMode: false,
+        language: 'he',
+        dataRetention: {
+          keepCycles: 24,
+          autoDelete: true
+        },
+        emailPreferences: {
+          verificationEmails: true,
+          reminders: {
+            enabled: true,
+            advanceNoticeHours: 48
+          }
+        }
+      });
+
+      await newProfile.save();
+
+      // Create Auth with userId reference
+      const newAuth = new Auths({
+        userId: newProfile._id,
+        email: email.toLowerCase(),
+        googleId: profile.id,
+        emailVerified: true,
+        isActive: true,
         lastLogin: Date.now()
       });
 
-      await newUser.save();
+      await newAuth.save();
 
-      // Create default preferences
-      await Preferences.create({
-        userId: newUser._id
-      });
+      const newUser = {
+        _id: newProfile._id,
+        ...newProfile.toObject(),
+        ...newAuth.toObject()
+      };
 
-      logAuth('google_register_success', newUser._id, {
-        email: newUser.email,
+      logAuth('google_register_success', newProfile._id, {
+        email: newAuth.email,
         method: 'google_new',
         ip: req.ip,
         correlationId: req.correlationId

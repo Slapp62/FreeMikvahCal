@@ -1,7 +1,9 @@
 const registrationService = require('./registration.service');
 const sendVerificationEmail = require('../../shared/services/email.service');
 const { normalizeUser } = require('../../shared/utils/normalize-responses');
-const Users = require('./auth.model');
+const Auths = require('./models/auth.model');
+const Profiles = require('../user-profile/models/profile.model');
+const { logError } = require('../../shared/utils/log-helpers');
 
 /**
  * Register a new user
@@ -20,7 +22,12 @@ const register = async (req, res, next) => {
     try {
       await sendVerificationEmail(user.email, 'User', code);
     } catch (err) {
-      console.error('Email failed to send:', err);
+      logError(err, {
+        context: 'registration.controller.register',
+        email: user.email,
+        stage: 'email_sending',
+        emailType: 'verification'
+      });
     }
 
     res.status(201).json({
@@ -40,25 +47,38 @@ const verifyCode = async (req, res, next) => {
   try {
     const { email, code } = req.body;
 
-    const user = await Users.findOne({
+    // Query Auth model for email verification
+    const auth = await Auths.findOne({
       email: email.toLowerCase(),
       'emailVerification.code': code,
       'emailVerification.expiresAt': { $gt: new Date() },
     });
 
-    if (!user) {
+    if (!auth) {
       return res.status(400).json({ message: 'Invalid or expired code.' });
     }
 
-    user.emailVerified = true;
-    user.emailVerification = undefined;
-    await user.save();
+    // Update email verification status
+    auth.emailVerified = true;
+    auth.emailVerification = undefined;
+    await auth.save();
 
-    req.login(user, (err) => {
+    // Fetch profile for combined user data
+    const profile = await Profiles.findById(auth.userId);
+
+    // Create user object for session (use Profile._id as user._id)
+    const userForSession = {
+      _id: profile._id, // Profile ID is the user ID
+      ...profile.toObject(),
+      ...auth.toObject()
+    };
+
+    // Login with profile ID (not auth ID)
+    req.login(userForSession, (err) => {
       if (err) return next(err);
       return res.status(200).json({
         status: 'success',
-        user: normalizeUser(user)
+        user: normalizeUser(userForSession)
       });
     });
   } catch (err) {
@@ -75,24 +95,25 @@ const resendVerification = async (req, res, next) => {
     const { email } = req.body;
     if (!email) return res.status(400).json({ message: 'Email is required' });
 
-    const user = await Users.findOne({ email: email.toLowerCase() });
+    // Query Auth model for email
+    const auth = await Auths.findOne({ email: email.toLowerCase() });
 
     // Security best practice: don't reveal if user exists
-    if (!user || user.emailVerified) {
+    if (!auth || auth.emailVerified) {
       return res.status(200).json({ message: 'If an account exists, a new code has been sent.' });
     }
 
     // Generate NEW 6-digit PIN
     const newCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-    user.emailVerification = {
+    auth.emailVerification = {
       code: newCode,
       expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minute expiry
       sentAt: new Date()
     };
-    await user.save();
+    await auth.save();
 
-    await sendVerificationEmail(user.email, 'User', newCode);
+    await sendVerificationEmail(auth.email, 'User', newCode);
 
     res.status(200).json({ message: 'Verification code resent.' });
   } catch (error) {
@@ -107,10 +128,11 @@ const resendVerification = async (req, res, next) => {
 const completeProfile = async (req, res, next) => {
   try {
     // req.user is available because the user verified their PIN and logged in
-    const userId = req.user._id;
+    const userId = req.user._id; // This is the Profile._id
     const { location, halachicPreferences, halachicCustom } = req.body;
 
-    const updatedUser = await Users.findByIdAndUpdate(
+    // Update Profile model (not Users model)
+    const updatedProfile = await Profiles.findByIdAndUpdate(
       userId,
       {
         $set: {
@@ -123,9 +145,19 @@ const completeProfile = async (req, res, next) => {
       { new: true, runValidators: true }
     );
 
+    // Fetch auth data for combined response
+    const auth = await Auths.findOne({ userId });
+
+    // Combine profile + auth for response
+    const combinedUser = {
+      ...updatedProfile.toObject(),
+      ...auth?.toObject(),
+      _id: userId
+    };
+
     res.status(200).json({
       message: 'Profile completed successfully',
-      user: normalizeUser(updatedUser)
+      user: normalizeUser(combinedUser)
     });
   } catch (error) {
     next(error);

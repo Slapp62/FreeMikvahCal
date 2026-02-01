@@ -1,5 +1,5 @@
-const Users = require('./auth.model');
-const Preferences = require('./preferences.model');
+const Auths = require('./models/auth.model');
+const Profiles = require('../user-profile/models/profile.model');
 const { throwError } = require('../../shared/utils/error-handlers');
 const { normalizeUser } = require('../../shared/utils/normalize-responses');
 const { logAuth } = require('../../shared/utils/log-helpers');
@@ -11,32 +11,34 @@ const { logAuth } = require('../../shared/utils/log-helpers');
  * @returns {Object} - Updated user (normalized)
  */
 const linkGoogleToUser = async (userId, googleId) => {
-  const user = await Users.findById(userId);
+  const auth = await Auths.findOne({ userId });
 
-  if (!user) {
-    throwError(404, 'User not found');
+  if (!auth) {
+    throwError(404, 'Auth record not found');
   }
 
-  if (user.googleId) {
+  if (auth.googleId) {
     throwError(400, 'Google account already linked to this user');
   }
 
   // Check if googleId is already linked to another user
-  const existingGoogleUser = await Users.findOne({ googleId });
-  if (existingGoogleUser) {
+  const existingGoogleAuth = await Auths.findOne({ googleId });
+  if (existingGoogleAuth) {
     throwError(400, 'This Google account is already linked to another user');
   }
 
-  user.googleId = googleId;
-  user.emailVerified = true; // Google verified the email
-  await user.save();
+  auth.googleId = googleId;
+  auth.emailVerified = true; // Google verified the email
+  await auth.save();
 
-  logAuth('google_account_linked', user._id, {
-    email: user.email,
+  logAuth('google_account_linked', userId, {
+    email: auth.email,
     method: 'manual_link'
   });
 
-  return normalizeUser(user);
+  // Return combined user data
+  const profile = await Profiles.findById(userId);
+  return normalizeUser({ ...profile.toObject(), ...auth.toObject(), _id: userId });
 };
 
 /**
@@ -53,22 +55,19 @@ const createGoogleUser = async (profile, metadata = {}) => {
   }
 
   // Check if user already exists
-  const existingUser = await Users.findOne({
+  const existingAuth = await Auths.findOne({
     $or: [
       { email: email.toLowerCase() },
       { googleId: profile.id }
     ]
   });
 
-  if (existingUser) {
+  if (existingAuth) {
     throwError(400, 'User with this email or Google account already exists');
   }
 
-  // Create new user
-  const user = new Users({
-    email: email.toLowerCase(),
-    googleId: profile.id,
-    emailVerified: true,
+  // 1. Create Profile FIRST (to get profile ID)
+  const userProfile = new Profiles({
     profileComplete: false,
     onboardingCompleted: false,
     location: {
@@ -82,21 +81,51 @@ const createGoogleUser = async (profile, metadata = {}) => {
         ipAddress: metadata.ipAddress || metadata.ip,
         userAgent: metadata.userAgent
       }
+    },
+    // Merge default preferences
+    hebrewCalendar: true,
+    defaultCycleLength: 28,
+    notifications: {
+      enabled: true,
+      hefsekTaharaReminder: true,
+      shivaNekiyimReminder: true,
+      mikvahReminder: true,
+      vestOnotReminder: true,
+      reminderTime: '09:00'
+    },
+    privacyMode: false,
+    language: 'he',
+    dataRetention: {
+      keepCycles: 24,
+      autoDelete: true
+    },
+    emailPreferences: {
+      verificationEmails: true,
+      reminders: {
+        enabled: true,
+        advanceNoticeHours: 48
+      }
     }
   });
 
-  await user.save();
+  await userProfile.save();
 
-  // Create default preferences
-  await Preferences.create({
-    userId: user._id
+  // 2. Create Auth with userId reference
+  const auth = new Auths({
+    userId: userProfile._id,
+    email: email.toLowerCase(),
+    googleId: profile.id,
+    emailVerified: true, // Google verified the email
+    isActive: true
   });
 
-  logAuth('register_google', user._id, {
-    email: user.email
+  await auth.save();
+
+  logAuth('register_google', userProfile._id, {
+    email: auth.email
   });
 
-  return normalizeUser(user);
+  return normalizeUser({ ...userProfile.toObject(), ...auth.toObject(), _id: userProfile._id });
 };
 
 module.exports = {

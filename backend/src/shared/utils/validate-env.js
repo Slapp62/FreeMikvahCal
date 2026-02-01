@@ -1,3 +1,5 @@
+const logger = require('../config/logger');
+
 /**
  * Validate required environment variables
  * Throws an error if any required variable is missing
@@ -32,11 +34,18 @@ const validateEnv = () => {
     }
 
     if (!process.env.FRONTEND_URL) {
-      console.warn('WARNING: FRONTEND_URL not set in production. CORS may not work correctly.');
+      logger.warn('FRONTEND_URL not set in production. CORS may not work correctly.', {
+        type: 'security',
+        environment: 'production',
+        issue: 'missing_frontend_url'
+      });
     }
   }
 
-  console.log('✓ Environment variables validated');
+  logger.info('Environment variables validated successfully', {
+    environment: process.env.NODE_ENV || 'development',
+    mongoConnection: mongoVar
+  });
 };
 
 module.exports = { validateEnv };

@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
-const Users = require('./auth.model');
+const Auths = require('./models/auth.model');
+const Profiles = require('../user-profile/models/profile.model');
 const { throwError } = require('../../shared/utils/error-handlers');
 const { normalizeUser } = require('../../shared/utils/normalize-responses');
 const { logAuth } = require('../../shared/utils/log-helpers');
@@ -10,49 +11,52 @@ const { logAuth } = require('../../shared/utils/log-helpers');
  * This service is for additional login logic if needed
  */
 const login = async (userId) => {
-  const user = await Users.findById(userId);
+  const auth = await Auths.findOne({ userId });
 
-  if (!user) {
-    throwError(404, 'User not found');
+  if (!auth) {
+    throwError(404, 'Auth record not found');
   }
 
-  if (!user.isActive) {
+  if (!auth.isActive) {
     throwError(403, 'Account is inactive');
   }
 
   // Update last login
-  user.lastLogin = new Date();
-  await user.save();
+  auth.lastLogin = new Date();
+  await auth.save();
 
-  logAuth('login', user._id, { email: user.email });
+  logAuth('login', userId, { email: auth.email });
 
-  return normalizeUser(user);
+  // Return combined user data (auth + profile)
+  const profile = await Profiles.findById(userId);
+  return normalizeUser({ ...profile?.toObject(), ...auth.toObject(), _id: userId });
 };
 
 /**
  * Get user by ID
  */
 const getUserById = async (userId) => {
-  const user = await Users.findById(userId);
+  const profile = await Profiles.findById(userId);
+  const auth = await Auths.findOne({ userId });
 
-  if (!user) {
+  if (!profile || !auth) {
     throwError(404, 'User not found');
   }
 
-  return normalizeUser(user);
+  return normalizeUser({ ...profile.toObject(), ...auth.toObject(), _id: userId });
 };
 
 /**
  * Verify password (for password change, etc.)
  */
 const verifyPassword = async (userId, password) => {
-  const user = await Users.findById(userId).select('+password');
+  const auth = await Auths.findOne({ userId }).select('+password');
 
-  if (!user) {
-    throwError(404, 'User not found');
+  if (!auth) {
+    throwError(404, 'Auth record not found');
   }
 
-  const isMatch = await bcrypt.compare(password, user.password);
+  const isMatch = await bcrypt.compare(password, auth.password);
   return isMatch;
 };
 
@@ -60,24 +64,24 @@ const verifyPassword = async (userId, password) => {
  * Change password
  */
 const changePassword = async (userId, currentPassword, newPassword) => {
-  const user = await Users.findById(userId).select('+password');
+  const auth = await Auths.findOne({ userId }).select('+password');
 
-  if (!user) {
-    throwError(404, 'User not found');
+  if (!auth) {
+    throwError(404, 'Auth record not found');
   }
 
   // Verify current password
-  const isMatch = await bcrypt.compare(currentPassword, user.password);
+  const isMatch = await bcrypt.compare(currentPassword, auth.password);
   if (!isMatch) {
     throwError(401, 'Current password is incorrect');
   }
 
   // Set new password (will be hashed by pre-save hook)
-  user.password = newPassword;
+  auth.password = newPassword;
 
-  await user.save();
+  await auth.save();
 
-  logAuth('password_change', user._id);
+  logAuth('password_change', userId);
 
   return { message: 'Password changed successfully' };
 };

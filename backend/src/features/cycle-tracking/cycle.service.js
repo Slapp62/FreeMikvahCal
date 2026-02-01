@@ -1,41 +1,45 @@
-const Cycles = require('./cycle.model');
-const Users = require('../auth/auth.model');
+const Periods = require('./models/period.model');
+const Bedikahs = require('./models/bedikah.model');
+const Vestos = require('./models/vestos.model');
+const Profiles = require('../user-profile/models/profile.model');
 const { throwError } = require('../../shared/utils/error-handlers');
 const { normalizeCycle, normalizeCycles } = require('../../shared/utils/normalize-responses');
-const { createDateInTimezone } = require('../../shared/utils/hebrew-datetime');
-const { logDatabase } = require('../../shared/utils/log-helpers');
+const { createDateInTimezone, getOnahTimeRange } = require('../../shared/utils/hebrew-datetime');
+const { logDatabase, logBusiness } = require('../../shared/utils/log-helpers');
+const { calculateAllVestOnot } = require('./services/vest-calculator.service');
+const { calculateCycleMetrics } = require('./services/cycle-metrics.service');
 
 /**
- * Create a new cycle with time range (timezone-aware)
- * Service orchestrates: fetches dependencies, calls model methods, constructs complete object
+ * Create a new period with time range (timezone-aware)
+ * Service orchestrates: fetches dependencies, calls vest calculator, constructs complete object
  * @param {String} userId - User ID
  * @param {Object} cycleData - { startTime, endTime, notes?, privateNotes? }
- * @returns {Object} - Created cycle
+ * @returns {Object} - Created period with vestos
  */
 const createCycle = async (userId, cycleData) => {
   const { startTime, endTime, notes, privateNotes } = cycleData;
 
-  // STEP 1: Fetch user and validate location
-  const user = await Users.findById(userId).select('location halachicPreferences');
-  if (!user) {
+  // STEP 1: Fetch profile and validate location
+  const profile = await Profiles.findById(userId).select('location halachicPreferences');
+  if (!profile) {
     throwError(404, 'User not found');
   }
 
-  if (!user.location || !user.location.timezone) {
+  if (!profile.location || !profile.location.timezone) {
     throwError(400, 'Location not set. Please update your profile with city and timezone in Settings.');
   }
 
-  const timezone = user.location.timezone;
+  const timezone = profile.location.timezone;
 
   // Extract user's halachic preferences (default to false if not set)
-  const halachicPreferences = user.halachicPreferences || {
+  const halachicPreferences = profile.halachicPreferences || {
     ohrZaruah: false,
     kreisiUpleisi: false,
     chasamSofer: false
   };
 
   // Check if user has complete location data (timezone, lat, lng)
-  const hasCompleteLocation = user.location.lat != null && user.location.lng != null;
+  const hasCompleteLocation = profile.location.lat != null && profile.location.lng != null;
 
   if (!hasCompleteLocation) {
     throwError(400, 'Complete location (latitude, longitude, timezone) required. Please update your profile in Settings.');
@@ -46,7 +50,7 @@ const createCycle = async (userId, cycleData) => {
   const niddahOnahEnd = new Date(endTime);
 
   // STEP 2.5: Check for duplicate period (overlapping niddahOnah time range)
-  const existingCycle = await Cycles.findOne({
+  const existingPeriod = await Periods.findOne({
     userId: userId,
     $or: [
       // Check if new period starts during existing period
@@ -67,8 +71,8 @@ const createCycle = async (userId, cycleData) => {
     ]
   });
 
-  if (existingCycle) {
-    const existingStart = new Date(existingCycle.niddahOnah.start).toLocaleString('en-US', {
+  if (existingPeriod) {
+    const existingStart = new Date(existingPeriod.niddahOnah.start).toLocaleString('en-US', {
       timeZone: timezone,
       dateStyle: 'medium',
       timeStyle: 'short'
@@ -76,8 +80,8 @@ const createCycle = async (userId, cycleData) => {
     throwError(400, `A period already exists for this time. Existing period started at ${existingStart}. Please delete the existing period first if you want to replace it.`);
   }
 
-  // STEP 3: Fetch previous cycles for calculations
-  const previousCycles = await Cycles.find({
+  // STEP 3: Fetch previous periods for calculations
+  const previousPeriods = await Periods.find({
     userId: userId,
     status: { $in: ['niddah', 'shiva_nekiyim', 'completed'] },
     'niddahOnah.start': { $lt: niddahOnahStart }
@@ -86,16 +90,15 @@ const createCycle = async (userId, cycleData) => {
     .limit(3)
     .select('niddahOnah cycleLength');
 
-  // STEP 4: Calculate cycle metrics
-  const lastCycle = previousCycles.length > 0 ? previousCycles[0] : null;
-  const metrics = Cycles.calculateCycleMetrics(
-    niddahOnahStart,
-    null, // mikvahDate not set yet
-    lastCycle
+  // STEP 4: Calculate cycle metrics using service helper
+  const lastPeriod = previousPeriods.length > 0 ? previousPeriods[0] : null;
+  const metrics = calculateCycleMetrics(
+    { niddahOnah: { start: niddahOnahStart }, mikvahDate: null },
+    lastPeriod
   );
 
-  // STEP 5: Create cycle object with time range
-  const cycle = new Cycles({
+  // STEP 5: Create period object with time range
+  const period = new Periods({
     userId,
     niddahOnah: {
       start: niddahOnahStart,
@@ -107,32 +110,47 @@ const createCycle = async (userId, cycleData) => {
     calculatedInTimezone: timezone,
     // Optional metrics
     haflagah: metrics.haflagah,
-    cycleLength: metrics.cycleLength,
-    // Halachic preferences applied to this cycle
-    appliedChumras: halachicPreferences
+    cycleLength: metrics.cycleLength
   });
 
-  // STEP 6: Calculate vest onot
+  await period.save();
+
+  // STEP 6: Calculate and create Vestos document
   const location = {
-    lat: user.location.lat,
-    lng: user.location.lng,
-    timezone: user.location.timezone
+    lat: profile.location.lat,
+    lng: profile.location.lng,
+    timezone: profile.location.timezone
   };
-  cycle.calculateVestOnot(previousCycles, location, halachicPreferences);
 
-  // STEP 7: Save (validation only, no business logic in hook)
-  await cycle.save();
+  const vestOnotData = calculateAllVestOnot(period, previousPeriods, location, halachicPreferences);
 
-  logDatabase('create', 'Cycles', { userId, cycleId: cycle._id });
+  const vestos = new Vestos({
+    periodId: period._id,
+    userId,
+    vestOnot: vestOnotData.vestOnot,
+    appliedChumras: vestOnotData.appliedChumras
+  });
 
-  return normalizeCycle(cycle);
+  await vestos.save();
+
+  logDatabase('create', 'Periods', { userId, periodId: period._id });
+  logBusiness('period_created', {
+    userId,
+    periodId: period._id,
+    status: period.status,
+    hasPreviousPeriods: previousPeriods.length > 0,
+    haflagah: metrics.haflagah
+  });
+
+  // Return combined period + vestos data for backwards compatibility
+  return normalizeCycle({ ...period.toObject(), vestOnot: vestos.vestOnot });
 };
 
 /**
  * Get all cycles for a user
  * @param {String} userId - User ID
  * @param {Object} options - { limit, skip, status }
- * @returns {Array} - Array of cycles
+ * @returns {Array} - Array of periods with vest onot
  */
 const getUserCycles = async (userId, options = {}) => {
   const { limit = 50, skip = 0, status } = options;
@@ -145,61 +163,81 @@ const getUserCycles = async (userId, options = {}) => {
     query.status = status;
   }
 
-  const cycles = await Cycles.find(query)
+  const periods = await Periods.find(query)
     .sort({ 'niddahOnah.start': -1 })
     .limit(limit)
     .skip(skip);
 
-  return normalizeCycles(cycles);
+  // Fetch vestos for each period
+  const periodsWithVestos = await Promise.all(periods.map(async (period) => {
+    const vestos = await Vestos.findOne({ periodId: period._id });
+    const bedikahs = await Bedikahs.find({ periodId: period._id }).sort({ date: 1 });
+
+    return {
+      ...period.toObject(),
+      vestOnot: vestos?.vestOnot,
+      bedikot: bedikahs.map(b => b.toObject())
+    };
+  }));
+
+  return normalizeCycles(periodsWithVestos);
 };
 
 /**
  * Get a specific cycle
  * @param {String} userId - User ID
- * @param {String} cycleId - Cycle ID
- * @returns {Object} - Cycle
+ * @param {String} cycleId - Period ID
+ * @returns {Object} - Period with vestos and bedikot
  */
 const getCycle = async (userId, cycleId) => {
-  const cycle = await Cycles.findOne({
+  const period = await Periods.findOne({
     _id: cycleId,
     userId
   });
 
-  if (!cycle) {
+  if (!period) {
     throwError(404, 'Cycle not found');
   }
 
-  return normalizeCycle(cycle);
+  // Fetch related data
+  const vestos = await Vestos.findOne({ periodId: period._id });
+  const bedikahs = await Bedikahs.find({ periodId: period._id }).sort({ date: 1 });
+
+  return normalizeCycle({
+    ...period.toObject(),
+    vestOnot: vestos?.vestOnot,
+    bedikot: bedikahs.map(b => b.toObject())
+  });
 };
 
 /**
  * Update a cycle (timezone-aware for date updates)
  * Re-calculates vest onot when mikvahDate is updated
  * @param {String} userId - User ID
- * @param {String} cycleId - Cycle ID
+ * @param {String} cycleId - Period ID
  * @param {Object} updateData - Update data
- * @returns {Object} - Updated cycle
+ * @returns {Object} - Updated period
  */
 const updateCycle = async (userId, cycleId, updateData) => {
-  const cycle = await Cycles.findOne({
+  const period = await Periods.findOne({
     _id: cycleId,
     userId
   });
 
-  if (!cycle) {
+  if (!period) {
     throwError(404, 'Cycle not found');
   }
 
   // Get user's timezone and halachic preferences for date conversions and validation
-  const user = await Users.findById(userId).select('location halachicPreferences');
-  if (!user || !user.location || !user.location.timezone) {
+  const profile = await Profiles.findById(userId).select('location halachicPreferences');
+  if (!profile || !profile.location || !profile.location.timezone) {
     throwError(400, 'User timezone not set. Please update your profile location.');
   }
-  const timezone = user.location.timezone;
-  const hasCompleteLocation = user.location.lat != null && user.location.lng != null;
+  const timezone = profile.location.timezone;
+  const hasCompleteLocation = profile.location.lat != null && profile.location.lng != null;
 
   // Get user's minimum niddah days setting (default to 5 if not set)
-  const minimumNiddahDays = user.halachicPreferences?.minimumNiddahDays || 5;
+  const minimumNiddahDays = profile.halachicPreferences?.minimumNiddahDays || 5;
 
   // Track if we need to recalculate vest onot
   let needsVestRecalculation = false;
@@ -214,7 +252,7 @@ const updateCycle = async (userId, cycleId, updateData) => {
 
     // Validate minimum niddah days
     const daysSincePeriod = Math.ceil(
-      (proposedHefsekDate - cycle.niddahOnah.start) / (1000 * 60 * 60 * 24)
+      (proposedHefsekDate - period.niddahOnah.start) / (1000 * 60 * 60 * 24)
     );
 
     if (daysSincePeriod < minimumNiddahDays) {
@@ -223,27 +261,31 @@ const updateCycle = async (userId, cycleId, updateData) => {
 
     // Warn if hefsek is unusually late (more than 30 days)
     if (daysSincePeriod > 30) {
-      // Note: This is just logged, not blocked - user may have valid reasons
-      logDatabase('warning', 'Cycles', {
+      logDatabase('warning', 'Periods', {
         userId,
-        cycleId,
+        periodId: cycleId,
         message: `Hefsek set ${daysSincePeriod} days after period start`
       });
     }
 
-    cycle.hefsekTaharaDate = proposedHefsekDate;
+    period.hefsekTaharaDate = proposedHefsekDate;
 
-    // Automatically create mikvah date 7 days after hefsek tahara
-    const mikvahDate = new Date(cycle.hefsekTaharaDate);
+    // Automatically create shiva nekiyim start (day after hefsek)
+    const shivaNekiyimStart = new Date(period.hefsekTaharaDate);
+    shivaNekiyimStart.setDate(shivaNekiyimStart.getDate() + 1);
+    period.shivaNekiyimStartDate = shivaNekiyimStart;
+
+    // Automatically create mikvah date 7 days after shiva nekiyim start
+    const mikvahDate = new Date(shivaNekiyimStart);
     mikvahDate.setDate(mikvahDate.getDate() + 7);
-    cycle.mikvahDate = mikvahDate;
+    period.mikvahDate = mikvahDate;
 
     // Update status to shiva_nekiyim when hefsek is set
-    cycle.status = 'shiva_nekiyim';
+    period.status = 'shiva_nekiyim';
   }
 
   if (updateData.shivaNekiyimStartDate) {
-    cycle.shivaNekiyimStartDate = createDateInTimezone(
+    period.shivaNekiyimStartDate = createDateInTimezone(
       updateData.shivaNekiyimStartDate.dateString,
       updateData.shivaNekiyimStartDate.timeString,
       timezone
@@ -251,7 +293,7 @@ const updateCycle = async (userId, cycleId, updateData) => {
   }
 
   if (updateData.mikvahDate) {
-    cycle.mikvahDate = createDateInTimezone(
+    period.mikvahDate = createDateInTimezone(
       updateData.mikvahDate.dateString,
       updateData.mikvahDate.timeString,
       timezone
@@ -259,138 +301,155 @@ const updateCycle = async (userId, cycleId, updateData) => {
     needsVestRecalculation = true;
 
     // Recalculate cycle length
-    const metrics = Cycles.calculateCycleMetrics(
-      cycle.niddahStartDate,
-      cycle.mikvahDate,
-      null
-    );
-    cycle.cycleLength = metrics.cycleLength;
+    const metrics = calculateCycleMetrics(period, null);
+    period.cycleLength = metrics.cycleLength;
   }
 
   // Update status
   if (updateData.status) {
-    cycle.status = updateData.status;
+    period.status = updateData.status;
   }
 
   // Update notes
   if (updateData.notes !== undefined) {
-    cycle.notes = updateData.notes;
+    period.notes = updateData.notes;
   }
 
   if (updateData.privateNotes !== undefined) {
-    cycle.privateNotes = updateData.privateNotes;
+    period.privateNotes = updateData.privateNotes;
   }
 
   // Ensure niddahOnah is preserved (defensive check for required fields)
-  // This should already exist from when cycle was loaded from DB, but explicit check prevents validation errors
-  if (!cycle.niddahOnah || !cycle.niddahOnah.start || !cycle.niddahOnah.end) {
-    throwError(400, 'Invalid cycle data: niddahOnah fields are required');
+  if (!period.niddahOnah || !period.niddahOnah.start || !period.niddahOnah.end) {
+    throwError(400, 'Invalid period data: niddahOnah fields are required');
   }
 
   // Recalculate vest onot if needed
   if (needsVestRecalculation && hasCompleteLocation) {
     const location = {
-      lat: user.location.lat,
-      lng: user.location.lng,
-      timezone: user.location.timezone
+      lat: profile.location.lat,
+      lng: profile.location.lng,
+      timezone: profile.location.timezone
     };
 
-    // Fetch previous cycles again
-    const previousCycles = await Cycles.find({
+    // Fetch previous periods again
+    const previousPeriods = await Periods.find({
       userId: userId,
-      _id: { $ne: cycle._id },
+      _id: { $ne: period._id },
       status: 'completed',
-      niddahStartDate: { $lt: cycle.niddahStartDate }
-    })
-      .sort({ niddahStartDate: -1 })
-      .limit(3)
-      .select('niddahStartDate cycleLength');
-
-    cycle.calculateVestOnot(previousCycles, location);
-  }
-
-  await cycle.save();
-
-  logDatabase('update', 'Cycles', { userId, cycleId, fields: Object.keys(updateData) });
-
-  return normalizeCycle(cycle);
-};
-
-/**
- * Delete a cycle (hard delete) and recalculate future cycles
- * @param {String} userId - User ID
- * @param {String} cycleId - Cycle ID
- * @returns {Object} - Success message with recalculation count
- */
-const deleteCycle = async (userId, cycleId) => {
-  const cycle = await Cycles.findOne({
-    _id: cycleId,
-    userId
-  });
-
-  if (!cycle) {
-    throwError(404, 'Cycle not found');
-  }
-
-  // Get user location for recalculating vest onot
-  const user = await Users.findById(userId).select('location halachicPreferences');
-  if (!user || !user.location || !user.location.timezone) {
-    throwError(400, 'User location not found');
-  }
-
-  const location = {
-    lat: user.location.lat,
-    lng: user.location.lng,
-    timezone: user.location.timezone
-  };
-
-  const halachicPreferences = user.halachicPreferences || {
-    ohrZaruah: false,
-    kreisiUpleisi: false,
-    chasamSofer: false
-  };
-
-  const deletedCycleStartDate = cycle.niddahOnah.start;
-
-  // Find all future cycles that need recalculation
-  const futureCycles = await Cycles.find({
-    userId,
-    'niddahOnah.start': { $gt: deletedCycleStartDate }
-  }).sort({ 'niddahOnah.start': 1 });
-
-  // Hard delete the cycle
-  await Cycles.deleteOne({ _id: cycleId, userId });
-
-  logDatabase('delete', 'Cycles', { userId, cycleId });
-
-  // Recalculate haflagah and vest onot for each future cycle
-  let recalculatedCount = 0;
-  for (const futureCycle of futureCycles) {
-    // Find the new previous cycle for this future cycle (excluding the deleted one)
-    const previousCycles = await Cycles.find({
-      userId,
-      status: { $in: ['niddah', 'shiva_nekiyim', 'completed'] },
-      'niddahOnah.start': { $lt: futureCycle.niddahOnah.start }
+      'niddahOnah.start': { $lt: period.niddahOnah.start }
     })
       .sort({ 'niddahOnah.start': -1 })
       .limit(3)
       .select('niddahOnah cycleLength');
 
-    const lastCycle = previousCycles.length > 0 ? previousCycles[0] : null;
+    const vestOnotData = calculateAllVestOnot(period, previousPeriods, location, profile.halachicPreferences);
+
+    // Update existing Vestos document
+    await Vestos.findOneAndUpdate(
+      { periodId: period._id },
+      { vestOnot: vestOnotData.vestOnot, appliedChumras: vestOnotData.appliedChumras }
+    );
+  }
+
+  await period.save();
+
+  logDatabase('update', 'Periods', { userId, periodId: cycleId, fields: Object.keys(updateData) });
+
+  // Fetch updated vestos and bedikot
+  const vestos = await Vestos.findOne({ periodId: period._id });
+  const bedikahs = await Bedikahs.find({ periodId: period._id }).sort({ date: 1 });
+
+  return normalizeCycle({
+    ...period.toObject(),
+    vestOnot: vestos?.vestOnot,
+    bedikot: bedikahs.map(b => b.toObject())
+  });
+};
+
+/**
+ * Delete a cycle (hard delete) and recalculate future periods
+ * @param {String} userId - User ID
+ * @param {String} cycleId - Period ID
+ * @returns {Object} - Success message with recalculation count
+ */
+const deleteCycle = async (userId, cycleId) => {
+  const period = await Periods.findOne({
+    _id: cycleId,
+    userId
+  });
+
+  if (!period) {
+    throwError(404, 'Cycle not found');
+  }
+
+  // Get user location for recalculating vest onot
+  const profile = await Profiles.findById(userId).select('location halachicPreferences');
+  if (!profile || !profile.location || !profile.location.timezone) {
+    throwError(400, 'User location not found');
+  }
+
+  const location = {
+    lat: profile.location.lat,
+    lng: profile.location.lng,
+    timezone: profile.location.timezone
+  };
+
+  const halachicPreferences = profile.halachicPreferences || {
+    ohrZaruah: false,
+    kreisiUpleisi: false,
+    chasamSofer: false
+  };
+
+  const deletedPeriodStartDate = period.niddahOnah.start;
+
+  // Find all future periods that need recalculation
+  const futurePeriods = await Periods.find({
+    userId,
+    'niddahOnah.start': { $gt: deletedPeriodStartDate }
+  }).sort({ 'niddahOnah.start': 1 });
+
+  // Hard delete the period and related data
+  await Periods.deleteOne({ _id: cycleId, userId });
+  await Bedikahs.deleteMany({ periodId: cycleId });
+  await Vestos.deleteOne({ periodId: cycleId });
+
+  logDatabase('delete', 'Periods', { userId, periodId: cycleId });
+  logBusiness('period_deleted', {
+    userId,
+    periodId: cycleId,
+    periodStartDate: deletedPeriodStartDate,
+    futurePeriodsToRecalculate: futurePeriods.length
+  });
+
+  // Recalculate haflagah and vest onot for each future period
+  let recalculatedCount = 0;
+  for (const futurePeriod of futurePeriods) {
+    // Find the new previous periods for this future period (excluding the deleted one)
+    const previousPeriods = await Periods.find({
+      userId,
+      status: { $in: ['niddah', 'shiva_nekiyim', 'completed'] },
+      'niddahOnah.start': { $lt: futurePeriod.niddahOnah.start }
+    })
+      .sort({ 'niddahOnah.start': -1 })
+      .limit(3)
+      .select('niddahOnah cycleLength');
+
+    const lastPeriod = previousPeriods.length > 0 ? previousPeriods[0] : null;
 
     // Recalculate haflagah
-    if (lastCycle && lastCycle.niddahOnah && lastCycle.niddahOnah.start) {
-      futureCycle.haflagah = Math.ceil(
-        (futureCycle.niddahOnah.start - lastCycle.niddahOnah.start) / (1000 * 60 * 60 * 24)
-      );
-    } else {
-      futureCycle.haflagah = null;
-    }
+    const metrics = calculateCycleMetrics(futurePeriod, lastPeriod);
+    futurePeriod.haflagah = metrics.haflagah;
+
+    await futurePeriod.save();
 
     // Recalculate vest onot
-    futureCycle.calculateVestOnot(previousCycles, location, halachicPreferences);
+    const vestOnotData = calculateAllVestOnot(futurePeriod, previousPeriods, location, halachicPreferences);
+    await Vestos.findOneAndUpdate(
+      { periodId: futurePeriod._id },
+      { vestOnot: vestOnotData.vestOnot, appliedChumras: vestOnotData.appliedChumras }
+    );
 
-    await futureCycle.save();
     recalculatedCount++;
   }
 
@@ -401,28 +460,28 @@ const deleteCycle = async (userId, cycleId) => {
 };
 
 /**
- * Add a bedika to a cycle
+ * Add a bedika to a period
  * @param {String} userId - User ID
- * @param {String} cycleId - Cycle ID
+ * @param {String} cycleId - Period ID
  * @param {Object} bedikaData - Bedika data
- * @returns {Object} - Updated cycle
+ * @returns {Object} - Created bedikah
  */
 const addBedika = async (userId, cycleId, bedikaData) => {
-  const cycle = await Cycles.findOne({
+  const period = await Periods.findOne({
     _id: cycleId,
     userId
   });
 
-  if (!cycle) {
+  if (!period) {
     throwError(404, 'Cycle not found');
   }
 
   // Get user's timezone
-  const user = await Users.findById(userId).select('location');
-  if (!user || !user.location || !user.location.timezone) {
+  const profile = await Profiles.findById(userId).select('location halachicPreferences');
+  if (!profile || !profile.location || !profile.location.timezone) {
     throwError(400, 'User timezone not set. Please update your profile location.');
   }
-  const timezone = user.location.timezone;
+  const timezone = profile.location.timezone;
 
   // Convert bedika date to UTC
   const bedikaDate = createDateInTimezone(
@@ -431,8 +490,10 @@ const addBedika = async (userId, cycleId, bedikaData) => {
     timezone
   );
 
-  // Add bedika
-  cycle.bedikot.push({
+  // Create Bedikah document (NOT embedded array)
+  const bedikah = new Bedikahs({
+    periodId: period._id,
+    userId,
     date: bedikaDate,
     dayNumber: bedikaData.dayNumber,
     timeOfDay: bedikaData.timeOfDay,
@@ -440,40 +501,32 @@ const addBedika = async (userId, cycleId, bedikaData) => {
     notes: bedikaData.notes || ''
   });
 
+  await bedikah.save();
+
   // Check for not_clean results and void period if needed
   const hasNotCleanResult =
     (bedikaData.results.morning === 'not_clean') ||
     (bedikaData.results.evening === 'not_clean');
 
-  if (hasNotCleanResult) {
-    // Get the bedikah ID that was just added
-    const justAddedBedika = cycle.bedikot[cycle.bedikot.length - 1];
-
-    // Get user's location and halachic preferences
-    const user = await Users.findById(userId);
-    if (!user) {
-      throwError(400, 'User not found');
-    }
-
-    const location = user.location || null;
-    const halachicPreferences = user.halachicPreferences || {};
-    const { getOnahTimeRange } = require('../utils/hebrewDateTime');
+  if (hasNotCleanResult && period.status !== 'completed') {
+    const location = profile.location;
+    const halachicPreferences = profile.halachicPreferences || {};
 
     // Determine if original onah was day or night
-    const startDate = new Date(cycle.niddahOnah.start).toDateString();
-    const endDate = new Date(cycle.niddahOnah.end).toDateString();
+    const startDate = new Date(period.niddahOnah.start).toDateString();
+    const endDate = new Date(period.niddahOnah.end).toDateString();
     const isDayOnah = startDate === endDate;
 
     // Store original period start and hefsek for reference
-    cycle.periodVoidedInfo = {
+    period.periodVoidedInfo = {
       isVoided: true,
       originalNiddahOnah: {
-        start: cycle.niddahOnah.start,
-        end: cycle.niddahOnah.end
+        start: period.niddahOnah.start,
+        end: period.niddahOnah.end
       },
-      voidedHefsekTaharaDate: cycle.hefsekTaharaDate || null,
+      voidedHefsekTaharaDate: period.hefsekTaharaDate || null,
       voidedDate: new Date(),
-      voidedByBedikaId: justAddedBedika._id,
+      voidedByBedikaId: bedikah._id,
       notes: `Period voided due to not clean bedikah result on Day ${bedikaData.dayNumber}`
     };
 
@@ -481,82 +534,97 @@ const addBedika = async (userId, cycleId, bedikaData) => {
     const newOnahRange = getOnahTimeRange(bedikaDate, location, isDayOnah);
 
     // REPLACE niddahOnah with new period start
-    cycle.niddahOnah.start = newOnahRange.start;
-    cycle.niddahOnah.end = newOnahRange.end;
+    period.niddahOnah.start = newOnahRange.start;
+    period.niddahOnah.end = newOnahRange.end;
 
     // Revert status to 'niddah'
-    cycle.status = 'niddah';
+    period.status = 'niddah';
 
     // Clear Shiva Nekiyim progress and hefsek
-    cycle.shivaNekiyimStartDate = null;
-    cycle.mikvahDate = null;
-    cycle.hefsekTaharaDate = null;  // Clear hefsek - user will need new hefsek from new period date
+    period.shivaNekiyimStartDate = null;
+    period.mikvahDate = null;
+    period.hefsekTaharaDate = null;
 
-    // Get previous cycles for vest onot calculation (now including voided ones)
-    const previousCycles = await Cycles.find({
+    // Get previous periods for vest onot calculation
+    const previousPeriods = await Periods.find({
       userId,
-      'niddahOnah.start': { $lt: cycle.periodVoidedInfo.originalNiddahOnah.start }
-    }).sort({ 'niddahOnah.start': -1 });
+      'niddahOnah.start': { $lt: period.periodVoidedInfo.originalNiddahOnah.start }
+    }).sort({ 'niddahOnah.start': -1 }).limit(3);
 
     // Recalculate haflagah based on new period start
-    if (previousCycles.length > 0) {
-      const lastCycle = previousCycles[0];
-      cycle.haflagah = Math.ceil(
-        (newOnahRange.start - lastCycle.niddahOnah.start) / (1000 * 60 * 60 * 24)
+    const metrics = calculateCycleMetrics(period, previousPeriods[0]);
+    period.haflagah = metrics.haflagah;
+
+    await period.save();
+
+    // Recalculate THIS period's vest onot
+    const vestOnotData = calculateAllVestOnot(period, previousPeriods, location, halachicPreferences);
+    await Vestos.findOneAndUpdate(
+      { periodId: period._id },
+      { vestOnot: vestOnotData.vestOnot, appliedChumras: vestOnotData.appliedChumras }
+    );
+
+    // Recalculate vest onot for any FUTURE periods
+    const futurePeriods = await Periods.find({
+      userId,
+      'niddahOnah.start': { $gt: period.periodVoidedInfo.originalNiddahOnah.start },
+      _id: { $ne: period._id }
+    }).sort({ 'niddahOnah.start': 1 });
+
+    for (const futurePeriod of futurePeriods) {
+      const prevPeriods = await Periods.find({
+        userId,
+        'niddahOnah.start': { $lt: futurePeriod.niddahOnah.start }
+      }).sort({ 'niddahOnah.start': -1 }).limit(3);
+
+      const futureVestOnotData = calculateAllVestOnot(futurePeriod, prevPeriods, location, halachicPreferences);
+      await Vestos.findOneAndUpdate(
+        { periodId: futurePeriod._id },
+        { vestOnot: futureVestOnotData.vestOnot, appliedChumras: futureVestOnotData.appliedChumras }
       );
     }
 
-    // Recalculate THIS cycle's vest onot
-    cycle.calculateVestOnot(previousCycles, location, halachicPreferences);
-
-    // Recalculate vest onot for any FUTURE cycles that depend on previous cycle history
-    const futureCycles = await Cycles.find({
+    logDatabase('update', 'Periods', {
       userId,
-      'niddahOnah.start': { $gt: cycle.periodVoidedInfo.originalNiddahOnah.start }
-    }).sort({ 'niddahOnah.start': 1 });
-
-    // Recalculate vest onot for each future cycle
-    for (const futureCycle of futureCycles) {
-      // Skip the current cycle (already calculated above)
-      if (futureCycle._id.equals(cycle._id)) {
-        continue;
-      }
-
-      // Get previous cycles for this future cycle
-      const prevCycles = await Cycles.find({
-        userId,
-        'niddahOnah.start': { $lt: futureCycle.niddahOnah.start }
-      }).sort({ 'niddahOnah.start': -1 });
-
-      futureCycle.calculateVestOnot(prevCycles, location, halachicPreferences);
-      await futureCycle.save();
-    }
+      periodId: cycleId,
+      action: 'period_voided',
+      voidedByBedikaId: bedikah._id
+    });
   }
 
-  await cycle.save();
-
-  logDatabase('update', 'Cycles', {
+  logDatabase('create', 'Bedikahs', {
     userId,
-    cycleId,
-    action: 'add_bedika',
+    periodId: cycleId,
+    bedikaId: bedikah._id,
     voided: hasNotCleanResult
   });
 
-  return normalizeCycle(cycle);
+  return normalizeCycle(bedikah.toObject());
 };
 
 /**
  * Get current active cycle
  * @param {String} userId - User ID
- * @returns {Object|null} - Active cycle or null
+ * @returns {Object|null} - Active period or null
  */
 const getActiveCycle = async (userId) => {
-  const cycle = await Cycles.findOne({
+  const period = await Periods.findOne({
     userId,
     status: { $in: ['niddah', 'shiva_nekiyim'] }
-  }).sort({ niddahStartDate: -1 });
+  }).sort({ 'niddahOnah.start': -1 });
 
-  return cycle ? normalizeCycle(cycle) : null;
+  if (!period) {
+    return null;
+  }
+
+  const vestos = await Vestos.findOne({ periodId: period._id });
+  const bedikahs = await Bedikahs.find({ periodId: period._id }).sort({ date: 1 });
+
+  return normalizeCycle({
+    ...period.toObject(),
+    vestOnot: vestos?.vestOnot,
+    bedikot: bedikahs.map(b => b.toObject())
+  });
 };
 
 /**
@@ -569,148 +637,114 @@ const getUpcomingVestOnot = async (userId, daysAhead = 30) => {
   const endDate = new Date();
   endDate.setDate(endDate.getDate() + daysAhead);
 
-  // Get recent cycles with vest onot
-  const cycles = await Cycles.find({
+  // Get upcoming vestos
+  const upcomingVestos = await Vestos.find({
     userId,
-    status: 'completed'
-  })
-    .sort({ niddahStartDate: -1 })
-    .limit(3);
+    $or: [
+      { 'vestOnot.vesetHachodesh.start': { $gte: new Date(), $lte: endDate } },
+      { 'vestOnot.haflagah.start': { $gte: new Date(), $lte: endDate } },
+      { 'vestOnot.onahBeinonit.start': { $gte: new Date(), $lte: endDate } }
+    ]
+  }).populate('periodId');
 
-  const upcomingVestOnot = [];
+  const upcomingVestOnotList = [];
 
-  cycles.forEach(cycle => {
-    if (cycle.vestOnot) {
-      // Check each vest onah
-      ['vesetHachodesh', 'haflagah', 'onahBeinonit'].forEach(type => {
-        const vestOnah = cycle.vestOnot[type];
-        if (vestOnah && vestOnah.date) {
-          const vestDate = new Date(vestOnah.date);
-          if (vestDate >= new Date() && vestDate <= endDate) {
-            upcomingVestOnot.push({
-              type,
-              date: vestOnah.date,
-              onah: vestOnah.onah,
-              hebrewDate: vestOnah.hebrewDate,
-              cycleId: cycle._id
-            });
-          }
+  upcomingVestos.forEach(vestos => {
+    // Check each vest type
+    ['vesetHachodesh', 'haflagah', 'onahBeinonit'].forEach(type => {
+      const vestOnah = vestos.vestOnot[type];
+      if (vestOnah && vestOnah.start) {
+        const vestDate = new Date(vestOnah.start);
+        if (vestDate >= new Date() && vestDate <= endDate) {
+          upcomingVestOnotList.push({
+            type,
+            start: vestOnah.start,
+            end: vestOnah.end,
+            hebrewDate: vestOnah.hebrewDate,
+            periodId: vestos.periodId
+          });
         }
-      });
-    }
+      }
+    });
   });
 
   // Sort by date
-  upcomingVestOnot.sort((a, b) => new Date(a.date) - new Date(b.date));
+  upcomingVestOnotList.sort((a, b) => new Date(a.start) - new Date(b.start));
 
-  return upcomingVestOnot;
+  return upcomingVestOnotList;
 };
 
 /**
- * Helper function to determine onah icon from time range
- * @param {Date} start - Start time
- * @param {Date} end - End time
- * @returns {String} - Onah icon (☀️ or 🌙)
- */
-const getOnahIcon = (start, end) => {
-  if (!start || !end) return '';
-
-  const startDate = new Date(start).toDateString();
-  const endDate = new Date(end).toDateString();
-
-  // Day onah: start and end on same Gregorian day (sunrise to sunset)
-  // Night onah: spans two Gregorian days (sunset to next sunrise)
-  if (startDate === endDate) {
-    return '☀️';
-  } else {
-    return '🌙';
-  }
-};
-
-/**
- * Recalculate vest onot for all cycles when halachic preferences change
- * Only updates onah events (vestOnot), not hefsek or other dates
+ * Recalculate vest onot for all periods when halachic preferences change
  * @param {String} userId - User ID
  * @param {Object} newHalachicPreferences - New halachic preferences
- * @returns {Number} - Number of cycles updated
+ * @returns {Number} - Number of periods updated
  */
-const recalculateAllCycleVestOnot = async (userId, newHalachicPreferences) => {
+const recalculateAllPeriodVestOnot = async (userId, newHalachicPreferences) => {
   // Get user's location for calculations
-  const user = await Users.findById(userId).select('location');
-  if (!user || !user.location || !user.location.timezone) {
+  const profile = await Profiles.findById(userId).select('location');
+  if (!profile || !profile.location || !profile.location.timezone) {
     throwError(400, 'User location not set. Please update your profile.');
   }
 
-  const hasCompleteLocation = user.location.lat != null && user.location.lng != null;
+  const hasCompleteLocation = profile.location.lat != null && profile.location.lng != null;
   if (!hasCompleteLocation) {
     throwError(400, 'Complete location (latitude, longitude, timezone) required.');
   }
 
   const location = {
-    lat: user.location.lat,
-    lng: user.location.lng,
-    timezone: user.location.timezone
+    lat: profile.location.lat,
+    lng: profile.location.lng,
+    timezone: profile.location.timezone
   };
 
-  // Get all cycles for the user
-  const cycles = await Cycles.find({
-    userId
-  }).sort({ 'niddahOnah.start': -1 });
+  // Get all periods for the user (sorted chronologically)
+  const allPeriods = await Periods.find({ userId }).sort({ 'niddahOnah.start': 1 });
 
   let updatedCount = 0;
 
-  // Update each cycle's appliedChumras and recalculate vestOnot
-  for (const cycle of cycles) {
-    // Get previous cycles for haflagah calculation
-    const previousCycles = await Cycles.find({
-      userId: userId,
-      _id: { $ne: cycle._id },
-      status: { $in: ['niddah', 'shiva_nekiyim', 'completed'] },
-      'niddahOnah.start': { $lt: cycle.niddahOnah.start }
-    })
-      .sort({ 'niddahOnah.start': -1 })
-      .limit(3)
-      .select('niddahOnah cycleLength');
+  // Update each period's vest onot
+  for (let i = 0; i < allPeriods.length; i++) {
+    const period = allPeriods[i];
 
-    // Update applied chumras
-    cycle.appliedChumras = {
-      ohrZaruah: newHalachicPreferences.ohrZaruah || false,
-      kreisiUpleisi: newHalachicPreferences.kreisiUpleisi || false,
-      chasamSofer: newHalachicPreferences.chasamSofer || false
-    };
+    // Get previous periods for this period
+    const previousPeriods = allPeriods.slice(0, i);
 
     // Recalculate vest onot with new preferences
-    cycle.calculateVestOnot(previousCycles, location, newHalachicPreferences);
+    const vestOnotData = calculateAllVestOnot(period, previousPeriods, location, newHalachicPreferences);
 
-    await cycle.save();
+    // Update Vestos document
+    await Vestos.findOneAndUpdate(
+      { periodId: period._id },
+      { vestOnot: vestOnotData.vestOnot, appliedChumras: vestOnotData.appliedChumras }
+    );
+
     updatedCount++;
   }
 
-  logDatabase('recalculate_vest_onot', 'Cycles', { userId, cyclesUpdated: updatedCount });
+  logDatabase('recalculate_vest_onot', 'Vestos', { userId, periodsUpdated: updatedCount });
 
   return updatedCount;
 };
 
 /**
  * Get calendar events for user's cycles
- * Converts cycles into pre-formatted calendar events
+ * Converts periods into pre-formatted calendar events
  * @param {String} userId - User ID
  * @param {Object} options - { limit, skip, status }
  * @returns {Array} - Array of calendar events
  */
 const getCalendarEvents = async (userId, options = {}) => {
-  // Reuse getUserCycles to get cycles with same filtering
+  // Reuse getUserCycles to get periods with same filtering
   const cycles = await getUserCycles(userId, options);
 
   const events = [];
 
-
   cycles.forEach((cycle) => {
-    // 1. Period Start Event (Niddah Start) - Now with time range
+    // 1. Period Start Event (Niddah Start) - with time range
     if (cycle.niddahOnah && cycle.niddahOnah.start) {
       const isVoided = cycle.periodVoidedInfo?.isVoided || false;
 
-      // Only show current period start if NOT voided (voided periods show the unclean bedikah as the new period start)
       if (!isVoided) {
         events.push({
           id: `${cycle._id}-niddah`,
@@ -722,7 +756,7 @@ const getCalendarEvents = async (userId, options = {}) => {
         });
       }
 
-      // 1a. Voided Period Start Event (if period was voided)
+      // Voided Period Start Event
       if (isVoided && cycle.periodVoidedInfo.originalNiddahOnah?.start) {
         events.push({
           id: `${cycle._id}-voided-period`,
@@ -746,7 +780,7 @@ const getCalendarEvents = async (userId, options = {}) => {
       });
     }
 
-    // 2a. Voided Hefsek Event (if hefsek was voided)
+    // Voided Hefsek Event
     if (cycle.periodVoidedInfo?.isVoided && cycle.periodVoidedInfo.voidedHefsekTaharaDate) {
       events.push({
         id: `${cycle._id}-voided-hefsek`,
@@ -788,22 +822,18 @@ const getCalendarEvents = async (userId, options = {}) => {
         const timeOfDay = bedikah.timeOfDay;
         const isUncleanBedikah = isVoided && bedikah._id && bedikah._id.equals(voidedByBedikaId);
 
-        // Determine which events to create based on timeOfDay
         const createMorning = timeOfDay === 'morning' || timeOfDay === 'both';
         const createEvening = timeOfDay === 'evening' || timeOfDay === 'both';
 
         if (createMorning) {
           const result = bedikah.results?.morning || 'clean';
           let title = `🔍 Morning Bedikah (Day ${bedikah.dayNumber})`;
-
-          // Special labeling for unclean bedikah that caused void
           let className = `bedikah bedikah-${result}`;
+
           if (isUncleanBedikah && result === 'not_clean') {
             title = `🩸 New Period Start (Unclean Bedikah)`;
-            className = 'niddah-start bedikah-not_clean'; // Use niddah-start class for delete functionality
-          }
-          // Voided bedikot (those before the unclean bedikah)
-          else if (isVoided && !isUncleanBedikah) {
+            className = 'niddah-start bedikah-not_clean';
+          } else if (isVoided && !isUncleanBedikah) {
             title = `🔍 Voided Morning Bedikah (Day ${bedikah.dayNumber})`;
           }
 
@@ -811,7 +841,7 @@ const getCalendarEvents = async (userId, options = {}) => {
             id: `${cycle._id}-bedikah-${index}-morning`,
             title: title,
             start: bedikah.date,
-            end: bedikah.date, // Same day event (will wrap, not overflow)
+            end: bedikah.date,
             className: className,
             groupID: cycle._id,
           });
@@ -820,15 +850,12 @@ const getCalendarEvents = async (userId, options = {}) => {
         if (createEvening) {
           const result = bedikah.results?.evening || 'clean';
           let title = `🔍 Evening Bedikah (Day ${bedikah.dayNumber})`;
-
-          // Special labeling for unclean bedikah that caused void
           let className = `bedikah bedikah-${result}`;
+
           if (isUncleanBedikah && result === 'not_clean') {
             title = `🩸 New Period Start (Unclean Bedikah)`;
-            className = 'niddah-start bedikah-not_clean'; // Use niddah-start class for delete functionality
-          }
-          // Voided bedikot (those before the unclean bedikah)
-          else if (isVoided && !isUncleanBedikah) {
+            className = 'niddah-start bedikah-not_clean';
+          } else if (isVoided && !isUncleanBedikah) {
             title = `🔍 Voided Evening Bedikah (Day ${bedikah.dayNumber})`;
           }
 
@@ -836,7 +863,7 @@ const getCalendarEvents = async (userId, options = {}) => {
             id: `${cycle._id}-bedikah-${index}-evening`,
             title: title,
             start: bedikah.date,
-            end: bedikah.date, // Same day event (will wrap, not overflow)
+            end: bedikah.date,
             className: className,
             groupID: cycle._id,
           });
@@ -844,7 +871,7 @@ const getCalendarEvents = async (userId, options = {}) => {
       });
     }
 
-    // 6. Vest Onot Events - Now with time ranges
+    // 6. Vest Onot Events - with time ranges
     if (cycle.vestOnot) {
       if (cycle.vestOnot.vesetHachodesh?.start) {
         events.push({
@@ -878,7 +905,6 @@ const getCalendarEvents = async (userId, options = {}) => {
           groupID: cycle._id,
         });
 
-        // Kreisi Upleisi - Opposite onah same Hebrew day
         if (cycle.vestOnot.onahBeinonit.kreisiUpleisi?.start) {
           events.push({
             id: `${cycle._id}-beinonit-kreisi`,
@@ -890,7 +916,6 @@ const getCalendarEvents = async (userId, options = {}) => {
           });
         }
 
-        // Beinonit 31 - Day 31
         if (cycle.vestOnot.onahBeinonit.chasamSofer?.start) {
           events.push({
             id: `${cycle._id}-beinonit-sofer`,
@@ -903,7 +928,7 @@ const getCalendarEvents = async (userId, options = {}) => {
         }
       }
 
-      // Ohr Zaruah events - Preceding onah for all vesetim
+      // Ohr Zaruah events
       if (cycle.vestOnot.vesetHachodesh?.ohrZaruah?.start) {
         events.push({
           id: `${cycle._id}-veset-ohr`,
@@ -952,5 +977,5 @@ module.exports = {
   getActiveCycle,
   getUpcomingVestOnot,
   getCalendarEvents,
-  recalculateAllCycleVestOnot
+  recalculateAllPeriodVestOnot
 };

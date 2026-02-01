@@ -1,6 +1,7 @@
 const oauthService = require('./oauth.service');
 const authenticationService = require('./authentication.service');
 const passport = require('passport');
+const { logError, logSecurity, logAuth } = require('../../shared/utils/log-helpers');
 
 /**
  * Initiate Google OAuth flow
@@ -17,7 +18,16 @@ const initiateGoogleAuth = passport.authenticate('google', {
 const handleGoogleCallback = (req, res, next) => {
   passport.authenticate('google', async (err, user, info) => {
     if (err) {
-      console.error('Google OAuth error:', err);
+      logError(err, {
+        context: 'oauth.controller.handleGoogleCallback',
+        authProvider: 'google',
+        stage: 'authentication'
+      });
+      logSecurity('oauth_failure', {
+        provider: 'google',
+        error: err.message,
+        ip: req.ip
+      });
       return res.redirect(
         `${process.env.FRONTEND_URL}/login?error=oauth_failed&message=${encodeURIComponent('Authentication failed. Please try again.')}`
       );
@@ -25,6 +35,11 @@ const handleGoogleCallback = (req, res, next) => {
 
     if (!user) {
       const errorMessage = info?.message || 'Authentication failed';
+      logSecurity('oauth_no_user', {
+        provider: 'google',
+        reason: errorMessage,
+        ip: req.ip
+      });
       return res.redirect(
         `${process.env.FRONTEND_URL}/login?error=oauth_failed&message=${encodeURIComponent(errorMessage)}`
       );
@@ -33,7 +48,11 @@ const handleGoogleCallback = (req, res, next) => {
     // Log the user in
     req.login(user, async (err) => {
       if (err) {
-        console.error('Session creation error:', err);
+        logError(err, {
+          context: 'oauth.controller.handleGoogleCallback',
+          userId: user._id,
+          stage: 'session_creation'
+        });
         return res.redirect(
           `${process.env.FRONTEND_URL}/login?error=session_failed&message=${encodeURIComponent('Failed to create session. Please try again.')}`
         );
@@ -43,6 +62,12 @@ const handleGoogleCallback = (req, res, next) => {
         // Get full user data
         const userData = await authenticationService.getUserById(user._id);
 
+        logAuth('oauth_login_success', user._id, {
+          provider: 'google',
+          profileComplete: userData.profileComplete,
+          ip: req.ip
+        });
+
         // Redirect based on profile completion status
         if (!userData.profileComplete) {
           return res.redirect(`${process.env.FRONTEND_URL}/complete-profile`);
@@ -50,7 +75,11 @@ const handleGoogleCallback = (req, res, next) => {
           return res.redirect(`${process.env.FRONTEND_URL}/calendar`);
         }
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        logError(error, {
+          context: 'oauth.controller.handleGoogleCallback',
+          userId: user._id,
+          stage: 'user_data_fetch'
+        });
         return res.redirect(
           `${process.env.FRONTEND_URL}/login?error=user_fetch_failed&message=${encodeURIComponent('Failed to retrieve user data.')}`
         );

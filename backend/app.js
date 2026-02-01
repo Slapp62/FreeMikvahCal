@@ -6,6 +6,7 @@ const passport = require('./src/shared/config/passport');
 const sessionConfig = require('./src/shared/config/session.config');
 const mongoSanitize = require('express-mongo-sanitize');
 const correlationId = require('./src/shared/middleware/correlation-id');
+const requestTimer = require('./src/shared/middleware/request-timer');
 const httpLogger = require('./src/shared/middleware/http-logger');
 const errorLogger = require('./src/shared/middleware/error-logger');
 const { handleError } = require('./src/shared/utils/error-handlers');
@@ -89,6 +90,9 @@ app.use(cors(corsOptions));
 
 // Correlation ID for request tracing
 app.use(correlationId);
+
+// Request timing for performance tracking
+app.use(requestTimer);
 
 // HTTP request logging
 app.use(httpLogger);

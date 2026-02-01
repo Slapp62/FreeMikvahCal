@@ -1,5 +1,5 @@
-const Users = require('./auth.model');
-const Preferences = require('./preferences.model');
+const Auths = require('./models/auth.model');
+const Profiles = require('../user-profile/models/profile.model');
 const { throwError } = require('../../shared/utils/error-handlers');
 const { normalizeUser } = require('../../shared/utils/normalize-responses');
 const { logAuth } = require('../../shared/utils/log-helpers');
@@ -13,9 +13,9 @@ const { logAuth } = require('../../shared/utils/log-helpers');
 const register = async (userData, metadata = {}) => {
   const { email, password, location, consents, halachicCustom, halachicPreferences } = userData;
 
-  // Check if user already exists
-  const existingUser = await Users.findOne({ email: email.toLowerCase() });
-  if (existingUser) {
+  // Check if email already exists
+  const existingAuth = await Auths.findOne({ email: email.toLowerCase() });
+  if (existingAuth) {
     throwError(400, 'Email already registered');
   }
 
@@ -29,40 +29,65 @@ const register = async (userData, metadata = {}) => {
     }
   };
 
-  // Create user (password will be hashed by pre-save hook)
-  const user = new Users({
-    email: email.toLowerCase(),
-    password,
+  // 1. Create Profile FIRST (to get profile ID)
+  const profile = new Profiles({
     location,
     consents: consentData,
     halachicCustom,
     halachicPreferences,
-    emailVerified: false,
     profileComplete: false,
-    onboardingCompleted: false
+    onboardingCompleted: false,
+    // Merge default preferences (no separate Preferences model)
+    hebrewCalendar: true,
+    defaultCycleLength: 28,
+    notifications: {
+      enabled: true,
+      hefsekTaharaReminder: true,
+      shivaNekiyimReminder: true,
+      mikvahReminder: true,
+      vestOnotReminder: true,
+      reminderTime: '09:00'
+    },
+    privacyMode: false,
+    language: 'he',
+    dataRetention: {
+      keepCycles: 24,
+      autoDelete: true
+    },
+    emailPreferences: {
+      verificationEmails: true,
+      reminders: {
+        enabled: true,
+        advanceNoticeHours: 48
+      }
+    }
   });
 
+  await profile.save();
+
+  // 2. Create Auth with userId reference
   const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-  // Attach to user
-  user.emailVerification = {
-    code: verificationCode,
-    expiresAt: new Date(Date.now() + 10 * 60 * 1000), // Shorter expiry (10 mins)
-    sentAt: new Date()
-  };
-
-  await user.save();
-
-  // Create default preferences
-  await Preferences.create({
-    userId: user._id
+  const auth = new Auths({
+    userId: profile._id,
+    email: email.toLowerCase(),
+    password, // Will be hashed by pre-save hook
+    emailVerified: false,
+    emailVerification: {
+      code: verificationCode,
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000), // Shorter expiry (10 mins)
+      sentAt: new Date()
+    },
+    isActive: true
   });
 
-  logAuth('register', user._id, { email: user.email });
+  await auth.save();
 
-  // Return normalized user + verification code
+  logAuth('register', profile._id, { email: auth.email });
+
+  // Return normalized user (combine profile + auth)
   return {
-    user: normalizeUser(user),
+    user: normalizeUser({ ...profile.toObject(), ...auth.toObject(), _id: profile._id }),
     code: verificationCode // plain token to send in email
   };
 };
