@@ -223,9 +223,9 @@ const HefsekTaharaForm = ({ close, dateClicked }: Props) => {
                 )}
 
                 {showMinDaysWarning && (
-                    <Alert icon={<IconAlertTriangle size={16} />} title="Too Early" color="red" w='100%'>
-                        This hefsek is only {daysSincePeriod} days after your period start. Your settings require a minimum of {user?.halachicPreferences?.minimumNiddahDays || 5} days.
-                        The backend will prevent this from being saved. You can change your minimum days setting in your profile preferences.
+                    <Alert icon={<IconAlertTriangle size={16} />} title="Early Hefsek Warning" color="yellow" w='100%'>
+                        This hefsek is only {daysSincePeriod} days after your period start. Your settings recommend a minimum of {user?.halachicPreferences?.minimumNiddahDays || 5} days.
+                        You may proceed if you have guidance from your halachic authority.
                     </Alert>
                 )}
 
@@ -261,7 +261,6 @@ const HefsekTaharaForm = ({ close, dateClicked }: Props) => {
                 <Button
                     type='submit'
                     fullWidth
-                    disabled={showMinDaysWarning}
                 >
                     Add Hefsek Tahara
                 </Button>

@@ -9,10 +9,8 @@ const createCycleSchema = Joi.object({
   startTime: Joi.date()
     .iso()
     .required()
-    .max('now')
     .messages({
       'date.base': 'Period start time must be a valid date',
-      'date.max': 'Period start time cannot be in the future',
       'any.required': 'Period start time is required. Please select a date and onah type.'
     }),
 

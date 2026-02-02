@@ -4,7 +4,7 @@ const Vestos = require('./models/vestos.model');
 const Profiles = require('../user-profile/models/profile.model');
 const { throwError } = require('../../shared/utils/error-handlers');
 const { normalizeCycle, normalizeCycles } = require('../../shared/utils/normalize-responses');
-const { createDateInTimezone, getOnahTimeRange } = require('../../shared/utils/hebrew-datetime');
+const { createDateInTimezone, getOnahTimeRange, getHebrewDateForTimestamp } = require('../../shared/utils/hebrew-datetime');
 const { logDatabase, logBusiness } = require('../../shared/utils/log-helpers');
 const { calculateAllVestOnot } = require('./services/vest-calculator.service');
 const { calculateCycleMetrics } = require('./services/cycle-metrics.service');
@@ -250,13 +250,19 @@ const updateCycle = async (userId, cycleId, updateData) => {
       timezone
     );
 
-    // Validate minimum niddah days
+    // Check minimum niddah days (warning only, not blocking)
     const daysSincePeriod = Math.ceil(
       (proposedHefsekDate - period.niddahOnah.start) / (1000 * 60 * 60 * 24)
     );
 
     if (daysSincePeriod < minimumNiddahDays) {
-      throwError(400, `Hefsek Tahara must be at least ${minimumNiddahDays} days after the period start. Currently ${daysSincePeriod} day${daysSincePeriod === 1 ? '' : 's'}. You can change this setting in your profile preferences.`);
+      logBusiness('hefsek_early_warning', {
+        userId,
+        cycleId,
+        daysSincePeriod,
+        minimumNiddahDays,
+        hefsekDate: proposedHefsekDate
+      });
     }
 
     // Warn if hefsek is unusually late (more than 30 days)
@@ -509,15 +515,7 @@ const addBedika = async (userId, cycleId, bedikaData) => {
     (bedikaData.results.evening === 'not_clean');
 
   if (hasNotCleanResult && period.status !== 'completed') {
-    const location = profile.location;
-    const halachicPreferences = profile.halachicPreferences || {};
-
-    // Determine if original onah was day or night
-    const startDate = new Date(period.niddahOnah.start).toDateString();
-    const endDate = new Date(period.niddahOnah.end).toDateString();
-    const isDayOnah = startDate === endDate;
-
-    // Store original period start and hefsek for reference
+    // Store hefsek voiding info for reference (keep period start unchanged)
     period.periodVoidedInfo = {
       isVoided: true,
       originalNiddahOnah: {
@@ -527,68 +525,25 @@ const addBedika = async (userId, cycleId, bedikaData) => {
       voidedHefsekTaharaDate: period.hefsekTaharaDate || null,
       voidedDate: new Date(),
       voidedByBedikaId: bedikah._id,
-      notes: `Period voided due to not clean bedikah result on Day ${bedikaData.dayNumber}`
+      notes: `Hefsek voided due to not clean bedikah result on Day ${bedikaData.dayNumber}`
     };
-
-    // Get onah time range for the new period (bedikah date, same day/night as original)
-    const newOnahRange = getOnahTimeRange(bedikaDate, location, isDayOnah);
-
-    // REPLACE niddahOnah with new period start
-    period.niddahOnah.start = newOnahRange.start;
-    period.niddahOnah.end = newOnahRange.end;
 
     // Revert status to 'niddah'
     period.status = 'niddah';
 
-    // Clear Shiva Nekiyim progress and hefsek
+    // Clear hefsek and calculated dates (but keep original niddahOnah unchanged)
+    period.hefsekTaharaDate = null;
     period.shivaNekiyimStartDate = null;
     period.mikvahDate = null;
-    period.hefsekTaharaDate = null;
-
-    // Get previous periods for vest onot calculation
-    const previousPeriods = await Periods.find({
-      userId,
-      'niddahOnah.start': { $lt: period.periodVoidedInfo.originalNiddahOnah.start }
-    }).sort({ 'niddahOnah.start': -1 }).limit(3);
-
-    // Recalculate haflagah based on new period start
-    const metrics = calculateCycleMetrics(period, previousPeriods[0]);
-    period.haflagah = metrics.haflagah;
 
     await period.save();
-
-    // Recalculate THIS period's vest onot
-    const vestOnotData = calculateAllVestOnot(period, previousPeriods, location, halachicPreferences);
-    await Vestos.findOneAndUpdate(
-      { periodId: period._id },
-      { vestOnot: vestOnotData.vestOnot, appliedChumras: vestOnotData.appliedChumras }
-    );
-
-    // Recalculate vest onot for any FUTURE periods
-    const futurePeriods = await Periods.find({
-      userId,
-      'niddahOnah.start': { $gt: period.periodVoidedInfo.originalNiddahOnah.start },
-      _id: { $ne: period._id }
-    }).sort({ 'niddahOnah.start': 1 });
-
-    for (const futurePeriod of futurePeriods) {
-      const prevPeriods = await Periods.find({
-        userId,
-        'niddahOnah.start': { $lt: futurePeriod.niddahOnah.start }
-      }).sort({ 'niddahOnah.start': -1 }).limit(3);
-
-      const futureVestOnotData = calculateAllVestOnot(futurePeriod, prevPeriods, location, halachicPreferences);
-      await Vestos.findOneAndUpdate(
-        { periodId: futurePeriod._id },
-        { vestOnot: futureVestOnotData.vestOnot, appliedChumras: futureVestOnotData.appliedChumras }
-      );
-    }
 
     logDatabase('update', 'Periods', {
       userId,
       periodId: cycleId,
-      action: 'period_voided',
-      voidedByBedikaId: bedikah._id
+      action: 'hefsek_voided',
+      voidedByBedikaId: bedikah._id,
+      reason: 'unclean_bedikah'
     });
   }
 
@@ -738,35 +693,24 @@ const getCalendarEvents = async (userId, options = {}) => {
   // Reuse getUserCycles to get periods with same filtering
   const cycles = await getUserCycles(userId, options);
 
+  // Get user's location for onah calculations
+  const profile = await Profiles.findById(userId).select('location');
+  const location = profile?.location;
+
   const events = [];
 
   cycles.forEach((cycle) => {
     // 1. Period Start Event (Niddah Start) - with time range
+    // Period start is NEVER voided - only hefsek can be voided
     if (cycle.niddahOnah && cycle.niddahOnah.start) {
-      const isVoided = cycle.periodVoidedInfo?.isVoided || false;
-
-      if (!isVoided) {
-        events.push({
-          id: `${cycle._id}-niddah`,
-          title: `🩸 Period Start`,
-          start: cycle.niddahOnah.start,
-          end: cycle.niddahOnah.end,
-          className: `niddah-start`,
-          groupID: cycle._id,
-        });
-      }
-
-      // Voided Period Start Event
-      if (isVoided && cycle.periodVoidedInfo.originalNiddahOnah?.start) {
-        events.push({
-          id: `${cycle._id}-voided-period`,
-          title: '🩸 Voided Period Start',
-          start: cycle.periodVoidedInfo.originalNiddahOnah.start,
-          end: cycle.periodVoidedInfo.originalNiddahOnah.end,
-          className: 'niddah-start voided-original',
-          groupID: cycle._id,
-        });
-      }
+      events.push({
+        id: `${cycle._id}-niddah`,
+        title: `🩸 Period Start`,
+        start: cycle.niddahOnah.start,
+        end: cycle.niddahOnah.end,
+        className: `niddah-start`,
+        groupID: cycle._id,
+      });
     }
 
     // 2. Hefsek Tahara Event
@@ -791,29 +735,26 @@ const getCalendarEvents = async (userId, options = {}) => {
       });
     }
 
-    // 3. Shiva Nekiyim Start Event
-    if (cycle.shivaNekiyimStartDate) {
-      events.push({
-        id: `${cycle._id}-shiva`,
-        title: '7️⃣ Shiva Nekiyim Start',
-        start: cycle.shivaNekiyimStartDate,
-        className: 'shiva-nekiyim',
-        groupID: cycle._id,
-      });
-    }
+    // 3. Mikvah Date Event - with onah time range
+    if (cycle.mikvahDate && location) {
+      // Determine if mikvah is during day or night onah
+      const mikvahInfo = getHebrewDateForTimestamp(cycle.mikvahDate, location);
+      const isDayOnah = mikvahInfo.onah === 'day';
 
-    // 4. Mikvah Date Event
-    if (cycle.mikvahDate) {
+      // Get the onah time range
+      const onahRange = getOnahTimeRange(cycle.mikvahDate, location, isDayOnah);
+
       events.push({
         id: `${cycle._id}-mikvah`,
         title: '🛁 Mikvah',
-        start: cycle.mikvahDate,
+        start: onahRange.start,
+        end: onahRange.end,
         className: 'mikvah',
         groupID: cycle._id,
       });
     }
 
-    // 5. Bedikah Events
+    // 4. Bedikah Events
     if (cycle.bedikot && cycle.bedikot.length > 0) {
       const isVoided = cycle.periodVoidedInfo?.isVoided || false;
       const voidedByBedikaId = cycle.periodVoidedInfo?.voidedByBedikaId;
@@ -831,8 +772,8 @@ const getCalendarEvents = async (userId, options = {}) => {
           let className = `bedikah bedikah-${result}`;
 
           if (isUncleanBedikah && result === 'not_clean') {
-            title = `🩸 New Period Start (Unclean Bedikah)`;
-            className = 'niddah-start bedikah-not_clean';
+            title = `🩸 Unclean Bedikah (Voids Hefsek)`;
+            className = 'bedikah-not_clean hefsek-voiding';
           } else if (isVoided && !isUncleanBedikah) {
             title = `🔍 Voided Morning Bedikah (Day ${bedikah.dayNumber})`;
           }
@@ -853,8 +794,8 @@ const getCalendarEvents = async (userId, options = {}) => {
           let className = `bedikah bedikah-${result}`;
 
           if (isUncleanBedikah && result === 'not_clean') {
-            title = `🩸 New Period Start (Unclean Bedikah)`;
-            className = 'niddah-start bedikah-not_clean';
+            title = `🩸 Unclean Bedikah (Voids Hefsek)`;
+            className = 'bedikah-not_clean hefsek-voiding';
           } else if (isVoided && !isUncleanBedikah) {
             title = `🔍 Voided Evening Bedikah (Day ${bedikah.dayNumber})`;
           }
@@ -871,7 +812,7 @@ const getCalendarEvents = async (userId, options = {}) => {
       });
     }
 
-    // 6. Vest Onot Events - with time ranges
+    // 5. Vest Onot Events - with time ranges
     if (cycle.vestOnot) {
       if (cycle.vestOnot.vesetHachodesh?.start) {
         events.push({

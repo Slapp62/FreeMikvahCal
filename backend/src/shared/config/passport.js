@@ -26,9 +26,9 @@ passport.deserializeUser(async (id, done) => {
 
     // Combine profile + auth data
     const user = {
-      _id: profile._id,
       ...profile.toObject(),
-      ...auth?.toObject()
+      ...auth?.toObject(),
+      _id: profile._id
     };
 
     done(null, user);
@@ -126,9 +126,9 @@ passport.use(new LocalStrategy(
 
       // Create user object for session (use Profile._id as user._id)
       const user = {
-        _id: profile._id, // Profile ID is the user ID
         ...profile.toObject(),
-        ...auth.toObject()
+        ...auth.toObject(),
+        _id: profile._id
       };
 
       logAuth('login_success', profile._id, {
@@ -186,9 +186,9 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.
         const userProfile = await Profiles.findById(auth.userId);
 
         const user = {
-          _id: userProfile._id,
           ...userProfile.toObject(),
-          ...auth.toObject()
+          ...auth.toObject(),
+          _id: userProfile._id
         };
 
         logAuth('google_login_success', userProfile._id, {
@@ -222,9 +222,9 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.
         const userProfile = await Profiles.findById(auth.userId);
 
         const user = {
-          _id: userProfile._id,
           ...userProfile.toObject(),
-          ...auth.toObject()
+          ...auth.toObject(),
+          _id: userProfile._id
         };
 
         logAuth('google_account_linked', userProfile._id, {
@@ -295,9 +295,9 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.
       await newAuth.save();
 
       const newUser = {
-        _id: newProfile._id,
         ...newProfile.toObject(),
-        ...newAuth.toObject()
+        ...newAuth.toObject(),
+        _id: newProfile._id
       };
 
       logAuth('google_register_success', newProfile._id, {

@@ -24,7 +24,7 @@ const requestTimer = (req, res, next) => {
         method: req.method,
         url: req.originalUrl,
         statusCode: res.statusCode,
-        userId: req.user?._id,
+        userId: req.user?._id?.toString(),
         correlationId: req.correlationId,
         userAgent: req.get('user-agent')
       });

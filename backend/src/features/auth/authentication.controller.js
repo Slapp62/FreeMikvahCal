@@ -52,7 +52,15 @@ const logout = (req, res, next) => {
         return next(err);
       }
 
-      res.clearCookie('connect.sid');
+      // Clear session cookie with proper configuration
+      const cookieName = process.env.SESSION_NAME || 'connect.sid';
+      res.clearCookie(cookieName, {
+        path: '/',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax'
+      });
+
       res.status(200).json({
         message: 'Logout successful'
       });

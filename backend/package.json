@@ -6,7 +6,9 @@
   "type": "commonjs",
   "scripts": {
     "start": "node index.js",
+    "predev": "node scripts/kill-port.js",
     "dev": "nodemon index.js",
+    "kill-port": "node scripts/kill-port.js",
     "test": "jest --coverage",
     "lint": "eslint . --ext js --max-warnings 0",
     "lint:fix": "eslint . --ext js --fix",

@@ -1,0 +1,11 @@
+{
+  "watch": ["src", "app.js", "index.js"],
+  "ext": "js,json",
+  "ignore": ["node_modules", "logs", "*.log", "*.test.js"],
+  "delay": 1000,
+  "verbose": false,
+  "signal": "SIGUSR2",
+  "env": {
+    "NODE_ENV": "development"
+  }
+}

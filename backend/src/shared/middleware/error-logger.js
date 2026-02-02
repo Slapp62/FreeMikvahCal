@@ -19,7 +19,7 @@ const errorLogger = (error, req, res, next) => {
     correlationId: req.correlationId,
 
     // User context
-    userId: req.user?._id,
+    userId: req.user?._id?.toString(),
     userAgent: req.get('user-agent'),
     ip: req.ip,
 

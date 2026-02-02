@@ -1,5 +1,7 @@
 const cron = require('node-cron');
-const Cycles = require('../../../features/cycle-tracking/cycle.model');
+const Periods = require('../../../features/cycle-tracking/models/period.model');
+const Bedikahs = require('../../../features/cycle-tracking/models/bedikah.model');
+const Vestos = require('../../../features/cycle-tracking/models/vestos.model');
 const logger = require('../../config/logger');
 const { logDatabase, logError } = require('../../utils/log-helpers');
 
@@ -16,23 +18,48 @@ const cleanupOldCycles = async () => {
       cutoffDate: twoYearsAgo
     });
 
-    const result = await Cycles.deleteMany({
+    // Delete old periods (Periods model has TTL index, but this provides explicit cleanup)
+    const periodsResult = await Periods.deleteMany({
+      createdAt: { $lt: twoYearsAgo }
+    });
+
+    // Delete associated bedikot for deleted periods
+    const bedikaResult = await Bedikahs.deleteMany({
+      createdAt: { $lt: twoYearsAgo }
+    });
+
+    // Delete associated vestos for deleted periods
+    const vestosResult = await Vestos.deleteMany({
       createdAt: { $lt: twoYearsAgo }
     });
 
     const duration = Date.now() - startTime;
 
-    logDatabase('delete_many', 'Cycles', {
-      deletedCount: result.deletedCount,
+    logDatabase('delete_many', 'Periods', {
+      deletedCount: periodsResult.deletedCount,
       olderThan: twoYearsAgo,
       reason: 'automatic_retention_policy',
       duration
     });
 
+    logDatabase('delete_many', 'Bedikahs', {
+      deletedCount: bedikaResult.deletedCount,
+      olderThan: twoYearsAgo,
+      reason: 'automatic_retention_policy'
+    });
+
+    logDatabase('delete_many', 'Vestos', {
+      deletedCount: vestosResult.deletedCount,
+      olderThan: twoYearsAgo,
+      reason: 'automatic_retention_policy'
+    });
+
     logger.info('Cycle cleanup job completed', {
       type: 'business',
       job: 'cycle_cleanup',
-      deletedCount: result.deletedCount,
+      deletedPeriods: periodsResult.deletedCount,
+      deletedBedikahs: bedikaResult.deletedCount,
+      deletedVestos: vestosResult.deletedCount,
       duration
     });
   } catch (error) {

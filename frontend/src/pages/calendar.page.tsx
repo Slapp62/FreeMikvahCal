@@ -19,7 +19,6 @@ const EVENT_TOOLTIPS: Record<string, string> = {
     'niddah-start': 'Period Start - Beginning of niddah status',
     'period-start': 'Period Start - Beginning of niddah status',
     'hefsek-tahara': 'Hefsek Tahara - Internal examination to check for clean status',
-    'shiva-nekiyim': 'Shiva Nekiyim - Seven clean days of purity',
     'mikvah': 'Mikvah - Ritual immersion completing the purification process',
     'veset-hachodesh': 'Veset HaChodesh - Monthly separation period based on Hebrew date',
     'haflagah': 'Haflagah - Interval-based separation period based on cycle length',
@@ -99,7 +98,6 @@ const getEventAbbreviation = (title: string, isMobile: boolean): string => {
     const abbreviations: Record<string, string> = {
         'Period Start': 'Start',
         'Hefsek Tahara': 'Hefsek',
-        'Shiva Nekiyim Start': '7N',
         'Mikvah': 'Mikvah',
         'Veset HaChodesh': 'Chodesh',
         'Haflagah': 'Haf',
@@ -470,9 +468,6 @@ export default function CalendarPage() {
         // Default rendering for other events
         const displayTitle = getEventAbbreviation(event.title, isMobile);
 
-        // Check if this is Shiva Nekiyim event for special tooltip
-        const isShivaNekiyim = classNames.some(className => className === 'shiva-nekiyim');
-
         const eventContent = (
             <div className="fc-event-main-frame">
                 {eventInfo.timeText && (
@@ -485,84 +480,6 @@ export default function CalendarPage() {
                 </div>
             </div>
         );
-
-        // Add tooltip for Shiva Nekiyim events
-        if (isShivaNekiyim) {
-            const tooltipText = getTooltipText(classNames);
-            const startDate = event.start ? new Date(event.start) : null;
-            const startTime = startDate ? formatTime(startDate) : 'N/A';
-            const endDate = startDate ? new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000) : null;
-            const endDateStr = endDate ? endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'N/A';
-
-            // Use Popover for mobile (interactive), Tooltip for desktop (hover)
-            if (isMobile) {
-                return (
-                    <Popover width={250} position="top" withArrow shadow="md" clickOutsideEvents={['mousedown', 'touchstart']}>
-                        <Popover.Target>
-                            <div style={{ width: '100%', height: '100%' }}>
-                                {eventContent}
-                            </div>
-                        </Popover.Target>
-                        <Popover.Dropdown>
-                            <Stack gap="xs">
-                                <Text size="sm" fw={600}>Shiva Nekiyim Start</Text>
-                                <Text size="xs">{tooltipText}</Text>
-                                <Text size="xs" c="dimmed">Start: {startTime}</Text>
-                                <Text size="xs" c="dimmed">Ends: {endDateStr} (7 days)</Text>
-                                <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>
-                                    Perform bedikah examinations twice daily (morning & evening)
-                                </Text>
-                                <Divider />
-                                <Button
-                                    size="xs"
-                                    variant="light"
-                                    color="pink"
-                                    fullWidth
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setSelectedEvent(event);
-                                        setSelectedEventTooltip(tooltipText);
-                                        setEventModalOpened(true);
-                                    }}
-                                >
-                                    More Info
-                                </Button>
-                            </Stack>
-                        </Popover.Dropdown>
-                    </Popover>
-                );
-            }
-
-            // Desktop: Use Tooltip
-            return (
-                <Tooltip
-                    label={
-                        <div style={{ maxWidth: 250 }}>
-                            <Text size="sm" fw={600} mb={4}>Shiva Nekiyim Start</Text>
-                            <Text size="xs" mb={8}>{tooltipText}</Text>
-                            <Text size="xs" c="dimmed" mb={2}>Start: {startTime}</Text>
-                            <Text size="xs" c="dimmed" mb={2}>Ends: {endDateStr} (7 days)</Text>
-                            <Text size="xs" c="dimmed" mt={4} mb={6} style={{ fontStyle: 'italic' }}>
-                                Perform bedikah examinations twice daily (morning & evening)
-                            </Text>
-                            <Divider my={6} />
-                            <Text size="xs" c="blue.4" style={{ fontStyle: 'italic', textAlign: 'center' }}>
-                                Click event for full details
-                            </Text>
-                        </div>
-                    }
-                    position="top"
-                    withArrow
-                    multiline
-                    w={250}
-                    events={{ hover: true, focus: false, touch: false }}
-                >
-                    <div style={{ width: '100%', height: '100%' }}>
-                        {eventContent}
-                    </div>
-                </Tooltip>
-            );
-        }
 
         return eventContent;
     };
@@ -628,7 +545,6 @@ export default function CalendarPage() {
                 <Group bd={'2px solid rgb(207, 207, 207)'} px={15} py={8} gap={8} justify="center" wrap="wrap">
                     <Box>PS = Period Start</Box>
                     <Box>HT = Hefsek Tahara</Box>
-                    <Box>7N = Shiva Nekiyim</Box>
                     <Box>Mik = Mikvah</Box>
                     <Box>VH = Veset HaChodesh</Box>
                     <Box>Haf = Haflagah</Box>
@@ -644,7 +560,6 @@ export default function CalendarPage() {
                 <Group bd={'2px solid rgb(207, 207, 207)'} px={15} py={8} gap={20} justify="center" wrap="wrap">
                     <Box>🩸 Period Start</Box>
                     <Box>✅ Hefsek Tahara</Box>
-                    <Box>7️⃣ Shiva Nekiyim</Box>
                     <Box>🛁 Mikvah</Box>
                     <Box>Veset HaChodesh</Box>
                     <Box>Haflagah</Box>

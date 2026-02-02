@@ -9,6 +9,7 @@
  * - 'auth' - Authentication events (login, logout, registration, OAuth)
  * - 'security' - Security events (failed logins, suspicious activity, rate limiting)
  * - 'performance' - Performance metrics (slow operations, timing data)
+ * - 'http' - HTTP request/response logs (automatically set by http-logger middleware)
  * - 'error' - Error events (automatically set for error-level logs)
  *
  * LOG FILES AND RETENTION:
@@ -18,6 +19,7 @@
  * - auth-*.log - Authentication events (30 day retention)
  * - security-*.log - Security events (90 day retention - compliance)
  * - performance-*.log - Performance metrics (7 day retention)
+ * - http-*.log - HTTP requests (7 day retention)
  *
  * USAGE EXAMPLES:
  *
@@ -160,6 +162,21 @@ const logger = winston.createLogger({
         }),
         winston.format.json()
       )
+    }),
+
+    // HTTP request logs
+    new DailyRotateFile({
+      filename: path.join(logsDir, 'http-%DATE%.log'),
+      datePattern: 'YYYY-MM-DD',
+      maxFiles: '7d',
+      level: 'info',
+      format: winston.format.combine(
+        filterByType('http'),
+        winston.format.timestamp({
+          format: 'YYYY-MM-DD HH:mm:ss'
+        }),
+        winston.format.json()
+      )
     })
   ]
 });
@@ -175,13 +192,57 @@ const logger = winston.createLogger({
  * - Metadata: Dim gray for readability
  * - Special fields (userId, correlationId, duration): Highlighted in magenta
  */
-const consoleFormat = winston.format.printf(({ level, message, timestamp, type, userId, correlationId, duration, ...meta }) => {
-  // Format timestamp
-  const ts = chalk.gray(timestamp);
+const consoleFormat = winston.format.printf(({ level, message, timestamp, type, userId, correlationId, duration, method, statusCode, url, contentLength, ...meta }) => {
+  // Format timestamp (HH:mm:ss only for cleaner output)
+  const timeOnly = timestamp.split(' ')[1];
+  const ts = chalk.gray(timeOnly);
 
-  // Format type badge if present
+  // Special handling for HTTP logs
+  if (type === 'http' && method && statusCode) {
+    // HTTP Method with color
+    const methodColors = {
+      'GET': chalk.cyan,
+      'POST': chalk.green,
+      'PUT': chalk.yellow,
+      'PATCH': chalk.yellow,
+      'DELETE': chalk.red,
+      'OPTIONS': chalk.gray
+    };
+    const methodColor = methodColors[method] || chalk.white;
+    const coloredMethod = methodColor.bold(method.padEnd(7));
+
+    // Status code with color
+    let statusColor;
+    if (statusCode >= 500) statusColor = chalk.red.bold;
+    else if (statusCode >= 400) statusColor = chalk.yellow.bold;
+    else if (statusCode >= 300) statusColor = chalk.cyan.bold;
+    else if (statusCode >= 200) statusColor = chalk.green.bold;
+    else statusColor = chalk.white;
+    const coloredStatus = statusColor(statusCode);
+
+    // URL
+    const coloredUrl = chalk.white(url);
+
+    // Duration with color
+    let durationStr = '';
+    if (duration !== undefined) {
+      const durationColor = duration > 1000 ? chalk.red : duration > 500 ? chalk.yellow : chalk.green;
+      durationStr = durationColor(`${duration.toFixed(1)}ms`.padStart(10));
+    }
+
+    // Content length (if available)
+    const sizeStr = contentLength ? chalk.dim(`${contentLength}b`.padStart(8)) : chalk.dim('     -  ');
+
+    // User info
+    const userStr = userId ? chalk.magenta(`user:${String(userId).substring(0, 8)}...`) : chalk.dim('anonymous');
+
+    // Build the HTTP log line
+    return `${ts} ${coloredMethod} ${coloredStatus} ${coloredUrl} ${sizeStr} ${durationStr} ${userStr}`;
+  }
+
+  // Format type badge if present (for non-HTTP logs)
   let typeBadge = '';
-  if (type) {
+  if (type && type !== 'http') {
     const typeColors = {
       'database': chalk.bgCyan.black,
       'auth': chalk.bgGreen.black,
@@ -210,10 +271,10 @@ const consoleFormat = winston.format.printf(({ level, message, timestamp, type, 
   const contextParts = [];
 
   if (userId) {
-    contextParts.push(chalk.magenta(`user:${userId}`));
+    contextParts.push(chalk.magenta(`user:${String(userId)}`));
   }
   if (correlationId) {
-    contextParts.push(chalk.cyan(`correlation:${correlationId}`));
+    contextParts.push(chalk.cyan(`correlation:${String(correlationId).substring(0, 8)}...`));
   }
   if (duration !== undefined) {
     const durationColor = duration > 1000 ? chalk.red : duration > 500 ? chalk.yellow : chalk.green;
@@ -225,10 +286,19 @@ const consoleFormat = winston.format.printf(({ level, message, timestamp, type, 
   }
 
   // Format remaining metadata (excluding special fields we already handled)
-  const metaKeys = Object.keys(meta);
+  const filteredMeta = { ...meta };
+  // Remove fields we've already displayed
+  delete filteredMeta.method;
+  delete filteredMeta.statusCode;
+  delete filteredMeta.url;
+  delete filteredMeta.contentLength;
+  delete filteredMeta.userAgent;
+  delete filteredMeta.ip;
+
+  const metaKeys = Object.keys(filteredMeta);
   let metaStr = '';
   if (metaKeys.length > 0) {
-    metaStr = '\n' + chalk.dim(JSON.stringify(meta, null, 2));
+    metaStr = '\n' + chalk.dim(JSON.stringify(filteredMeta, null, 2));
   }
 
   return `${ts} ${level} ${typeBadge ? typeBadge + ' ' : ''}${coloredMessage}${contextInfo}${metaStr}`;
