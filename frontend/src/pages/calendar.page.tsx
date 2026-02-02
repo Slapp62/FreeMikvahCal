@@ -150,6 +150,8 @@ export default function CalendarPage() {
 
         const titleElement = document.querySelector('.fc-toolbar-title');
         if (titleElement) {
+            // Clear existing content first to prevent duplication
+            titleElement.innerHTML = '';
             titleElement.innerHTML = customTitle;
         }
     };
@@ -242,14 +244,14 @@ export default function CalendarPage() {
             let icon = '';
             let cleanTitle = event.title;
             const isHefsek = event.title.includes('✅');
-            const isMikvahEvent = event.title.includes('🛁');
+            const isMikvahEvent = event.title.includes('🌙');
 
             if (isHefsek) {
                 icon = '✅';
                 cleanTitle = event.title.replace('✅', '').trim();
             } else if (isMikvahEvent) {
-                icon = '🛁';
-                cleanTitle = event.title.replace('🛁', '').trim();
+                icon = '🌙';
+                cleanTitle = event.title.replace('🌙', '').trim();
             }
 
             // Apply abbreviation on mobile
@@ -366,7 +368,10 @@ export default function CalendarPage() {
         if (isOnahEvent) {
             // Determine day/night icon based on start and end dates
             const startDate = new Date(event.start!);
-            const endDate = event.end ? new Date(event.end) : startDate;
+            // Check extendedProps.onahEnd first (for period starts), then event.end
+            const endDate = event.extendedProps?.onahEnd
+                ? new Date(event.extendedProps.onahEnd)
+                : (event.end ? new Date(event.end) : startDate);
 
             // Check if start and end are on the same Gregorian day
             const isSameDay = startDate.getFullYear() === endDate.getFullYear() &&
@@ -560,7 +565,7 @@ export default function CalendarPage() {
                 <Group bd={'2px solid rgb(207, 207, 207)'} px={15} py={8} gap={20} justify="center" wrap="wrap">
                     <Box>🩸 Period Start</Box>
                     <Box>✅ Hefsek Tahara</Box>
-                    <Box>🛁 Mikvah</Box>
+                    <Box>🌙 Mikvah</Box>
                     <Box>Veset HaChodesh</Box>
                     <Box>Haflagah</Box>
                     <Box>Onah Beinonit</Box>

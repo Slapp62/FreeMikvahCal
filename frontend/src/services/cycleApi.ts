@@ -11,7 +11,6 @@ export interface CreateCycleData {
 export interface UpdateCycleData {
   hefsekTaharaDate?: {
     dateString: string;
-    timeString: string;
   };
   shivaNekiyimStartDate?: {
     dateString: string;

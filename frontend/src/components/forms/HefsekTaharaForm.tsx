@@ -1,5 +1,4 @@
-import { Button, Stack, Textarea, Select, Alert, Text } from "@mantine/core"
-import { TimeInput } from "@mantine/dates"
+import { Button, Stack, Textarea, Select, Alert, Text, List } from "@mantine/core"
 import { notifications } from "@mantine/notifications"
 import { useForm, Controller } from "react-hook-form"
 import { useCycleStore } from "../../store/cycleStore"
@@ -8,11 +7,10 @@ import { updateCycle, getCycles } from "../../services/cycleApi"
 import { useState, useEffect } from "react"
 import { Cycle } from "../../store/cycleStore"
 import { IconAlertTriangle, IconInfoCircle } from "../../utils/icons"
-import { HebrewCalendar, HDate } from "@hebcal/core"
+import { Location, Zmanim } from "@hebcal/core"
 
 type HefsekTaharaValues = {
     cycleId: string;
-    time: string;
     notes?: string;
 }
 
@@ -33,14 +31,13 @@ const HefsekTaharaForm = ({ close, dateClicked }: Props) => {
     const [showShabbatWarning, setShowShabbatWarning] = useState(false);
     const [shabbatWarningMessage, setShabbatWarningMessage] = useState('');
     const [showOldDateWarning, setShowOldDateWarning] = useState(false);
+    const [sunsetTime, setSunsetTime] = useState<string>('');
 
     const { register, handleSubmit, control, setValue } = useForm<HefsekTaharaValues>({
         defaultValues: {
-            time: '12:00',
             notes: '',
         }
     });
-    const [timeValue, setTimeValue] = useState('12:00');
 
     // Fetch only cycles in niddah status from server
     useEffect(() => {
@@ -84,38 +81,47 @@ const HefsekTaharaForm = ({ close, dateClicked }: Props) => {
         // Check if hefsek date is very old (more than 30 days after period)
         setShowOldDateWarning(days > 30);
 
-        // Check for Shabbat/Yom Tov mikvah (7 days after hefsek)
+        // Calculate sunset time for hefsek date
+        if (user?.location?.lat && user?.location?.lng && user?.location?.timezone) {
+            try {
+                const loc = new Location(
+                    user.location.lat,
+                    user.location.lng,
+                    false,
+                    user.location.timezone
+                );
+                const zmanim = new Zmanim(loc, hefsekDate, false);
+                const sunset = zmanim.sunset();
+
+                const formattedSunset = sunset.toLocaleTimeString('en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true,
+                    timeZone: user.location.timezone
+                });
+
+                setSunsetTime(formattedSunset);
+            } catch (error) {
+                console.error('Error calculating sunset:', error);
+                setSunsetTime('sunset');
+            }
+        } else {
+            setSunsetTime('sunset');
+        }
+
+        // Check for Friday night mikvah only (7 days after hefsek)
         const calculatedMikvahDate = new Date(hefsekDate);
         calculatedMikvahDate.setDate(calculatedMikvahDate.getDate() + 7);
 
         const dayOfWeek = calculatedMikvahDate.getDay();
 
-        // Check if Friday night or Shabbat
+        // Check if Friday night only
         if (dayOfWeek === 5) { // Friday
             setShowShabbatWarning(true);
             setShabbatWarningMessage('Your mikvah date will fall on Friday night (Erev Shabbat). Please confirm this works with your mikvah\'s hours.');
-        } else if (dayOfWeek === 6) { // Saturday
-            setShowShabbatWarning(true);
-            setShabbatWarningMessage('Your mikvah date will fall on Shabbat. Please ensure your mikvah is open on Shabbat.');
         } else {
-            // Check for Jewish holidays
-            try {
-                const hDate = new HDate(calculatedMikvahDate);
-                const holidays = HebrewCalendar.getHolidaysOnDate(hDate, false); // false for Israel
-
-                if (holidays && holidays.length > 0) {
-                    const holidayNames = holidays.map((h: any) => h.getDesc()).join(', ');
-                    setShowShabbatWarning(true);
-                    setShabbatWarningMessage(`Your mikvah date will fall on ${holidayNames}. Please ensure your mikvah is open.`);
-                } else {
-                    setShowShabbatWarning(false);
-                    setShabbatWarningMessage('');
-                }
-            } catch (error) {
-                console.error('Error checking for holidays:', error);
-                setShowShabbatWarning(false);
-                setShabbatWarningMessage('');
-            }
+            setShowShabbatWarning(false);
+            setShabbatWarningMessage('');
         }
     }, [selectedCycle, dateClicked, user]);
 
@@ -149,7 +155,6 @@ const HefsekTaharaForm = ({ close, dateClicked }: Props) => {
             const result = await updateCycle(formData.cycleId, {
                 hefsekTaharaDate: {
                     dateString: dateClicked,
-                    timeString: timeValue,
                 },
                 status: 'shiva_nekiyim',
                 notes: formData.notes,
@@ -224,8 +229,11 @@ const HefsekTaharaForm = ({ close, dateClicked }: Props) => {
 
                 {showMinDaysWarning && (
                     <Alert icon={<IconAlertTriangle size={16} />} title="Early Hefsek Warning" color="yellow" w='100%'>
-                        This hefsek is only {daysSincePeriod} days after your period start. Your settings recommend a minimum of {user?.halachicPreferences?.minimumNiddahDays || 5} days.
-                        You may proceed if you have guidance from your halachic authority.
+                      <List>
+                        <List.Item>This hefsek is only {daysSincePeriod} days after your period start.</List.Item>
+                        <List.Item>Your settings recommend a minimum of {user?.halachicPreferences?.minimumNiddahDays || 5} days.</List.Item>
+                        <List.Item>It is advisable to confer with a halachic authority before marking hefsek earlier than the recommended minimum.</List.Item>
+                      </List>
                     </Alert>
                 )}
 
@@ -241,14 +249,9 @@ const HefsekTaharaForm = ({ close, dateClicked }: Props) => {
                     </Alert>
                 )}
 
-                <TimeInput
-                    label="Time"
-                    description="When was hefsek tahara performed?"
-                    value={timeValue}
-                    onChange={(event) => setTimeValue(event.target.value)}
-                    required
-                    w='100%'
-                />
+                <Alert icon={<IconInfoCircle size={16} />} title="Hefsek Timing" color="blue" w='100%'>
+                    Ensure hefsek was done before {sunsetTime || 'sunset'}
+                </Alert>
 
                 <Textarea
                     label="Notes (Optional)"

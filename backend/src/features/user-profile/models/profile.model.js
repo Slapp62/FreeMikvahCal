@@ -30,8 +30,8 @@ const profileSchema = new Schema({
   // Halachic Stringencies (Chumras)
   halachicPreferences: {
     ohrZaruah: { type: Boolean, default: false },      // Separate on preceding onah for all vesetim
-    kreisiUpleisi: { type: Boolean, default: false },  // 24-hour onah beinonit (day 30)
-    chasamSofer: { type: Boolean, default: false },    // Also observe day 31
+    beinonit_24hr: { type: Boolean, default: false },  // 24-hour onah beinonit (day 30)
+    beinonit_31: { type: Boolean, default: false },    // Also observe day 31
     minimumNiddahDays: {                               // Minimum days before hefsek tahara allowed
       type: Number,
       default: 5,

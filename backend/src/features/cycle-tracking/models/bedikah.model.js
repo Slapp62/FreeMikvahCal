@@ -69,7 +69,12 @@ bedikahSchema.pre('validate', async function(next) {
     if (period.shivaNekiyimStartDate && period.mikvahDate) {
       const shivaNekiyimEnd = new Date(period.mikvahDate);
 
-      if (this.date < period.shivaNekiyimStartDate || this.date > shivaNekiyimEnd) {
+      // Normalize dates to midnight for date-only comparison (ignore time components)
+      const bedikahDate = new Date(this.date.getFullYear(), this.date.getMonth(), this.date.getDate());
+      const startDate = new Date(period.shivaNekiyimStartDate.getFullYear(), period.shivaNekiyimStartDate.getMonth(), period.shivaNekiyimStartDate.getDate());
+      const endDate = new Date(shivaNekiyimEnd.getFullYear(), shivaNekiyimEnd.getMonth(), shivaNekiyimEnd.getDate());
+
+      if (bedikahDate < startDate || bedikahDate > endDate) {
         return next(new Error(
           `Bedikah date must be within the Shiva Nekiyim period (${period.shivaNekiyimStartDate.toLocaleDateString()} - ${shivaNekiyimEnd.toLocaleDateString()})`
         ));

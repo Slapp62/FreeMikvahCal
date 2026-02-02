@@ -1,4 +1,4 @@
-import { Container, Title, Paper, Stack, Checkbox, Button, Text, Divider, Alert, NumberInput, Autocomplete, Group, Modal, Badge, TextInput } from "@mantine/core";
+import { Container, Title, Paper, Stack, Checkbox, Button, Text, Divider, Alert, Radio, Autocomplete, Group, Modal, Badge, TextInput } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useState, useEffect, ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
@@ -16,8 +16,8 @@ const EditUserSettings = () => {
 
     // Local state for halachic preferences
     const [ohrZaruah, setOhrZaruah] = useState(false);
-    const [kreisiUpleisi, setKreisiUpleisi] = useState(false);
-    const [chasamSofer, setChasamSofer] = useState(false);
+    const [beinonit_24hr, setbeinonit_24hr] = useState(false);
+    const [beinonit_31, setbeinonit_31] = useState(false);
     const [minimumNiddahDays, setMinimumNiddahDays] = useState(5);
 
     // Local state for location
@@ -45,8 +45,8 @@ const EditUserSettings = () => {
 
                 // Set local state from fetched data
                 setOhrZaruah(userData.halachicPreferences?.ohrZaruah || false);
-                setKreisiUpleisi(userData.halachicPreferences?.kreisiUpleisi || false);
-                setChasamSofer(userData.halachicPreferences?.chasamSofer || false);
+                setbeinonit_24hr(userData.halachicPreferences?.beinonit_24hr || false);
+                setbeinonit_31(userData.halachicPreferences?.beinonit_31 || false);
                 setMinimumNiddahDays(userData.halachicPreferences?.minimumNiddahDays || 5);
 
                 // Set location data
@@ -94,8 +94,8 @@ const EditUserSettings = () => {
             const result = await updateCurrentUser({
                 halachicPreferences: {
                     ohrZaruah,
-                    kreisiUpleisi,
-                    chasamSofer,
+                    beinonit_24hr,
+                    beinonit_31,
                     minimumNiddahDays,
                 },
             });
@@ -335,8 +335,8 @@ const EditUserSettings = () => {
                         <Checkbox
                             label="Kreisi U'Pleisi"
                             description="Observe both day and night on day 30 (24-hour Onah Beinonit)"
-                            checked={kreisiUpleisi}
-                            onChange={(event: ChangeEvent<HTMLInputElement>) => setKreisiUpleisi(event.currentTarget.checked)}
+                            checked={beinonit_24hr}
+                            onChange={(event: ChangeEvent<HTMLInputElement>) => setbeinonit_24hr(event.currentTarget.checked)}
                         />
                         <Text size="xs" c="dimmed" mt={5} ml={28}>
                             In addition to the matching onah on day 30, also observe the opposite onah on day 30.
@@ -349,8 +349,8 @@ const EditUserSettings = () => {
                         <Checkbox
                             label="Beinonit 31"
                             description="Also observe day 31 in addition to day 30"
-                            checked={chasamSofer}
-                            onChange={(event: ChangeEvent<HTMLInputElement>) => setChasamSofer(event.currentTarget.checked)}
+                            checked={beinonit_31}
+                            onChange={(event: ChangeEvent<HTMLInputElement>) => setbeinonit_31(event.currentTarget.checked)}
                         />
                         <Text size="xs" c="dimmed" mt={5} ml={28}>
                             Observe the matching onah on both day 30 and day 31 from the start of your period.
@@ -360,18 +360,18 @@ const EditUserSettings = () => {
                     <Divider />
 
                     <div>
-                        <NumberInput
+                        <Radio.Group
                             label="Minimum Niddah Days"
-                            description="Minimum number of days required before Hefsek Tahara"
-                            value={minimumNiddahDays}
+                            description="Select based on your custom"
+                            value={String(minimumNiddahDays)}
                             onChange={(value) => setMinimumNiddahDays(Number(value))}
-                            min={4}
-                            max={10}
-                            step={1}
-                            allowDecimal={false}
-                        />
+                        >
+                            <Stack mt="xs">
+                                <Radio value="4" label="4 days (Sephardi custom)" />
+                                <Radio value="5" label="5 days (Ashkenazi custom)" />
+                            </Stack>
+                        </Radio.Group>
                         <Text size="xs" c="dimmed" mt={5}>
-                            Halacha typically requires at least 4-5 days from the start of your period before performing Hefsek Tahara.
                             This setting will prevent you from entering a Hefsek Tahara date that is too early.
                         </Text>
                     </div>

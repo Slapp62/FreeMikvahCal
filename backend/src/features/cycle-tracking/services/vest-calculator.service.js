@@ -45,7 +45,16 @@ function calculateVesetHachodesh(period, location, isDayOnah, applyOhrZaruahChum
 
   // Create new date with same day number, next Hebrew month
   const vesetHachodeshshDate = new HDate(day, month + 1, year);
-  const vesetDate = vesetHachodeshshDate.greg();
+  let vesetDate = vesetHachodeshshDate.greg();
+
+  // For night onahs, .greg() returns the Gregorian date at midnight, but the Hebrew date
+  // actually started the previous evening at sunset. We need to adjust back one day
+  // to get the Gregorian day when the night onah begins (at sunset).
+  if (!isDayOnah) {
+    vesetDate = new Date(vesetDate);
+    vesetDate.setDate(vesetDate.getDate() - 1);
+  }
+
   const vesetRange = getOnahTimeRange(vesetDate, location, isDayOnah);
 
   const result = {
@@ -108,10 +117,15 @@ function calculateOnahBeinonit(period, location, isDayOnah, chumras = {}) {
     dayOfWeek: beinonitRange.dayOfWeek
   };
 
-  // Kreisi Upleisi - Opposite onah same Hebrew day (day 30)
-  if (chumras.kreisiUpleisi) {
-    const kreisiRange = getOnahTimeRange(beinonitDate, location, !isDayOnah);
-    result.kreisiUpleisi = {
+  // Kreisi Upleisi - Opposite onah (following onah after base)
+  // If base is day: following night is same date
+  // If base is night: following day is NEXT date
+  if (chumras.beinonit_24hr) {
+    const kreisiDate = isDayOnah
+      ? beinonitDate
+      : new Date(beinonitDate.getTime() + 86400000); // Add 1 day if base is night
+    const kreisiRange = getOnahTimeRange(kreisiDate, location, !isDayOnah);
+    result.beinonit_24hr = {
       start: kreisiRange.start,
       end: kreisiRange.end
     };
@@ -122,14 +136,26 @@ function calculateOnahBeinonit(period, location, isDayOnah, chumras = {}) {
     result.ohrZaruah = applyOhrZaruah(beinonitDate, location, isDayOnah);
   }
 
-  // Chasam Sofer - Day 30 with matching onah
-  if (chumras.chasamSofer) {
-    const chasamSoferDate = new Date(period.niddahOnah.start);
-    chasamSoferDate.setDate(chasamSoferDate.getDate() + 30);
-    const chasamRange = getOnahTimeRange(chasamSoferDate, location, isDayOnah);
-    result.chasamSofer = {
+  // Beinonit 31 - Day 30 with matching onah
+  if (chumras.beinonit_31) {
+    const beinonit_31Date = new Date(period.niddahOnah.start);
+    beinonit_31Date.setDate(beinonit_31Date.getDate() + 30);
+    const chasamRange = getOnahTimeRange(beinonit_31Date, location, isDayOnah);
+    result.beinonit_31 = {
       start: chasamRange.start,
       end: chasamRange.end
+    };
+
+    // Also add opposite onah for beinonit_31 (following onah after base)
+    // If base is day: following night is same date
+    // If base is night: following day is NEXT date
+    const beinonit_31_oppositeDate = isDayOnah
+      ? beinonit_31Date
+      : new Date(beinonit_31Date.getTime() + 86400000); // Add 1 day if base is night
+    const beinonit_31_oppositeRange = getOnahTimeRange(beinonit_31_oppositeDate, location, !isDayOnah);
+    result.beinonit_31_opposite = {
+      start: beinonit_31_oppositeRange.start,
+      end: beinonit_31_oppositeRange.end
     };
   }
 
@@ -173,16 +199,16 @@ function calculateAllVestOnot(period, previousCycles, location, halachicPreferen
       isDayOnah,
       {
         ohrZaruah: halachicPreferences.ohrZaruah,
-        kreisiUpleisi: halachicPreferences.kreisiUpleisi,
-        chasamSofer: halachicPreferences.chasamSofer
+        beinonit_24hr: halachicPreferences.beinonit_24hr,
+        beinonit_31: halachicPreferences.beinonit_31
       }
     )
   };
 
   const appliedChumras = {
     ohrZaruah: halachicPreferences.ohrZaruah || false,
-    kreisiUpleisi: halachicPreferences.kreisiUpleisi || false,
-    chasamSofer: halachicPreferences.chasamSofer || false
+    beinonit_24hr: halachicPreferences.beinonit_24hr || false,
+    beinonit_31: halachicPreferences.beinonit_31 || false
   };
 
   return { vestOnot, appliedChumras };

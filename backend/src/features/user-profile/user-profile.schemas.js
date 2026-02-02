@@ -19,8 +19,8 @@ const updateUserSchema = Joi.object({
 
   halachicPreferences: Joi.object({
     ohrZaruah: Joi.boolean(),
-    kreisiUpleisi: Joi.boolean(),
-    chasamSofer: Joi.boolean(),
+    beinonit_24hr: Joi.boolean(),
+    beinonit_31: Joi.boolean(),
     minimumNiddahDays: Joi.number().min(4).max(10).messages({
       'number.min': 'Minimum niddah days must be at least 4',
       'number.max': 'Minimum niddah days cannot exceed 10',

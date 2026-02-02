@@ -10,9 +10,8 @@ import {
   Divider,
   Fieldset,
   Group,
-  NumberInput,
   Paper,
-  Select,
+  Radio,
   Stack,
   Text,
   Title,
@@ -21,6 +20,7 @@ import { useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { useAuth } from '../hooks/useAuth';
 import { searchLocations, Location } from '../services/locationApi';
+import { useHalachicPresets } from '../hooks/useHalachicPresets';
 
 type RegisterFormValues = {
   email: string;
@@ -34,8 +34,8 @@ type RegisterFormValues = {
   };
   halachicPreferences: {
     ohrZaruah: boolean;
-    kreisiUpleisi: boolean;
-    chasamSofer: boolean;
+    beinonit_24hr: boolean;
+    beinonit_31: boolean;
     minimumNiddahDays: number;
   };
 };
@@ -60,25 +60,16 @@ const CompleteProfile = () => {
       },
       halachicPreferences: {
         ohrZaruah: false,
-        kreisiUpleisi: false,
-        chasamSofer: false,
+        beinonit_24hr: false,
+        beinonit_31: false,
         minimumNiddahDays: 5,
       },
     },
   });
 
-  // Watch halachicCustom to auto-update minimumNiddahDays
+  // Auto-apply halachic presets when custom changes
   const halachicCustom = watch('halachicCustom');
-
-  // Auto-update minimumNiddahDays based on halachic custom
-  useEffect(() => {
-    if (halachicCustom === 'sephardi') {
-      setValue('halachicPreferences.minimumNiddahDays', 4);
-    } else if (halachicCustom === 'ashkenazi' || halachicCustom === 'chabad') {
-      setValue('halachicPreferences.minimumNiddahDays', 5);
-    }
-    // Don't auto-update for 'manual' - let user keep their choice
-  }, [halachicCustom, setValue]);
+  useHalachicPresets(halachicCustom, setValue);
 
   // Load initial locations on mount
   useEffect(() => {
@@ -129,8 +120,8 @@ const CompleteProfile = () => {
       },
       halachicPreferences: {
         ohrZaruah: formData.halachicPreferences.ohrZaruah,
-        kreisiUpleisi: formData.halachicPreferences.kreisiUpleisi,
-        chasamSofer: formData.halachicPreferences.chasamSofer,
+        beinonit_24hr: formData.halachicPreferences.beinonit_24hr,
+        beinonit_31: formData.halachicPreferences.beinonit_31,
         minimumNiddahDays: formData.halachicPreferences.minimumNiddahDays,
       },
     });
@@ -167,51 +158,65 @@ const CompleteProfile = () => {
                 />
               )}
             />
-
+            
+            <Fieldset legend="Halachic Custom">
             <Controller
-              name="halachicCustom"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  label="Halachic Custom"
-                  description="This will be used to set the default halachic custom for your account. You can change this later in your settings."
-                  placeholder="Select halachic custom"
-                  clearable
-                  data={[
-                    { value: 'ashkenazi', label: 'Ashkenazi' },
-                    { value: 'sephardi', label: 'Sephardi' },
-                    { value: 'chabad', label: 'Chabad' },
-                    { value: 'manual', label: 'Manual Setting' },
-                  ]}
-                  {...field}
-                />
-              )}
-            />
+                    name="halachicCustom"
+                    control={control}
+                    render={({ field }) => (
+                      <Radio.Group
+                        description="Select based on your custom"
+                        required
+                        {...field}
+                        value={String(field.value)}
+                        onChange={(value) => field.onChange(value)}
+                      >
+                        <Stack mt="xs">
+                          <Radio 
+                            value="ashkenazi" 
+                            label="Ashkenaz - Eretz Yisrael" 
+                            description=" (Based on Taharas Bas Yisrael, Marei Cohen, and Hilchos Niddah V'Tehara)"
+                            />
+                          <Radio value="sephardi" label="Sephardi" />
+                          <Radio value="chabad" label="Chabad" />
+                          <Radio value="manual" label="Manual Setting" />
+                        </Stack>
+                      </Radio.Group>
+                    )}
+                  />
+            </Fieldset>
 
+            <Fieldset legend="Minimum Before Hefsek Tahara">
             <Controller
-              name="halachicPreferences.minimumNiddahDays"
-              control={control}
-              render={({ field }) => (
-                <NumberInput
-                  label="Minimum Days Before Hefsek Tahara"
-                  description="The minimum number of days that must pass from the start of your period before performing hefsek tahara. Default is 5 days (4 for Sephardi custom)."
-                  placeholder="Enter number of days"
-                  min={1}
-                  max={14}
-                  {...field}
-                  onChange={(value) => field.onChange(value || 5)}
-                />
-              )}
-            />
+                    name="halachicPreferences.minimumNiddahDays"
+                    control={control}
+                    render={({ field }) => (
+                      <Radio.Group
+                        description="Select based on your custom"
+                        
+                        {...field}
+                        value={String(field.value)}
+                        onChange={(value) => field.onChange(Number(value))}
+                      >
+                        <Stack mt="xs">
+                          <Radio value="4" label="4 days (Sephardi custom)" />
+                          <Radio value="5" label="5 days (Ashkenazi custom)" />
+                        </Stack>
+                      </Radio.Group>
+                    )}
+                  />
+            </Fieldset>
 
             <Group grow={!isMobile} wrap={isMobile ? 'wrap' : 'nowrap'} align="flex-start">
               <Fieldset legend="Halachic Preferences">
-                <Stack gap="xs">
+                
+                <Stack gap="lg">
+                  
                   <Checkbox label="Onat Ohr Zarua" description='Additional 12 hours separation preceding primary onah.'  {...register('halachicPreferences.ohrZaruah')} />
 
-                  <Checkbox label="Beinonit 31" description='Additional Onah Beinonit on day 31.' {...register('halachicPreferences.chasamSofer')} />
+                  <Checkbox label="Beinonit 31" description='Additional Onah Beinonit on day 31.' {...register('halachicPreferences.beinonit_31')} />
                   
-                  <Checkbox label="Onat Kreisi U'Pleisi" description='Onah Beinonit on day 30 of 24 hours' {...register('halachicPreferences.kreisiUpleisi')} />
+                  <Checkbox label="Full Day Beinonit" description='Onah Beinonit on day 30 of 24 hours' {...register('halachicPreferences.beinonit_24hr')} />
                 </Stack>
               </Fieldset>
 

@@ -76,8 +76,8 @@ export function HeroAuthCard() {
       },
       halachicPreferences: {
         ohrZaruah: false,
-        kreisiUpleisi: false,
-        chasamSofer: false,
+        beinonit_24hr: false,
+        beinonit_31: false,
       },
     });
 

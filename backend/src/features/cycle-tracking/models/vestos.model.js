@@ -59,12 +59,12 @@ const vestosSchema = new Schema({
         end: Date,
         _id: false
       },
-      kreisiUpleisi: {
+      beinonit_24hr: {
         start: Date,
         end: Date,
         _id: false
       },
-      chasamSofer: {
+      beinonit_31: {
         start: Date,
         end: Date,
         _id: false
@@ -81,8 +81,8 @@ const vestosSchema = new Schema({
   // Applied Chumras (Halachic Stringencies)
   appliedChumras: {
     ohrZaruah: { type: Boolean, default: false },
-    kreisiUpleisi: { type: Boolean, default: false },
-    chasamSofer: { type: Boolean, default: false },
+    beinonit_24hr: { type: Boolean, default: false },
+    beinonit_31: { type: Boolean, default: false },
     _id: false
   },
 
@@ -203,9 +203,9 @@ vestosSchema.methods.calculateVestOnot = function(period, previousCycles, locati
   };
 
   // Kreisi Upleisi - Opposite onah same Hebrew day
-  if (halachicPreferences.kreisiUpleisi) {
+  if (halachicPreferences.beinonit_24hr) {
     const kreisiRange = getOnahTimeRange(beinonitDate, location, !isDayOnah);
-    this.vestOnot.onahBeinonit.kreisiUpleisi = {
+    this.vestOnot.onahBeinonit.beinonit_24hr = {
       start: kreisiRange.start,
       end: kreisiRange.end
     };
@@ -231,11 +231,11 @@ vestosSchema.methods.calculateVestOnot = function(period, previousCycles, locati
   }
 
   // Chasam Sofer - Day 30 with matching onah
-  if (halachicPreferences.chasamSofer) {
-    const chasamSoferDate = new Date(period.niddahOnah.start);
-    chasamSoferDate.setDate(chasamSoferDate.getDate() + 30);
-    const chasamRange = getOnahTimeRange(chasamSoferDate, location, isDayOnah);
-    this.vestOnot.onahBeinonit.chasamSofer = {
+  if (halachicPreferences.beinonit_31) {
+    const beinonit_31Date = new Date(period.niddahOnah.start);
+    beinonit_31Date.setDate(beinonit_31Date.getDate() + 30);
+    const chasamRange = getOnahTimeRange(beinonit_31Date, location, isDayOnah);
+    this.vestOnot.onahBeinonit.beinonit_31 = {
       start: chasamRange.start,
       end: chasamRange.end
     };
@@ -244,8 +244,8 @@ vestosSchema.methods.calculateVestOnot = function(period, previousCycles, locati
   // Store which chumras were applied
   this.appliedChumras = {
     ohrZaruah: halachicPreferences.ohrZaruah || false,
-    kreisiUpleisi: halachicPreferences.kreisiUpleisi || false,
-    chasamSofer: halachicPreferences.chasamSofer || false
+    beinonit_24hr: halachicPreferences.beinonit_24hr || false,
+    beinonit_31: halachicPreferences.beinonit_31 || false
   };
 };
 

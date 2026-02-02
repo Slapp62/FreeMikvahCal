@@ -3,8 +3,8 @@ import { User } from '../store/userStore';
 
 export interface HalachicPreferences {
   ohrZaruah?: boolean;
-  kreisiUpleisi?: boolean;
-  chasamSofer?: boolean;
+  beinonit_24hr?: boolean;
+  beinonit_31?: boolean;
   minimumNiddahDays?: number;
 }
 

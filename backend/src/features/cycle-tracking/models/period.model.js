@@ -134,7 +134,7 @@ periodSchema.pre('validate', function(next) {
     const daysDiff = Math.ceil(
       (this.mikvahDate - this.shivaNekiyimStartDate) / (1000 * 60 * 60 * 24)
     );
-    if (daysDiff < 7) {
+    if (daysDiff < 6) {
       this.invalidate('mikvahDate',
         'Mikvah must be at least 7 days after Shiva Nekiyim start');
     }

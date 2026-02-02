@@ -16,8 +16,8 @@ export interface User {
   halachicCustom?: 'ashkenazi' | 'sephardi' | 'chabad' | 'manual' | null;
   halachicPreferences?: {
     ohrZaruah?: boolean;
-    kreisiUpleisi?: boolean;
-    chasamSofer?: boolean;
+    beinonit_24hr?: boolean;
+    beinonit_31?: boolean;
     minimumNiddahDays?: number;
   };
   profileComplete: boolean;

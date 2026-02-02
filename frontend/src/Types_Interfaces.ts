@@ -12,8 +12,8 @@ export interface IRegister {
     };
     halachicPreferences?: {
         ohrZaruah?: boolean;
-        kreisiUpleisi?: boolean;
-        chasamSofer?: boolean;
+        beinonit_24hr?: boolean;
+        beinonit_31?: boolean;
         minimumNiddahDays?: number;
     };
     preferences: {

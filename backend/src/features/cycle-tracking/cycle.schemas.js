@@ -39,10 +39,11 @@ const createCycleSchema = Joi.object({
 const updateCycleSchema = Joi.object({
   // Update dates
   hefsekTaharaDate: Joi.object({
-    dateString: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/).messages({
-      'string.pattern.base': 'Hefsek Tahara date must be in YYYY-MM-DD format'
+    dateString: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/).required().messages({
+      'string.pattern.base': 'Hefsek Tahara date must be in YYYY-MM-DD format',
+      'any.required': 'Hefsek Tahara date is required'
     }),
-    timeString: Joi.string().pattern(/^([01]\d|2[0-3]):([0-5]\d)$/).messages({
+    timeString: Joi.string().pattern(/^([01]\d|2[0-3]):([0-5]\d)$/).optional().messages({
       'string.pattern.base': 'Hefsek Tahara time must be in HH:MM format (24-hour)'
     })
   }),

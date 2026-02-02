@@ -40,8 +40,8 @@ const updateUser = async (userId, updateData) => {
     // Check if any preference value actually changed
     halachicPreferencesChanged =
       (newPrefs.ohrZaruah !== undefined && newPrefs.ohrZaruah !== oldPrefs.ohrZaruah) ||
-      (newPrefs.kreisiUpleisi !== undefined && newPrefs.kreisiUpleisi !== oldPrefs.kreisiUpleisi) ||
-      (newPrefs.chasamSofer !== undefined && newPrefs.chasamSofer !== oldPrefs.chasamSofer);
+      (newPrefs.beinonit_24hr !== undefined && newPrefs.beinonit_24hr !== oldPrefs.beinonit_24hr) ||
+      (newPrefs.beinonit_31 !== undefined && newPrefs.beinonit_31 !== oldPrefs.beinonit_31);
   }
 
   // Update allowed fields (includes merged preference fields)

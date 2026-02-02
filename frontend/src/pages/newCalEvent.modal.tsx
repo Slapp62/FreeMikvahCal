@@ -1,4 +1,4 @@
-import { Modal, Tabs } from '@mantine/core';
+import { Divider, Modal, Tabs } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import { useMediaQuery } from '@mantine/hooks';
 import PeriodStartForm from '../components/forms/PeriodStartForm';
@@ -42,22 +42,22 @@ function CalendarEventModal({clicked, close, dateClicked} : ModalProps) {
                 radius="md"
                 fullScreen={isMobile}
             >
-            <Tabs defaultValue="period" orientation="horizontal">
-                <Tabs.List mb={10} grow={isMobile}>
-                    <Tabs.Tab value="period">
+            <Tabs defaultValue="period" orientation="horizontal" variant='pills'>
+                <Tabs.List grow={isMobile} justify="flex-start" >
+                    <Tabs.Tab value="period" mb={10}>
                         Period Start
                     </Tabs.Tab>
-                    <Tabs.Tab value="hefsek">
+                    <Tabs.Tab value="hefsek" mb={10}>
                         Hefsek Tahara
                     </Tabs.Tab>
-                    <Tabs.Tab value="bedikah">
+                    <Tabs.Tab value="bedikah" mb={10}>
                         Bedikah
                     </Tabs.Tab>
-                    <Tabs.Tab value="other">
+                    <Tabs.Tab value="other" mb={10}>
                         Other
                     </Tabs.Tab>
                 </Tabs.List>
-
+                <Divider />
                 <Tabs.Panel value="period" pt="xs">
                     <PeriodStartForm
                         close={close}

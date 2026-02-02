@@ -42,11 +42,11 @@ export interface Cycle {
         start: string;
         end: string;
       };
-      kreisiUpleisi?: {
+      beinonit_24hr?: {
         start: string;
         end: string;
       };
-      chasamSofer?: {
+      beinonit_31?: {
         start: string;
         end: string;
       };
@@ -57,8 +57,8 @@ export interface Cycle {
   };
   appliedChumras?: {
     ohrZaruah: boolean;
-    kreisiUpleisi: boolean;
-    chasamSofer: boolean;
+    beinonit_24hr: boolean;
+    beinonit_31: boolean;
   };
   periodVoidedInfo?: {
     isVoided: boolean;

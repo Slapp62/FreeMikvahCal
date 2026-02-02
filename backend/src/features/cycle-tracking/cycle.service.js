@@ -5,6 +5,7 @@ const Profiles = require('../user-profile/models/profile.model');
 const { throwError } = require('../../shared/utils/error-handlers');
 const { normalizeCycle, normalizeCycles } = require('../../shared/utils/normalize-responses');
 const { createDateInTimezone, getOnahTimeRange, getHebrewDateForTimestamp } = require('../../shared/utils/hebrew-datetime');
+const { Location, Zmanim } = require('@hebcal/core');
 const { logDatabase, logBusiness } = require('../../shared/utils/log-helpers');
 const { calculateAllVestOnot } = require('./services/vest-calculator.service');
 const { calculateCycleMetrics } = require('./services/cycle-metrics.service');
@@ -34,8 +35,8 @@ const createCycle = async (userId, cycleData) => {
   // Extract user's halachic preferences (default to false if not set)
   const halachicPreferences = profile.halachicPreferences || {
     ohrZaruah: false,
-    kreisiUpleisi: false,
-    chasamSofer: false
+    beinonit_24hr: false,
+    beinonit_31: false
   };
 
   // Check if user has complete location data (timezone, lat, lng)
@@ -244,9 +245,48 @@ const updateCycle = async (userId, cycleId, updateData) => {
 
   // Update dates (convert from user's timezone to UTC)
   if (updateData.hefsekTaharaDate) {
+    let timeString = updateData.hefsekTaharaDate.timeString;
+
+    // If no time provided, calculate sunset time for the hefsek date
+    if (!timeString && hasCompleteLocation) {
+      try {
+        const hefsekDateOnly = new Date(updateData.hefsekTaharaDate.dateString + 'T12:00:00');
+        const loc = new Location(profile.location.lat, profile.location.lng, false, timezone);
+        const zmanim = new Zmanim(loc, hefsekDateOnly, false);
+        const sunset = zmanim.sunset();
+
+        // Format sunset time as HH:MM in user's timezone
+        timeString = sunset.toLocaleTimeString('en-US', {
+          hour12: false,
+          hour: '2-digit',
+          minute: '2-digit',
+          timeZone: timezone
+        });
+
+        logBusiness('hefsek_sunset_calculated', {
+          userId,
+          cycleId,
+          date: updateData.hefsekTaharaDate.dateString,
+          calculatedSunset: timeString
+        });
+      } catch (error) {
+        // Fallback to 6:00 PM if sunset calculation fails
+        timeString = '18:00';
+        logDatabase('warning', 'Periods', {
+          userId,
+          periodId: cycleId,
+          message: 'Failed to calculate sunset, using 6:00 PM default',
+          error: error.message
+        });
+      }
+    } else if (!timeString) {
+      // Fallback if no location data
+      timeString = '18:00';
+    }
+
     const proposedHefsekDate = createDateInTimezone(
       updateData.hefsekTaharaDate.dateString,
-      updateData.hefsekTaharaDate.timeString,
+      timeString,
       timezone
     );
 
@@ -283,7 +323,7 @@ const updateCycle = async (userId, cycleId, updateData) => {
 
     // Automatically create mikvah date 7 days after shiva nekiyim start
     const mikvahDate = new Date(shivaNekiyimStart);
-    mikvahDate.setDate(mikvahDate.getDate() + 7);
+    mikvahDate.setDate(mikvahDate.getDate() + 6);
     period.mikvahDate = mikvahDate;
 
     // Update status to shiva_nekiyim when hefsek is set
@@ -403,8 +443,8 @@ const deleteCycle = async (userId, cycleId) => {
 
   const halachicPreferences = profile.halachicPreferences || {
     ohrZaruah: false,
-    kreisiUpleisi: false,
-    chasamSofer: false
+    beinonit_24hr: false,
+    beinonit_31: false
   };
 
   const deletedPeriodStartDate = period.niddahOnah.start;
@@ -700,16 +740,21 @@ const getCalendarEvents = async (userId, options = {}) => {
   const events = [];
 
   cycles.forEach((cycle) => {
-    // 1. Period Start Event (Niddah Start) - with time range
+    // 1. Period Start Event (Niddah Start)
     // Period start is NEVER voided - only hefsek can be voided
+    // No 'end' property to prevent multi-day spanning, but store in extendedProps for icon detection
     if (cycle.niddahOnah && cycle.niddahOnah.start) {
       events.push({
         id: `${cycle._id}-niddah`,
         title: `🩸 Period Start`,
         start: cycle.niddahOnah.start,
-        end: cycle.niddahOnah.end,
+        // No 'end' property - displays on single Gregorian date
+        allDay: false,
         className: `niddah-start`,
         groupID: cycle._id,
+        extendedProps: {
+          onahEnd: cycle.niddahOnah.end
+        }
       });
     }
 
@@ -735,20 +780,19 @@ const getCalendarEvents = async (userId, options = {}) => {
       });
     }
 
-    // 3. Mikvah Date Event - with onah time range
+    // 3. Mikvah Date Event - ALWAYS at night (after sunset on 7th day)
+    // Display on the Gregorian date of the 7th day only (no multi-day spanning)
     if (cycle.mikvahDate && location) {
-      // Determine if mikvah is during day or night onah
-      const mikvahInfo = getHebrewDateForTimestamp(cycle.mikvahDate, location);
-      const isDayOnah = mikvahInfo.onah === 'day';
-
-      // Get the onah time range
-      const onahRange = getOnahTimeRange(cycle.mikvahDate, location, isDayOnah);
+      const loc = new Location(location.lat, location.lng, false, location.timezone);
+      const zmanim = new Zmanim(loc, cycle.mikvahDate, false);
+      const sunset = zmanim.sunset();
 
       events.push({
         id: `${cycle._id}-mikvah`,
-        title: '🛁 Mikvah',
-        start: onahRange.start,
-        end: onahRange.end,
+        title: '🌙 Mikvah',
+        start: sunset,
+        // No 'end' property - displays as point-in-time event on single day
+        allDay: false,
         className: 'mikvah',
         groupID: cycle._id,
       });
@@ -812,16 +856,22 @@ const getCalendarEvents = async (userId, options = {}) => {
       });
     }
 
-    // 5. Vest Onot Events - with time ranges
+    // 5. Vest Onot Events - display on single Gregorian day
+    // Store onahEnd in extendedProps for sun/moon icon detection (like period start and mikvah)
     if (cycle.vestOnot) {
       if (cycle.vestOnot.vesetHachodesh?.start) {
         events.push({
           id: `${cycle._id}-veset`,
           title: `📅 Veset HaChodesh`,
           start: cycle.vestOnot.vesetHachodesh.start,
-          end: cycle.vestOnot.vesetHachodesh.end,
+          // No end property - displays on single Gregorian day
+          allDay: false,
           className: `vest-onah veset-hachodesh`,
           groupID: cycle._id,
+          extendedProps: {
+            onahEnd: cycle.vestOnot.vesetHachodesh.end,
+            hebrewDate: cycle.vestOnot.vesetHachodesh.hebrewDate
+          }
         });
       }
 
@@ -830,9 +880,14 @@ const getCalendarEvents = async (userId, options = {}) => {
           id: `${cycle._id}-haflagah`,
           title: `⏱️ Haflagah`,
           start: cycle.vestOnot.haflagah.start,
-          end: cycle.vestOnot.haflagah.end,
+          // No end property - displays on single Gregorian day
+          allDay: false,
           className: `vest-onah haflagah`,
           groupID: cycle._id,
+          extendedProps: {
+            onahEnd: cycle.vestOnot.haflagah.end,
+            hebrewDate: cycle.vestOnot.haflagah.hebrewDate
+          }
         });
       }
 
@@ -841,65 +896,130 @@ const getCalendarEvents = async (userId, options = {}) => {
           id: `${cycle._id}-beinonit`,
           title: `🔄 Onah Beinonit`,
           start: cycle.vestOnot.onahBeinonit.start,
-          end: cycle.vestOnot.onahBeinonit.end,
+          // No end property - displays on single Gregorian day
+          allDay: false,
           className: `vest-onah onah-beinonit`,
           groupID: cycle._id,
+          extendedProps: {
+            onahEnd: cycle.vestOnot.onahBeinonit.end,
+            hebrewDate: cycle.vestOnot.onahBeinonit.hebrewDate
+          }
         });
 
-        if (cycle.vestOnot.onahBeinonit.kreisiUpleisi?.start) {
+        if (cycle.vestOnot.onahBeinonit.beinonit_24hr?.start) {
           events.push({
             id: `${cycle._id}-beinonit-kreisi`,
-            title: `🔄 Kreisi U'Pleisi`,
-            start: cycle.vestOnot.onahBeinonit.kreisiUpleisi.start,
-            end: cycle.vestOnot.onahBeinonit.kreisiUpleisi.end,
+            title: `🔄 24hr Beinonit (30)`,
+            start: cycle.vestOnot.onahBeinonit.beinonit_24hr.start,
+            // No end property - displays on single Gregorian day
+            allDay: false,
             className: `vest-onah onah-beinonit-kreisi`,
             groupID: cycle._id,
+            extendedProps: {
+              onahEnd: cycle.vestOnot.onahBeinonit.beinonit_24hr.end
+            }
           });
         }
 
-        if (cycle.vestOnot.onahBeinonit.chasamSofer?.start) {
+        if (cycle.vestOnot.onahBeinonit.beinonit_31?.start) {
           events.push({
             id: `${cycle._id}-beinonit-sofer`,
             title: `🔄 Beinonit 31`,
-            start: cycle.vestOnot.onahBeinonit.chasamSofer.start,
-            end: cycle.vestOnot.onahBeinonit.chasamSofer.end,
+            start: cycle.vestOnot.onahBeinonit.beinonit_31.start,
+            // No end property - displays on single Gregorian day
+            allDay: false,
             className: `vest-onah onah-beinonit-sofer`,
             groupID: cycle._id,
+            extendedProps: {
+              onahEnd: cycle.vestOnot.onahBeinonit.beinonit_31.end
+            }
+          });
+        }
+
+        // Beinonit 31 opposite onah (24-hour coverage for Ashkenazi custom)
+        if (cycle.vestOnot.onahBeinonit.beinonit_31_opposite?.start) {
+          events.push({
+            id: `${cycle._id}-beinonit-31-opposite`,
+            title: `🔄 24hr Beinonit (31)`,
+            start: cycle.vestOnot.onahBeinonit.beinonit_31_opposite.start,
+            allDay: false,
+            className: `vest-onah onah-beinonit-31-opposite`,
+            groupID: cycle._id,
+            extendedProps: {
+              onahEnd: cycle.vestOnot.onahBeinonit.beinonit_31_opposite.end
+            }
           });
         }
       }
 
-      // Ohr Zaruah events
-      if (cycle.vestOnot.vesetHachodesh?.ohrZaruah?.start) {
+      // Ohr Zaruah events - lowest priority
+      // Only add if no other vest occupies the same date-onah slot (same start time)
+      // Helper: Check if a date-onah slot is already occupied by any vest event
+      const isSlotOccupied = (startTime) => {
+        if (!startTime) return false;
+        const targetTime = new Date(startTime).getTime();
+
+        // Check all vest types for collision
+        const allVestStarts = [
+          cycle.vestOnot.vesetHachodesh?.start,
+          cycle.vestOnot.haflagah?.start,
+          cycle.vestOnot.onahBeinonit?.start,
+          cycle.vestOnot.onahBeinonit?.beinonit_24hr?.start,
+          cycle.vestOnot.onahBeinonit?.beinonit_31?.start,
+          cycle.vestOnot.onahBeinonit?.beinonit_31_opposite?.start
+        ].filter(Boolean);
+
+        return allVestStarts.some(start => new Date(start).getTime() === targetTime);
+      };
+
+      // Veset HaChodesh Ohr Zaruah
+      if (cycle.vestOnot.vesetHachodesh?.ohrZaruah?.start &&
+          !isSlotOccupied(cycle.vestOnot.vesetHachodesh.ohrZaruah.start)) {
         events.push({
           id: `${cycle._id}-veset-ohr`,
           title: `Ohr Zaruah - Veset HaChodesh`,
           start: cycle.vestOnot.vesetHachodesh.ohrZaruah.start,
-          end: cycle.vestOnot.vesetHachodesh.ohrZaruah.end,
+          allDay: false,
           className: `vest-onah ohr-zaruah`,
           groupID: cycle._id,
+          extendedProps: {
+            onahEnd: cycle.vestOnot.vesetHachodesh.ohrZaruah.end,
+            hebrewDate: cycle.vestOnot.vesetHachodesh.hebrewDate
+          }
         });
       }
 
-      if (cycle.vestOnot.haflagah?.ohrZaruah?.start) {
+      // Haflagah Ohr Zaruah
+      if (cycle.vestOnot.haflagah?.ohrZaruah?.start &&
+          !isSlotOccupied(cycle.vestOnot.haflagah.ohrZaruah.start)) {
         events.push({
           id: `${cycle._id}-haflagah-ohr`,
           title: `Ohr Zaruah - Haflagah`,
           start: cycle.vestOnot.haflagah.ohrZaruah.start,
-          end: cycle.vestOnot.haflagah.ohrZaruah.end,
+          allDay: false,
           className: `vest-onah ohr-zaruah`,
           groupID: cycle._id,
+          extendedProps: {
+            onahEnd: cycle.vestOnot.haflagah.ohrZaruah.end,
+            hebrewDate: cycle.vestOnot.haflagah.hebrewDate
+          }
         });
       }
 
-      if (cycle.vestOnot.onahBeinonit?.ohrZaruah?.start) {
+      // Onah Beinonit Ohr Zaruah
+      if (cycle.vestOnot.onahBeinonit?.ohrZaruah?.start &&
+          !isSlotOccupied(cycle.vestOnot.onahBeinonit.ohrZaruah.start)) {
         events.push({
           id: `${cycle._id}-beinonit-ohr`,
           title: `Ohr Zaruah - Onah Beinonit`,
           start: cycle.vestOnot.onahBeinonit.ohrZaruah.start,
-          end: cycle.vestOnot.onahBeinonit.ohrZaruah.end,
+          allDay: false,
           className: `vest-onah ohr-zaruah`,
           groupID: cycle._id,
+          extendedProps: {
+            onahEnd: cycle.vestOnot.onahBeinonit.ohrZaruah.end,
+            hebrewDate: cycle.vestOnot.onahBeinonit.hebrewDate
+          }
         });
       }
     }
