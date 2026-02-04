@@ -5,6 +5,8 @@ export interface HalachicPreferences {
   ohrZaruah?: boolean;
   beinonit_24hr?: boolean;
   beinonit_31?: boolean;
+  vesetHachodesh30thSkip29?: boolean;
+  haflagahDualMode?: 'latest_only' | 'keep_both';
   minimumNiddahDays?: number;
 }
 
@@ -19,7 +21,7 @@ export interface UpdateUserData {
     lat?: number;
     lng?: number;
   };
-  halachicCustom?: 'ashkenazi' | 'sephardi' | 'chabad' | 'manual' | null;
+  halachicCustom?: 'ashkenazi_EY' | 'ashkenazi_CL' | 'sephardi_ROY' | 'sephard_RME' | 'manual' | null;
   halachicPreferences?: HalachicPreferences;
 }
 

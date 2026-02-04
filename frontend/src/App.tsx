@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { BrowserRouter } from "react-router-dom";
 import { HelmetProvider } from 'react-helmet-async';
 import { AppRouter } from "./routing/AppRouter.tsx";
+import { ScrollToTop } from "./routing/ScrollToTop";
 import myTheme from "./styles/theme";
 import ErrorBoundary from "./components/ErrorCatching/ErrorBoundary";
 import { KofiDonationPopup } from "./components/KofiDonationPopup";
@@ -50,6 +51,7 @@ export default function App() {
         <Notifications />
         <ErrorBoundary useMantineFallback={true}>
           <BrowserRouter>
+            <ScrollToTop />
             <AppRouter />
           </BrowserRouter>
         </ErrorBoundary>

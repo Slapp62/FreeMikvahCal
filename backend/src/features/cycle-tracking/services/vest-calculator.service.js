@@ -36,16 +36,49 @@ function applyOhrZaruah(vestDate, location, isDayOnah) {
 /**
  * Calculate Veset HaChodesh (monthly vest - same Hebrew date next month)
  */
-function calculateVesetHachodesh(period, location, isDayOnah, applyOhrZaruahChumra = false) {
+function calculateVesetHachodesh(
+  period,
+  location,
+  isDayOnah,
+  applyOhrZaruahChumra = false,
+  vesetHachodesh30thSkip29 = false
+) {
   const loc = new Location(location.lat, location.lng, false, location.timezone);
   const startHDate = Zmanim.makeSunsetAwareHDate(loc, period.niddahOnah.start, false);
-  const day = startHDate.getDate();
-  const month = startHDate.getMonth();
-  const year = startHDate.getFullYear();
+  const originalDay = startHDate.getDate();
 
-  // Create new date with same day number, next Hebrew month
-  const vesetHachodeshshDate = new HDate(day, month + 1, year);
-  let vesetDate = vesetHachodeshshDate.greg();
+  // Advance by one actual Hebrew month (handles Adar/leap-year transitions correctly).
+  let nextMonthBase = startHDate;
+  const startMonth = startHDate.getMonth();
+  while (nextMonthBase.getMonth() === startMonth) {
+    nextMonthBase = nextMonthBase.next();
+  }
+  let targetMonth = nextMonthBase.getMonth();
+  let targetYear = nextMonthBase.getFullYear();
+
+  // Preserve day-of-month when possible; otherwise use the first valid day before it.
+  let targetDay = originalDay;
+  let candidate = new HDate(targetDay, targetMonth, targetYear);
+  while (candidate.getMonth() !== targetMonth && targetDay > 1) {
+    targetDay -= 1;
+    candidate = new HDate(targetDay, targetMonth, targetYear);
+  }
+
+  // Optional chumra: if source day is 30 and next month has no day 30, skip this month entirely.
+  // Applies only to Veset HaChodesh.
+  if (vesetHachodesh30thSkip29 && originalDay === 30 && targetDay < 30) {
+    let monthAfterSkipped = candidate;
+    const skippedMonth = targetMonth;
+    while (monthAfterSkipped.getMonth() === skippedMonth) {
+      monthAfterSkipped = monthAfterSkipped.next();
+    }
+    targetMonth = monthAfterSkipped.getMonth();
+    targetYear = monthAfterSkipped.getFullYear();
+    targetDay = 30;
+    candidate = new HDate(targetDay, targetMonth, targetYear);
+  }
+
+  let vesetDate = candidate.greg();
 
   // For night onahs, .greg() returns the Gregorian date at midnight, but the Hebrew date
   // actually started the previous evening at sunset. We need to adjust back one day
@@ -69,7 +102,7 @@ function calculateVesetHachodesh(period, location, isDayOnah, applyOhrZaruahChum
     result.ohrZaruah = applyOhrZaruah(vesetDate, location, isDayOnah);
   }
 
-  return result;
+  return [result];
 }
 
 /**
@@ -77,27 +110,35 @@ function calculateVesetHachodesh(period, location, isDayOnah, applyOhrZaruahChum
  */
 function calculateHaflagah(period, previousCycles, location, isDayOnah, applyOhrZaruahChumra = false) {
   if (!period.haflagah || !previousCycles || previousCycles.length === 0) {
-    return null;
+    return [];
+  }
+  const intervals = [period.haflagah];
+  if (
+    previousCycles &&
+    previousCycles.length > 0 &&
+    previousCycles[0]?.haflagah &&
+    previousCycles[0].haflagah > period.haflagah
+  ) {
+    intervals.push(previousCycles[0].haflagah);
   }
 
-  const haflagahDate = new Date(period.niddahOnah.start);
-  haflagahDate.setDate(haflagahDate.getDate() + period.haflagah);
-  const haflagahRange = getOnahTimeRange(haflagahDate, location, isDayOnah);
+  return intervals.map((interval) => {
+    const haflagahDate = new Date(period.niddahOnah.start);
+    haflagahDate.setDate(haflagahDate.getDate() + interval);
+    const haflagahRange = getOnahTimeRange(haflagahDate, location, isDayOnah);
+    const result = {
+      start: haflagahRange.start,
+      end: haflagahRange.end,
+      interval,
+      hebrewDate: haflagahRange.hebrewDate,
+      dayOfWeek: haflagahRange.dayOfWeek
+    };
 
-  const result = {
-    start: haflagahRange.start,
-    end: haflagahRange.end,
-    interval: period.haflagah,
-    hebrewDate: haflagahRange.hebrewDate,
-    dayOfWeek: haflagahRange.dayOfWeek
-  };
-
-  // Ohr Zaruah for Haflagah (preceding onah)
-  if (applyOhrZaruahChumra) {
-    result.ohrZaruah = applyOhrZaruah(haflagahDate, location, isDayOnah);
-  }
-
-  return result;
+    if (applyOhrZaruahChumra) {
+      result.ohrZaruah = applyOhrZaruah(haflagahDate, location, isDayOnah);
+    }
+    return result;
+  });
 }
 
 /**
@@ -117,12 +158,12 @@ function calculateOnahBeinonit(period, location, isDayOnah, chumras = {}) {
     dayOfWeek: beinonitRange.dayOfWeek
   };
 
-  // Kreisi Upleisi - Opposite onah (following onah after base)
-  // If base is day: following night is same date
-  // If base is night: following day is NEXT date
+  // Kreisi Upleisi - Opposite onah around the base beinonit
+  // If base is day: opposite night is previous Gregorian date (night leading into base day)
+  // If base is night: opposite day is next Gregorian date (day following base night)
   if (chumras.beinonit_24hr) {
     const kreisiDate = isDayOnah
-      ? beinonitDate
+      ? new Date(beinonitDate.getTime() - 86400000)
       : new Date(beinonitDate.getTime() + 86400000); // Add 1 day if base is night
     const kreisiRange = getOnahTimeRange(kreisiDate, location, !isDayOnah);
     result.beinonit_24hr = {
@@ -179,20 +220,27 @@ function calculateAllVestOnot(period, previousCycles, location, halachicPreferen
   const endDate = new Date(period.niddahOnah.end).toDateString();
   const isDayOnah = startDate === endDate;
 
+  const allHaflagahCandidates = calculateHaflagah(
+    period,
+    previousCycles,
+    location,
+    isDayOnah,
+    halachicPreferences.ohrZaruah
+  );
+  const haflagah =
+    halachicPreferences.haflagahDualMode === 'keep_both'
+      ? allHaflagahCandidates
+      : allHaflagahCandidates.slice(0, 1);
+
   const vestOnot = {
     vesetHachodesh: calculateVesetHachodesh(
       period,
       location,
       isDayOnah,
-      halachicPreferences.ohrZaruah
+      halachicPreferences.ohrZaruah,
+      halachicPreferences.vesetHachodesh30thSkip29
     ),
-    haflagah: calculateHaflagah(
-      period,
-      previousCycles,
-      location,
-      isDayOnah,
-      halachicPreferences.ohrZaruah
-    ),
+    haflagah,
     onahBeinonit: calculateOnahBeinonit(
       period,
       location,
@@ -208,7 +256,9 @@ function calculateAllVestOnot(period, previousCycles, location, halachicPreferen
   const appliedChumras = {
     ohrZaruah: halachicPreferences.ohrZaruah || false,
     beinonit_24hr: halachicPreferences.beinonit_24hr || false,
-    beinonit_31: halachicPreferences.beinonit_31 || false
+    beinonit_31: halachicPreferences.beinonit_31 || false,
+    vesetHachodesh30thSkip29: halachicPreferences.vesetHachodesh30thSkip29 || false,
+    haflagahDualMode: halachicPreferences.haflagahDualMode || 'latest_only'
   };
 
   return { vestOnot, appliedChumras };

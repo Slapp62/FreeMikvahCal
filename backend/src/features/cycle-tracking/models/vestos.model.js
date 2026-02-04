@@ -26,7 +26,7 @@ const vestosSchema = new Schema({
 
   // Vest Onot - Time ranges for each vest calculation
   vestOnot: {
-    vesetHachodesh: {
+    vesetHachodesh: [{
       start: Date,
       end: Date,
       ohrZaruah: {
@@ -37,8 +37,8 @@ const vestosSchema = new Schema({
       hebrewDate: String,
       dayOfWeek: Number,
       _id: false
-    },
-    haflagah: {
+    }],
+    haflagah: [{
       start: Date,
       end: Date,
       ohrZaruah: {
@@ -50,7 +50,7 @@ const vestosSchema = new Schema({
       hebrewDate: String,
       dayOfWeek: Number,
       _id: false
-    },
+    }],
     onahBeinonit: {
       start: Date,
       end: Date,
@@ -83,6 +83,11 @@ const vestosSchema = new Schema({
     ohrZaruah: { type: Boolean, default: false },
     beinonit_24hr: { type: Boolean, default: false },
     beinonit_31: { type: Boolean, default: false },
+    haflagahDualMode: {
+      type: String,
+      enum: ['latest_only', 'keep_both'],
+      default: 'latest_only'
+    },
     _id: false
   },
 
@@ -118,13 +123,26 @@ vestosSchema.methods.calculateVestOnot = function(period, previousCycles, locati
   // 1. Veset Hachodesh - Same Hebrew date next month
   const loc = new Location(location.lat, location.lng, false, location.timezone);
   const startHDate = Zmanim.makeSunsetAwareHDate(loc, period.niddahOnah.start, false);
-  const day = startHDate.getDate();
-  const month = startHDate.getMonth();
-  const year = startHDate.getFullYear();
+  const originalDay = startHDate.getDate();
 
-  // Create new date with same day number, next Hebrew month
-  const vesetHachodeshshDate = new HDate(day, month + 1, year);
-  const vesetDate = vesetHachodeshshDate.greg();
+  // Advance by one actual Hebrew month (handles Adar/leap-year transitions correctly).
+  let nextMonthBase = startHDate;
+  const startMonth = startHDate.getMonth();
+  while (nextMonthBase.getMonth() === startMonth) {
+    nextMonthBase = nextMonthBase.next();
+  }
+  const targetMonth = nextMonthBase.getMonth();
+  const targetYear = nextMonthBase.getFullYear();
+
+  // Preserve day-of-month when possible; otherwise use the first valid day before it.
+  let targetDay = originalDay;
+  let candidate = new HDate(targetDay, targetMonth, targetYear);
+  while (candidate.getMonth() !== targetMonth && targetDay > 1) {
+    targetDay -= 1;
+    candidate = new HDate(targetDay, targetMonth, targetYear);
+  }
+
+  const vesetDate = candidate.greg();
   const vesetRange = getOnahTimeRange(vesetDate, location, isDayOnah);
 
   this.vestOnot.vesetHachodesh = {
@@ -202,9 +220,14 @@ vestosSchema.methods.calculateVestOnot = function(period, previousCycles, locati
     dayOfWeek: beinonitRange.dayOfWeek
   };
 
-  // Kreisi Upleisi - Opposite onah same Hebrew day
+  // Kreisi Upleisi - Opposite onah around base beinonit
+  // If base is day: opposite night is previous Gregorian date
+  // If base is night: opposite day is next Gregorian date
   if (halachicPreferences.beinonit_24hr) {
-    const kreisiRange = getOnahTimeRange(beinonitDate, location, !isDayOnah);
+    const kreisiDate = isDayOnah
+      ? new Date(beinonitDate.getTime() - 86400000)
+      : new Date(beinonitDate.getTime() + 86400000);
+    const kreisiRange = getOnahTimeRange(kreisiDate, location, !isDayOnah);
     this.vestOnot.onahBeinonit.beinonit_24hr = {
       start: kreisiRange.start,
       end: kreisiRange.end

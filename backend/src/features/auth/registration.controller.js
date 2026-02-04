@@ -1,5 +1,6 @@
 const registrationService = require('./registration.service');
-const sendVerificationEmail = require('../../shared/services/email.service');
+const crypto = require('crypto');
+const { sendVerificationEmail } = require('../../shared/services/email.service');
 const { normalizeUser } = require('../../shared/utils/normalize-responses');
 const Auths = require('./models/auth.model');
 const Profiles = require('../user-profile/models/profile.model');
@@ -104,7 +105,7 @@ const resendVerification = async (req, res, next) => {
     }
 
     // Generate NEW 6-digit PIN
-    const newCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const newCode = crypto.randomInt(100000, 1000000).toString();
 
     auth.emailVerification = {
       code: newCode,

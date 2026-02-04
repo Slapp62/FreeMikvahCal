@@ -5,7 +5,7 @@ import { useMediaQuery } from "@mantine/hooks";
 import { useCycleStore } from "../store/cycleStore";
 import { useUserStore } from "../store/userStore";
 import { deleteCycle } from "../services/cycleApi";
-import { useState, ChangeEvent } from "react";
+import { useEffect, useState, ChangeEvent } from "react";
 
 type ModalProps = {
     clicked: boolean;
@@ -15,25 +15,25 @@ type ModalProps = {
 };
 
 const EditEventModal = ({clicked, close, selectedEvent, tooltipText} : ModalProps) => {
-    if (!selectedEvent) return null;
-
     const isMobile = useMediaQuery('(max-width: 768px)');
     const deleteCycleFromStore = useCycleStore((state) => state.deleteCycle);
     const updateCycleInStore = useCycleStore((state) => state.updateCycle);
     const triggerRefetch = useCycleStore((state) => state.triggerRefetch);
     const cycles = useCycleStore((state) => state.cycles);
     const user = useUserStore((state) => state.user);
-
-    // Extract cycle ID from event ID (format: {cycleId}-{eventType})
-    const eventId = selectedEvent.id || '';
-    const cycleId = selectedEvent.extendedProps?.groupID || eventId.split('-')[0];
-
-    // Find the cycle in the store
+    const eventId = selectedEvent?.id || '';
+    const cycleId = selectedEvent?.extendedProps?.groupID || eventId.split('-')[0];
     const cycle = cycles.find(c => c._id === cycleId);
-    const [notes, setNotes] = useState(cycle?.notes || '');
+    const [notes, setNotes] = useState('');
     const [isDeleting, setIsDeleting] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+    useEffect(() => {
+        setNotes(cycle?.notes || '');
+    }, [cycleId, cycle?.notes]);
+
+    if (!selectedEvent) return null;
 
     // Detect event type and onah information
     const eventStart = selectedEvent.start ? new Date(selectedEvent.start) : null;

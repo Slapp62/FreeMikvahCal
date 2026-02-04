@@ -11,6 +11,9 @@ import HomePage from '../pages/home.page';
 const AboutPage = lazy(() => import('../pages/about.page'));
 const InformationPage = lazy(() => import('../pages/information.page'));
 const LoginPage = lazy(() => import('../pages/login.page').then(m => ({ default: m.LoginPage })));
+const ForgotPasswordPage = lazy(() => import('../pages/forgotPassword.page'));
+const VerifyResetCodePage = lazy(() => import('../pages/verifyResetCode.page'));
+const ResetPasswordPage = lazy(() => import('../pages/resetPassword.page'));
 const RegisterPage = lazy(() => import('../pages/register.page'));
 const CompleteProfilePage = lazy(() => import('../pages/completeProfile.page'));
 const VerifyPage = lazy(() => import('../pages/accountConfirmation.page'));
@@ -79,6 +82,36 @@ export function AppRouter() {
             <Suspense fallback={<LoadingOverlay visible />}>
               <RouteGuard permission="non-user">
                 <LoginPage />
+              </RouteGuard>
+            </Suspense>
+          }
+        />
+        <Route
+          path="forgot-password"
+          element={
+            <Suspense fallback={<LoadingOverlay visible />}>
+              <RouteGuard permission="non-user">
+                <ForgotPasswordPage />
+              </RouteGuard>
+            </Suspense>
+          }
+        />
+        <Route
+          path="verify-reset-code"
+          element={
+            <Suspense fallback={<LoadingOverlay visible />}>
+              <RouteGuard permission="non-user">
+                <VerifyResetCodePage />
+              </RouteGuard>
+            </Suspense>
+          }
+        />
+        <Route
+          path="reset-password"
+          element={
+            <Suspense fallback={<LoadingOverlay visible />}>
+              <RouteGuard permission="non-user">
+                <ResetPasswordPage />
               </RouteGuard>
             </Suspense>
           }

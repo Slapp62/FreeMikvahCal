@@ -38,8 +38,14 @@ const authSchema = new Schema({
   lastLogin: { type: Date },
 
   // Password Reset
-  resetPasswordToken: String,
-  resetPasswordExpires: Date,
+  passwordReset: {
+    codeHash: String,
+    codeExpiresAt: Date,
+    attempts: { type: Number, default: 0 },
+    verifiedTokenHash: String,
+    verifiedTokenExpiresAt: Date,
+    _id: false
+  },
 
   // Email Verification
   emailVerified: { type: Boolean, default: false },

@@ -5,13 +5,12 @@ import './KofiDonationPopup.css';
 
 export function KofiDonationPopup() {
   const [isVisible, setIsVisible] = useState(false);
-  const [isDismissed, setIsDismissed] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(
+    () => sessionStorage.getItem('kofi-popup-dismissed') === 'true'
+  );
   const [autoDismiss, setAutoDismiss] = useState(false);
   useEffect(() => {
-    // Check if user has dismissed the popup in this session
-    const dismissed = sessionStorage.getItem('kofi-popup-dismissed');
-    if (dismissed) {
-      setIsDismissed(true);
+    if (isDismissed) {
       return;
     }
 
@@ -36,7 +35,7 @@ export function KofiDonationPopup() {
       clearTimeout(dismissTimer);
       clearTimeout(removeTimer);
     };
-  }, []);
+  }, [isDismissed]);
 
   const handleClose = () => {
     setIsVisible(false);

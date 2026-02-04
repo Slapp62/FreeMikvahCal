@@ -10,32 +10,43 @@
  * 3. Update frontend schema enum validation
  */
 
-const HALACHIC_CUSTOMS = ['ashkenazi', 'sephardi', 'chabad', 'manual'];
+const HALACHIC_CUSTOMS = ['ashkenazi_EY', 'ashkenazi_CL', 'sephardi_ROY', 'sephard_RME', 'manual'];
 
 const HALACHIC_PRESETS = {
-  ashkenazi: {
+  ashkenazi_EY: {
     minimumNiddahDays: 5,
     beinonit_24hr: true,     // Kreisi U'Pleisi - 24-hour onah beinonit (day 30)
     beinonit_31: true,       // Also observe day 31
     ohrZaruah: false,        // Separate on preceding onah for all vesetim
+    vesetHachodesh30thSkip29: true,
   },
-  sephardi: {
+  ashkenazi_CL: {
+    minimumNiddahDays: 5,
+    beinonit_24hr: false,
+    beinonit_31: false,
+    ohrZaruah: true,
+    vesetHachodesh30thSkip29: false,
+  },
+  sephardi_ROY: {
     minimumNiddahDays: 4,
     beinonit_24hr: false,
     beinonit_31: false,
     ohrZaruah: false,
+    vesetHachodesh30thSkip29: false,
   },
-  chabad: {
-    minimumNiddahDays: 5,
+  sephard_RME: {
+    minimumNiddahDays: 4,
     beinonit_24hr: false,
     beinonit_31: false,
     ohrZaruah: false,
+    vesetHachodesh30thSkip29: false,
   },
   manual: {
     minimumNiddahDays: 5,
     beinonit_24hr: false,
     beinonit_31: false,
     ohrZaruah: false,
+    vesetHachodesh30thSkip29: false,
   },
 };
 
@@ -43,7 +54,7 @@ const HALACHIC_PRESETS = {
  * Apply halachic preset for given custom
  * Falls back to 'manual' preset if custom is invalid
  *
- * @param {string} custom - Halachic custom name ('ashkenazi', 'sephardi', 'chabad', 'manual')
+ * @param {string} custom - Halachic custom name
  * @returns {object} Preset configuration object
  */
 function applyHalachicPreset(custom) {

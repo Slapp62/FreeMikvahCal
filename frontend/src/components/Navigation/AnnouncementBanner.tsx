@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Alert, Container } from '@mantine/core';
 import { IconInfoCircle } from '@tabler/icons-react';
 import './AnnouncementBanner.css';
@@ -12,15 +12,7 @@ export function AnnouncementBanner({
   message,
   storageKey = 'announcement-banner-dismissed'
 }: AnnouncementBannerProps) {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    // Check if user has dismissed this announcement
-    const dismissed = localStorage.getItem(storageKey);
-    if (!dismissed) {
-      setIsVisible(true);
-    }
-  }, [storageKey]);
+  const [isVisible, setIsVisible] = useState(() => !localStorage.getItem(storageKey));
 
   const handleClose = () => {
     setIsVisible(false);

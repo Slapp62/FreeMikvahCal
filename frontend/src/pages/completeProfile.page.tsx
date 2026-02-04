@@ -26,7 +26,7 @@ type RegisterFormValues = {
   email: string;
   password: string;
   confirmPassword: string;
-  halachicCustom: 'ashkenazi' | 'sephardi' | 'chabad' | 'manual';
+  halachicCustom: 'ashkenazi_EY' | 'ashkenazi_CL' | 'sephardi_ROY' | 'sephard_RME' | 'manual';
   location: string;
   dataProcessingConsent: boolean;
   preferences: {
@@ -36,6 +36,8 @@ type RegisterFormValues = {
     ohrZaruah: boolean;
     beinonit_24hr: boolean;
     beinonit_31: boolean;
+    vesetHachodesh30thSkip29: boolean;
+    haflagahDualMode: 'latest_only' | 'keep_both';
     minimumNiddahDays: number;
   };
 };
@@ -62,6 +64,8 @@ const CompleteProfile = () => {
         ohrZaruah: false,
         beinonit_24hr: false,
         beinonit_31: false,
+        vesetHachodesh30thSkip29: false,
+        haflagahDualMode: 'latest_only',
         minimumNiddahDays: 5,
       },
     },
@@ -122,6 +126,8 @@ const CompleteProfile = () => {
         ohrZaruah: formData.halachicPreferences.ohrZaruah,
         beinonit_24hr: formData.halachicPreferences.beinonit_24hr,
         beinonit_31: formData.halachicPreferences.beinonit_31,
+        vesetHachodesh30thSkip29: formData.halachicPreferences.vesetHachodesh30thSkip29,
+        haflagahDualMode: formData.halachicPreferences.haflagahDualMode,
         minimumNiddahDays: formData.halachicPreferences.minimumNiddahDays,
       },
     });
@@ -172,13 +178,16 @@ const CompleteProfile = () => {
                         onChange={(value) => field.onChange(value)}
                       >
                         <Stack mt="xs">
-                          <Radio 
-                            value="ashkenazi" 
-                            label="Ashkenaz - Eretz Yisrael" 
-                            description=" (Based on Taharas Bas Yisrael, Marei Cohen, and Hilchos Niddah V'Tehara)"
-                            />
-                          <Radio value="sephardi" label="Sephardi" />
-                          <Radio value="chabad" label="Chabad" />
+                          <Text fw={600} size="sm">Ashkenazi</Text>
+                          <Stack gap={6} ml={12}>
+                            <Radio value="ashkenazi_EY" label="Eretz Yisrael" />
+                            <Radio value="ashkenazi_CL" label="Chutz La'aretz" />
+                          </Stack>
+                          <Text fw={600} size="sm" mt={4}>Sephardi</Text>
+                          <Stack gap={6} ml={12}>
+                            <Radio value="sephardi_ROY" label="Rav Ovadiah Yosef" />
+                            <Radio value="sephard_RME" label="Rav Mordechai Eliyahu" />
+                          </Stack>
                           <Radio value="manual" label="Manual Setting" />
                         </Stack>
                       </Radio.Group>
@@ -217,6 +226,19 @@ const CompleteProfile = () => {
                   <Checkbox label="Beinonit 31" description='Additional Onah Beinonit on day 31.' {...register('halachicPreferences.beinonit_31')} />
                   
                   <Checkbox label="Full Day Beinonit" description='Onah Beinonit on day 30 of 24 hours' {...register('halachicPreferences.beinonit_24hr')} />
+
+                  <Controller
+                    name="halachicPreferences.haflagahDualMode"
+                    control={control}
+                    render={({ field }) => (
+                      <Checkbox
+                        label="Dual Haflagah (when new interval is shorter)"
+                        description="Keep both upcoming haflagah events instead of only the new shorter one."
+                        checked={field.value === 'keep_both'}
+                        onChange={(event) => field.onChange(event.currentTarget.checked ? 'keep_both' : 'latest_only')}
+                      />
+                    )}
+                  />
                 </Stack>
               </Fieldset>
 

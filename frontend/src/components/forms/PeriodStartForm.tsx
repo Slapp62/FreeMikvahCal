@@ -132,9 +132,12 @@ const PeriodStartForm = ({ close, dateClicked }: Props) => {
             }
 
             const result = await createCycle({
+                dateString: dateClicked,
+                onah: formData.onah,
+                notes: formData.notes,
+                // Backward-compatible payload fields (can be removed after full rollout)
                 startTime: startTime.toISOString(),
                 endTime: endTime.toISOString(),
-                notes: formData.notes,
             });
 
             addCycle(result.cycle);

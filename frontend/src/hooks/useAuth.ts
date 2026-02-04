@@ -110,7 +110,7 @@ export const useAuth = () => {
 
     // Use replace to force navigation and avoid route guard issues
     navigate('/calendar', { replace: true });
-  } catch (error) {
+  } catch {
     notifications.show({ title: 'Error', message: 'Failed to save profile', color: 'red' });
   }
   }

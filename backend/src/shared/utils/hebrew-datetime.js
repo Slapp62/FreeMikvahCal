@@ -166,12 +166,8 @@ const getTimezoneOffset = (date, timezone) => {
  * @returns {Boolean} - True if valid
  */
 const isValidTimezone = (timezone) => {
-  try {
-    DateTime.local().setZone(timezone);
-    return true;
-  } catch (e) {
-    return false;
-  }
+  if (!timezone || typeof timezone !== 'string') return false;
+  return DateTime.now().setZone(timezone).isValid;
 };
 
 /**
@@ -219,6 +215,9 @@ const getOnahTimeRange = (date, location, isDayOnah) => {
 
   const sunrise = zmanim.sunrise();
   const sunset = zmanim.sunset();
+  if (!sunrise || !sunset) {
+    throw new Error('Unable to calculate sunrise/sunset for this date and location');
+  }
 
   let start, end;
 
@@ -231,9 +230,13 @@ const getOnahTimeRange = (date, location, isDayOnah) => {
     const nextDay = new Date(date);
     nextDay.setDate(nextDay.getDate() + 1);
     const nextDayZmanim = new Zmanim(loc, nextDay, false);
+    const nextSunrise = nextDayZmanim.sunrise();
+    if (!nextSunrise) {
+      throw new Error('Unable to calculate next sunrise for this date and location');
+    }
 
     start = sunset;
-    end = nextDayZmanim.sunrise();
+    end = nextSunrise;
   }
 
   // Get Hebrew date at the start of the onah

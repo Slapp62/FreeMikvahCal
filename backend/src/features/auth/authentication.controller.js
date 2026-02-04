@@ -106,9 +106,42 @@ const changePassword = async (req, res, next) => {
   }
 };
 
+const forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const result = await authenticationService.requestPasswordReset(email);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const verifyResetCode = async (req, res, next) => {
+  try {
+    const { email, code } = req.body;
+    const result = await authenticationService.verifyResetCode(email, code);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const resetPassword = async (req, res, next) => {
+  try {
+    const { resetToken, newPassword } = req.body;
+    const result = await authenticationService.resetPasswordWithToken(resetToken, newPassword);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   login,
   logout,
   getSession,
-  changePassword
+  changePassword,
+  forgotPassword,
+  verifyResetCode,
+  resetPassword
 };

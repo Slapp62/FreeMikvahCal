@@ -5,7 +5,14 @@ const authenticationController = require('./authentication.controller');
 const oauthController = require('./oauth.controller');
 const { authLimiter } = require('../../shared/middleware/rate-limiter');
 const { authenticateUser } = require('../../shared/middleware/authenticate');
-const { validateRegister, validateLogin, validateChangePassword } = require('./auth.validation');
+const {
+  validateRegister,
+  validateLogin,
+  validateForgotPassword,
+  validateVerifyResetCode,
+  validateResetPassword,
+  validateChangePassword
+} = require('./auth.validation');
 
 // === REGISTRATION ROUTES ===
 // POST /api/auth/register
@@ -32,6 +39,9 @@ router.get('/session', authenticationController.getSession);
 
 // POST /api/auth/change-password
 router.post('/change-password', authenticateUser, validateChangePassword, authenticationController.changePassword);
+router.post('/forgot-password', authLimiter, validateForgotPassword, authenticationController.forgotPassword);
+router.post('/verify-reset-code', authLimiter, validateVerifyResetCode, authenticationController.verifyResetCode);
+router.post('/reset-password', authLimiter, validateResetPassword, authenticationController.resetPassword);
 
 // === GOOGLE OAUTH ROUTES ===
 // GET /api/auth/google - Initiate Google OAuth flow

@@ -23,6 +23,18 @@
   font-size: 1.5em;
   font-weight: 600;
   letter-spacing: 0.3px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.2;
+}
+
+.calendar .fc .fc-toolbar-title::after {
+  content: attr(data-hebrew-title);
+  font-size: 0.72em;
+  font-weight: 500;
+  opacity: 0.9;
+  margin-top: 2px;
 }
 
 /* Column headers background (Sun, Mon, Tue, etc.) - Desktop */

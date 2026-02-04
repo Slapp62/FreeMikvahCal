@@ -24,8 +24,6 @@ function CalendarEventModal({clicked, close, dateClicked} : ModalProps) {
                 setCloseOutside(true);
             }, 300)
             return () => clearTimeout(timer)
-        } else {
-            setCloseOutside(false)
         }
     }, [clicked])
 

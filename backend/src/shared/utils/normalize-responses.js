@@ -7,7 +7,7 @@ const normalizeUser = (user) => {
   const normalized = user.toObject ? user.toObject() : { ...user };
 
   delete normalized.password;
-  delete normalized.resetPasswordToken;
+  delete normalized.passwordReset;
   delete normalized.emailVerificationToken;
   delete normalized.loginAttempts;
   delete normalized.lockoutUntil;

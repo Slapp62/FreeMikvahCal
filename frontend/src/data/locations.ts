@@ -124,7 +124,7 @@ export const locations: Location[] = [
   { id: 97, geonameId: 4931737, value: "Brookline", country: "USA", state: "MA", lat: 42.3318, lng: -71.1217, timezone: "America/New_York" },
   { id: 98, geonameId: 4954380, value: "Newton", country: "USA", state: "MA", lat: 42.3370, lng: -71.2092, timezone: "America/New_York" },
   { id: 99, geonameId: 4954611, value: "Sharon", country: "USA", state: "MA", lat: 42.1237, lng: -71.1784, timezone: "America/New_York" },
-  { id: 100, geonameId: 4936812, value: "Cambridge", country: "USA", state: "MA", lat: 42.3736, lng: -71.1097, timezone: "America/New_york" },
+  { id: 100, geonameId: 4936812, value: "Cambridge", country: "USA", state: "MA", lat: 42.3736, lng: -71.1097, timezone: "America/New_York" },
   { id: 101, geonameId: 4932869, value: "Canton", country: "USA", state: "MA", lat: 42.1784, lng: -71.1448, timezone: "America/New_York" },
   { id: 102, geonameId: 4953902, value: "Malden", country: "USA", state: "MA", lat: 42.4251, lng: -71.0662, timezone: "America/New_York" },
   { id: 103, geonameId: 4945283, value: "Framingham", country: "USA", state: "MA", lat: 42.2793, lng: -71.4162, timezone: "America/New_York" },

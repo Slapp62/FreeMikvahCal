@@ -1,9 +1,13 @@
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const Auths = require('./models/auth.model');
 const Profiles = require('../user-profile/models/profile.model');
 const { throwError } = require('../../shared/utils/error-handlers');
 const { normalizeUser } = require('../../shared/utils/normalize-responses');
 const { logAuth } = require('../../shared/utils/log-helpers');
+const { sendPasswordResetEmail } = require('../../shared/services/email.service');
+
+const hashValue = (value) => crypto.createHash('sha256').update(value).digest('hex');
 
 /**
  * Login user (used with Passport)
@@ -86,9 +90,84 @@ const changePassword = async (userId, currentPassword, newPassword) => {
   return { message: 'Password changed successfully' };
 };
 
+const requestPasswordReset = async (email) => {
+  const auth = await Auths.findOne({ email: email.toLowerCase(), isActive: true });
+
+  if (!auth || !auth.password) {
+    return { message: 'If an account exists for that email, a code has been sent.' };
+  }
+
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  auth.passwordReset = {
+    codeHash: hashValue(code),
+    codeExpiresAt: new Date(Date.now() + 15 * 60 * 1000),
+    attempts: 0,
+    verifiedTokenHash: undefined,
+    verifiedTokenExpiresAt: undefined
+  };
+  await auth.save();
+
+  await sendPasswordResetEmail(auth.email, 'User', code);
+  logAuth('password_reset_requested', auth.userId, { email: auth.email });
+
+  return { message: 'If an account exists for that email, a code has been sent.' };
+};
+
+const verifyResetCode = async (email, code) => {
+  const auth = await Auths.findOne({ email: email.toLowerCase(), isActive: true });
+  if (!auth || !auth.passwordReset || !auth.passwordReset.codeHash) {
+    throwError(400, 'Invalid or expired code');
+  }
+
+  if (!auth.passwordReset.codeExpiresAt || auth.passwordReset.codeExpiresAt < new Date()) {
+    throwError(400, 'Invalid or expired code');
+  }
+
+  if ((auth.passwordReset.attempts || 0) >= 5) {
+    throwError(429, 'Too many invalid attempts. Request a new code.');
+  }
+
+  const isValidCode = hashValue(code) === auth.passwordReset.codeHash;
+  if (!isValidCode) {
+    auth.passwordReset.attempts = (auth.passwordReset.attempts || 0) + 1;
+    await auth.save();
+    throwError(400, 'Invalid or expired code');
+  }
+
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  auth.passwordReset.verifiedTokenHash = hashValue(resetToken);
+  auth.passwordReset.verifiedTokenExpiresAt = new Date(Date.now() + 15 * 60 * 1000);
+  await auth.save();
+
+  return { message: 'Code verified', resetToken };
+};
+
+const resetPasswordWithToken = async (resetToken, newPassword) => {
+  const tokenHash = hashValue(resetToken);
+  const auth = await Auths.findOne({
+    isActive: true,
+    'passwordReset.verifiedTokenHash': tokenHash,
+    'passwordReset.verifiedTokenExpiresAt': { $gt: new Date() }
+  }).select('+password');
+
+  if (!auth) {
+    throwError(400, 'Invalid or expired reset token');
+  }
+
+  auth.password = newPassword;
+  auth.passwordReset = undefined;
+  await auth.save();
+  logAuth('password_reset_completed', auth.userId, { email: auth.email });
+
+  return { message: 'Password reset successfully' };
+};
+
 module.exports = {
   login,
   getUserById,
   verifyPassword,
-  changePassword
+  changePassword,
+  requestPasswordReset,
+  verifyResetCode,
+  resetPasswordWithToken
 };

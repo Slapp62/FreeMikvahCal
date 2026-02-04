@@ -88,7 +88,7 @@ export function LoginPage() {
           color: 'yellow',
         });
         setShowVerifyModal(true);
-      } catch (error) {
+      } catch {
         notifications.show({
           title: 'Verification Required',
           message: 'Please verify your account before logging in.',
@@ -164,7 +164,7 @@ export function LoginPage() {
 
           <Group justify="space-between" mt="lg">
             <Checkbox label="Remember me" />
-            <Anchor component="button" type="button" size="sm">
+            <Anchor component={Link} to="/forgot-password" size="sm">
               Forgot password?
             </Anchor>
           </Group>

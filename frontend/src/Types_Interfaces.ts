@@ -2,7 +2,7 @@ export interface IRegister {
     _id?: string;
     email: string;
     password: string;
-    halachicCustom?: 'ashkenazi' | 'sephardi' | 'chabad' | 'manual';
+    halachicCustom?: 'ashkenazi_EY' | 'ashkenazi_CL' | 'sephardi_ROY' | 'sephard_RME' | 'manual';
     location?: {
         city?: string;
         geonameId?: number;
@@ -14,6 +14,8 @@ export interface IRegister {
         ohrZaruah?: boolean;
         beinonit_24hr?: boolean;
         beinonit_31?: boolean;
+        vesetHachodesh30thSkip29?: boolean;
+        haflagahDualMode?: 'latest_only' | 'keep_both';
         minimumNiddahDays?: number;
     };
     preferences: {

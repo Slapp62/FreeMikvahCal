@@ -78,6 +78,7 @@ export function HeroAuthCard() {
         ohrZaruah: false,
         beinonit_24hr: false,
         beinonit_31: false,
+        haflagahDualMode: 'latest_only',
       },
     });
 

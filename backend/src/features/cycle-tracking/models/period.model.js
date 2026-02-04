@@ -27,6 +27,8 @@ const periodSchema = new Schema({
     type: String,
     required: true  // IANA timezone name at time of creation
   },
+  calculatedAtLat: { type: Number },
+  calculatedAtLng: { type: Number },
 
   // Cycle Status
   status: {

@@ -134,25 +134,14 @@ export default function CalendarPage() {
     const [selectedEventTooltip, setSelectedEventTooltip] = useState<string>('');
 
     const handleDatesSet = () => {
-        // Update title when month changes
         const calendarApi = calendarRef.current?.getApi();
         if (!calendarApi) return;
 
         const currentDate = calendarApi.getDate();
         const hebrewInfo = getHebrewMonthRange(currentDate);
-
-        const gregorianMonth = currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-
-        // Format differently for mobile vs desktop
-        const customTitle = isMobile
-            ? `${gregorianMonth}<br/><span style="font-size: 0.85em; opacity: 0.9;">${hebrewInfo.months} ${hebrewInfo.year}</span>`
-            : `${gregorianMonth} / ${hebrewInfo.months} ${hebrewInfo.year}`;
-
         const titleElement = document.querySelector('.fc-toolbar-title');
         if (titleElement) {
-            // Clear existing content first to prevent duplication
-            titleElement.innerHTML = '';
-            titleElement.innerHTML = customTitle;
+            titleElement.setAttribute('data-hebrew-title', `${hebrewInfo.months} ${hebrewInfo.year}`);
         }
     };
 
@@ -382,7 +371,12 @@ export default function CalendarPage() {
             const onahType = isSameDay ? 'Day Onah' : 'Night Onah';
 
             // Remove emojis from title (📅, 📏, 🔄, ⏱️) but keep 🩸 for period start
-            const cleanTitle = event.title.replace(/[📅📏🔄⏱️]/g, '').trim();
+            const cleanTitle = event.title
+                .replaceAll('📅', '')
+                .replaceAll('📏', '')
+                .replaceAll('🔄', '')
+                .replaceAll('⏱️', '')
+                .trim();
 
             // Apply abbreviation on mobile
             const displayTitle = getEventAbbreviation(cleanTitle, isMobile);
@@ -493,11 +487,15 @@ export default function CalendarPage() {
     <Stack className="calendar" maw={{ base: '100%', md: '90%' }} px={{ base: 0, sm: 'md' }} mx='auto' align='center' justify='center'>
         <Text fw={500} fz={isMobile ? 'lg' : 'xl'} mt={10}>Click on a day to enter a new event. Click on an existing event to edit it.</Text>
         <Text fz={isMobile ? 'sm' : 'md'}>*Do not rely on the times provided until the last minute. They are estimates.</Text>
-
         <FullCalendar
             ref={calendarRef}
             plugins={[dayGridPlugin, interactionPlugin]}
             initialView="dayGridMonth"
+            headerToolbar={{
+              left: 'title',
+              center: '',
+              right: 'prev,next today'
+            }}
             events={events}
             dateClick={handleDateClick}
             eventClick={handleEventClick}

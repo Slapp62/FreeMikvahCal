@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const Auths = require('./models/auth.model');
 const Profiles = require('../user-profile/models/profile.model');
 const { throwError } = require('../../shared/utils/error-handlers');
@@ -22,7 +23,7 @@ const register = async (userData, metadata = {}) => {
   // Add consent metadata
   const consentData = {
     dataProcessing: {
-      granted: consents.dataProcessing.granted,
+      granted: consents?.dataProcessing?.granted === true,
       timestamp: new Date(),
       ipAddress: metadata.ipAddress || metadata.ip,
       userAgent: metadata.userAgent
@@ -31,10 +32,10 @@ const register = async (userData, metadata = {}) => {
 
   // 1. Create Profile FIRST (to get profile ID)
   const profile = new Profiles({
-    location,
+    location: location || { timezone: 'UTC' },
     consents: consentData,
-    halachicCustom,
-    halachicPreferences,
+    halachicCustom: halachicCustom || null,
+    halachicPreferences: halachicPreferences || undefined,
     profileComplete: false,
     onboardingCompleted: false,
     // Merge default preferences (no separate Preferences model)
@@ -66,7 +67,7 @@ const register = async (userData, metadata = {}) => {
   await profile.save();
 
   // 2. Create Auth with userId reference
-  const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+  const verificationCode = crypto.randomInt(100000, 1000000).toString();
 
   const auth = new Auths({
     userId: profile._id,

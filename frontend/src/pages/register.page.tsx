@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -24,17 +24,8 @@ export default function RegisterPage() {
   const navigate = useNavigate();
   const { register: registerAuth, isLoading } = useAuth();
 
-  const [showVerifyModal, setShowVerifyModal] = useState(false);
-  const [tempEmail, setTempEmail] = useState('');
-
-  // Check if user has pending verification on mount
-  useEffect(() => {
-    const pendingEmail = sessionStorage.getItem('pending-verification-email');
-    if (pendingEmail) {
-      setTempEmail(pendingEmail);
-      setShowVerifyModal(true);
-    }
-  }, []);
+  const [tempEmail, setTempEmail] = useState(() => sessionStorage.getItem('pending-verification-email') || '');
+  const [showVerifyModal, setShowVerifyModal] = useState(() => Boolean(sessionStorage.getItem('pending-verification-email')));
 
   const { register, handleSubmit, formState: { errors } } = useForm<IRegister>({
     mode: 'onBlur',
@@ -46,23 +37,10 @@ export default function RegisterPage() {
     const result = await registerAuth({
       email: data.email,
       password: data.password,
-      halachicCustom: 'manual',
-      location: {
-        city: 'New York',
-        timezone: 'UTC',
-        geonameId: 0,
-        lat: 0,
-        lng: 0,
-      },
       consents: {
         dataProcessing: {
           granted: true,
         },
-      },
-      halachicPreferences: {
-        ohrZaruah: false,
-        beinonit_24hr: false,
-        beinonit_31: false,
       },
     });
 
@@ -133,10 +111,14 @@ export default function RegisterPage() {
               required
               {...register('password', {
                 required: 'Password is required',
-                minLength: { value: 8, message: 'Minimum 8 characters' }
+                minLength: { value: 8, message: 'Minimum 8 characters' },
+                pattern: {
+                  value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/,
+                  message: 'Use upper/lowercase, a number, and a special character'
+                }
               })}
               error={errors.password?.message}
-              description="8+ characters with a mix of letters and numbers"
+              description="8+ chars with uppercase, lowercase, number, and special character"
             />
 
             <Button type="submit" fullWidth size="md" loading={isLoading} mt="md">

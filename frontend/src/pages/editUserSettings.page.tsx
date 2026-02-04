@@ -1,4 +1,4 @@
-import { Container, Title, Paper, Stack, Checkbox, Button, Text, Divider, Alert, Radio, Autocomplete, Group, Modal, Badge, TextInput } from "@mantine/core";
+import { Container, Title, Paper, Stack, Checkbox, Button, Text, Divider, Alert, Radio, Autocomplete, Group, Modal, Badge, TextInput, Tabs } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useState, useEffect, ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
@@ -6,6 +6,7 @@ import { useUserStore } from "../store/userStore";
 import { updateCurrentUser, getCurrentUser, deleteAccount } from "../services/userApi";
 import { searchLocations, Location } from "../services/locationApi";
 import { IconInfoCircle, IconMapPin, IconBrandGoogle, IconCheck, IconTrash, IconAlertTriangle } from "../utils/icons";
+import { HalachicCustom, HALACHIC_PRESETS } from "../constants/halachicPresets";
 
 const EditUserSettings = () => {
     const navigate = useNavigate();
@@ -18,7 +19,10 @@ const EditUserSettings = () => {
     const [ohrZaruah, setOhrZaruah] = useState(false);
     const [beinonit_24hr, setbeinonit_24hr] = useState(false);
     const [beinonit_31, setbeinonit_31] = useState(false);
+    const [vesetHachodesh30thSkip29, setVesetHachodesh30thSkip29] = useState(false);
+    const [haflagahDualMode, setHaflagahDualMode] = useState<'latest_only' | 'keep_both'>('latest_only');
     const [minimumNiddahDays, setMinimumNiddahDays] = useState(5);
+    const [halachicCustom, setHalachicCustom] = useState<HalachicCustom | null>(null);
 
     // Local state for location
     const [currentLocation, setCurrentLocation] = useState<string>('');
@@ -47,7 +51,10 @@ const EditUserSettings = () => {
                 setOhrZaruah(userData.halachicPreferences?.ohrZaruah || false);
                 setbeinonit_24hr(userData.halachicPreferences?.beinonit_24hr || false);
                 setbeinonit_31(userData.halachicPreferences?.beinonit_31 || false);
+                setVesetHachodesh30thSkip29(userData.halachicPreferences?.vesetHachodesh30thSkip29 || false);
+                setHaflagahDualMode(userData.halachicPreferences?.haflagahDualMode || 'latest_only');
                 setMinimumNiddahDays(userData.halachicPreferences?.minimumNiddahDays || 5);
+                setHalachicCustom((userData.halachicCustom as HalachicCustom | null) || null);
 
                 // Set location data
                 if (userData.location) {
@@ -92,10 +99,13 @@ const EditUserSettings = () => {
         setLoading(true);
         try {
             const result = await updateCurrentUser({
+                halachicCustom,
                 halachicPreferences: {
                     ohrZaruah,
                     beinonit_24hr,
                     beinonit_31,
+                    vesetHachodesh30thSkip29,
+                    haflagahDualMode,
                     minimumNiddahDays,
                 },
             });
@@ -116,6 +126,16 @@ const EditUserSettings = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const applyCustomPreset = (custom: HalachicCustom) => {
+        const preset = HALACHIC_PRESETS[custom];
+        setMinimumNiddahDays(preset.minimumNiddahDays);
+        setOhrZaruah(preset.ohrZaruah);
+        setbeinonit_24hr(preset.beinonit_24hr);
+        setbeinonit_31(preset.beinonit_31);
+        setVesetHachodesh30thSkip29(preset.vesetHachodesh30thSkip29);
+        setHaflagahDualMode(preset.haflagahDualMode);
     };
 
     const handleLinkGoogle = () => {
@@ -233,192 +253,253 @@ const EditUserSettings = () => {
     return (
         <Container size="sm" py={40}>
             <Title order={2} mb={30}>User Settings</Title>
+            <Tabs defaultValue="halachic" mb={20}>
+                <Tabs.List grow>
+                    <Tabs.Tab value="halachic">Halachic Settings</Tabs.Tab>
+                    <Tabs.Tab value="account">Account Settings</Tabs.Tab>
+                </Tabs.List>
 
-            {/* Location Settings Section */}
-            <Title order={3} mb={15}>Location Settings</Title>
-            <Alert icon={<IconInfoCircle size={16} />} color="blue" mb={15}>
-                Your location is used to calculate accurate sunrise and sunset times for Hebrew calendar calculations.
-            </Alert>
+                <Tabs.Panel value="halachic" pt="md">
+                    {/* Halachic Preferences Section */}
+                    <Alert icon={<IconInfoCircle size={16} />} color="blue" mb={15}>
+                        These stringencies will automatically apply to all new cycles you create.
+                        Existing cycles will not be affected.
+                    </Alert>
 
-            <Paper shadow="sm" p="lg" withBorder mb={30}>
-                <Stack gap="md">
-                    <Group justify="space-between" align="center">
-                        <div style={{ flex: 1 }}>
-                            <Text size="sm" fw={500} mb={8}>Current Location</Text>
-                            <Stack gap={6}>
-                                <Group gap="xs">
-                                    <IconMapPin size={16} />
-                                    <Text size="sm" c="dimmed">{currentLocation || 'Not set'}</Text>
-                                </Group>
-                                <Text size="xs" c="dimmed">
-                                    Timezone: {currentTimezone}
+                    <Paper shadow="sm" p="lg" withBorder>
+                        <Title order={4} mb={5}>Halachic Customs</Title>
+                        <Stack gap="lg">
+                            
+                            <Radio.Group
+                                description="Select a preset, then adjust any field below if needed."
+                                value={halachicCustom || ''}
+                                onChange={(value) => {
+                                    const nextCustom = value as HalachicCustom;
+                                    setHalachicCustom(nextCustom);
+                                    if (nextCustom !== 'manual') applyCustomPreset(nextCustom);
+                                }}
+                            >
+                                <Stack mt="xs">
+                                    <Text fw={600} size="sm">Ashkenazi</Text>
+                                    <Stack gap={6} ml={12}>
+                                        <Radio value="ashkenazi_EY" label="Eretz Yisrael" />
+                                        <Radio value="ashkenazi_CL" label="Chutz La'aretz" />
+                                    </Stack>
+                                    <Text fw={600} size="sm" mt={4}>Sephardi</Text>
+                                    <Stack gap={6} ml={12}>
+                                        <Radio value="sephardi_ROY" label="Rav Ovadiah Yosef" />
+                                        <Radio value="sephard_RME" label="Rav Mordechai Eliyahu" />
+                                    </Stack>
+                                    <Radio value="manual" label="Manual Setting" />
+                                </Stack>
+                            </Radio.Group>
+
+                            <Divider />
+
+                            <Title order={4} mb={5}>Halachic Preferences</Title>
+
+                            <div>
+                                <Checkbox
+                                    label="Ohr Zaruah"
+                                    description="Separate on the preceding onah (opposite time of day/night) for all vesetim"
+                                    checked={ohrZaruah}
+                                    onChange={(event: ChangeEvent<HTMLInputElement>) => setOhrZaruah(event.currentTarget.checked)}
+                                />
+                                <Text size="xs" c="dimmed" mt={5} ml={28}>
+                                    Example: If your period started during the day, you would also separate the night before each veset.
                                 </Text>
-                                <Text size="xs" c="dimmed" mt={4} style={{ fontStyle: 'italic' }}>
-                                    Used for calculating Hebrew day boundaries (sunset to sunset) and onah periods (sunrise/sunset)
+                            </div>
+
+                            <Divider />
+
+                            <div>
+                                <Checkbox
+                                    label="Kreisi U'Pleisi"
+                                    description="Observe both day and night on day 30 (24-hour Onah Beinonit)"
+                                    checked={beinonit_24hr}
+                                    onChange={(event: ChangeEvent<HTMLInputElement>) => setbeinonit_24hr(event.currentTarget.checked)}
+                                />
+                                <Text size="xs" c="dimmed" mt={5} ml={28}>
+                                    In addition to the matching onah on day 30, also observe the opposite onah on day 30.
                                 </Text>
-                            </Stack>
-                        </div>
-                        <Button
-                            variant="light"
-                            color="pink"
-                            onClick={() => setLocationModalOpened(true)}
-                        >
-                            Change Location
-                        </Button>
-                    </Group>
-                </Stack>
-            </Paper>
+                            </div>
 
-            {/* Google Account Linking Section */}
-            <Title order={3} mb={15}>Connected Accounts</Title>
-            <Alert icon={<IconInfoCircle size={16} />} color="blue" mb={15}>
-                Link your Google account for quick sign-in without entering your password.
-            </Alert>
+                            <Divider />
 
-            <Paper shadow="sm" p="lg" withBorder mb={30}>
-                <Stack gap="md">
-                    <Group justify="space-between" align="center">
-                        <div style={{ flex: 1 }}>
-                            <Group gap="xs" mb={4}>
-                                <IconBrandGoogle size={20} />
-                                <Text size="sm" fw={500}>Google Account</Text>
-                                {hasGoogleLinked && (
-                                    <Badge color="green" size="sm" leftSection={<IconCheck size={12} />}>
-                                        Linked
-                                    </Badge>
+                            <div>
+                                <Checkbox
+                                    label="Beinonit 31"
+                                    description="Also observe day 31 in addition to day 30"
+                                    checked={beinonit_31}
+                                    onChange={(event: ChangeEvent<HTMLInputElement>) => setbeinonit_31(event.currentTarget.checked)}
+                                />
+                                <Text size="xs" c="dimmed" mt={5} ml={28}>
+                                    Observe the matching onah on both day 30 and day 31 from the start of your period.
+                                </Text>
+                            </div>
+
+                            <Divider />
+
+                            <div>
+                                <Checkbox
+                                    label="Veset Hachodesh on 30th before 29-day month is skipped"
+                                    description="If period starts on day 30 and next Hebrew month has only 29 days, skip that month and observe in the following month on day 30."
+                                    checked={vesetHachodesh30thSkip29}
+                                    onChange={(event: ChangeEvent<HTMLInputElement>) => setVesetHachodesh30thSkip29(event.currentTarget.checked)}
+                                />
+                            </div>
+
+                            <Divider />
+
+                            <div>
+                                <Checkbox
+                                    label="Dual Haflagah (when new interval is shorter)"
+                                    description="Keep both upcoming haflagah events: the new shorter interval and the previous interval."
+                                    checked={haflagahDualMode === 'keep_both'}
+                                    onChange={(event: ChangeEvent<HTMLInputElement>) => setHaflagahDualMode(event.currentTarget.checked ? 'keep_both' : 'latest_only')}
+                                />
+                            </div>
+
+                            <Divider />
+
+                            <div>
+                                <Radio.Group
+                                    label="Minimum Niddah Days"
+                                    description="Select based on your custom"
+                                    value={String(minimumNiddahDays)}
+                                    onChange={(value) => setMinimumNiddahDays(Number(value))}
+                                >
+                                    <Stack mt="xs">
+                                        <Radio value="4" label="4 days (Sephardi custom)" />
+                                        <Radio value="5" label="5 days (Ashkenazi custom)" />
+                                    </Stack>
+                                </Radio.Group>
+                                <Text size="xs" c="dimmed" mt={5}>
+                                    This setting will prevent you from entering a Hefsek Tahara date that is too early.
+                                </Text>
+                            </div>
+
+                            <Button
+                                onClick={handleSave}
+                                loading={loading}
+                                color="pink"
+                                fullWidth
+                                mt="md"
+                            >
+                                Save Preferences
+                            </Button>
+                        </Stack>
+                    </Paper>
+                </Tabs.Panel>
+
+                <Tabs.Panel value="account" pt="md">
+                    {/* Location Settings Section */}
+                    <Title order={3} mb={15}>Location Settings</Title>
+                    <Alert icon={<IconInfoCircle size={16} />} color="blue" mb={15}>
+                        Your location is used to calculate accurate sunrise and sunset times for Hebrew calendar calculations.
+                    </Alert>
+
+                    <Paper shadow="sm" p="lg" withBorder mb={30}>
+                        <Stack gap="md">
+                            <Group justify="space-between" align="center">
+                                <div style={{ flex: 1 }}>
+                                    <Text size="sm" fw={500} mb={8}>Current Location</Text>
+                                    <Stack gap={6}>
+                                        <Group gap="xs">
+                                            <IconMapPin size={16} />
+                                            <Text size="sm" c="dimmed">{currentLocation || 'Not set'}</Text>
+                                        </Group>
+                                        <Text size="xs" c="dimmed">
+                                            Timezone: {currentTimezone}
+                                        </Text>
+                                        <Text size="xs" c="dimmed" mt={4} style={{ fontStyle: 'italic' }}>
+                                            Used for calculating Hebrew day boundaries (sunset to sunset) and onah periods (sunrise/sunset)
+                                        </Text>
+                                    </Stack>
+                                </div>
+                                <Button
+                                    variant="light"
+                                    color="pink"
+                                    onClick={() => setLocationModalOpened(true)}
+                                >
+                                    Change Location
+                                </Button>
+                            </Group>
+                        </Stack>
+                    </Paper>
+
+                    {/* Google Account Linking Section */}
+                    <Title order={3} mb={15}>Connected Accounts</Title>
+                    <Alert icon={<IconInfoCircle size={16} />} color="blue" mb={15}>
+                        Link your Google account for quick sign-in without entering your password.
+                    </Alert>
+
+                    <Paper shadow="sm" p="lg" withBorder mb={30}>
+                        <Stack gap="md">
+                            <Group justify="space-between" align="center">
+                                <div style={{ flex: 1 }}>
+                                    <Group gap="xs" mb={4}>
+                                        <IconBrandGoogle size={20} />
+                                        <Text size="sm" fw={500}>Google Account</Text>
+                                        {hasGoogleLinked && (
+                                            <Badge color="green" size="sm" leftSection={<IconCheck size={12} />}>
+                                                Linked
+                                            </Badge>
+                                        )}
+                                    </Group>
+                                    <Text size="xs" c="dimmed">
+                                        {hasGoogleLinked
+                                            ? 'Your Google account is connected. You can sign in with Google anytime.'
+                                            : 'Link your Google account to enable one-click sign-in.'}
+                                    </Text>
+                                </div>
+                                {!hasGoogleLinked && (
+                                    <Button
+                                        variant="light"
+                                        color="blue"
+                                        leftSection={<IconBrandGoogle size={16} />}
+                                        onClick={handleLinkGoogle}
+                                    >
+                                        Link Google
+                                    </Button>
                                 )}
                             </Group>
-                            <Text size="xs" c="dimmed">
-                                {hasGoogleLinked
-                                    ? 'Your Google account is connected. You can sign in with Google anytime.'
-                                    : 'Link your Google account to enable one-click sign-in.'}
-                            </Text>
-                        </div>
-                        {!hasGoogleLinked && (
-                            <Button
-                                variant="light"
-                                color="blue"
-                                leftSection={<IconBrandGoogle size={16} />}
-                                onClick={handleLinkGoogle}
-                            >
-                                Link Google
-                            </Button>
-                        )}
-                    </Group>
-                </Stack>
-            </Paper>
-
-            {/* Halachic Preferences Section */}
-            <Title order={3} mb={15}>Halachic Preferences</Title>
-            <Alert icon={<IconInfoCircle size={16} />} color="blue" mb={15}>
-                These stringencies will automatically apply to all new cycles you create.
-                Existing cycles will not be affected.
-            </Alert>
-
-            <Paper shadow="sm" p="lg" withBorder>
-                <Stack gap="lg">
-                    <div>
-                        <Checkbox
-                            label="Ohr Zaruah"
-                            description="Separate on the preceding onah (opposite time of day/night) for all vesetim"
-                            checked={ohrZaruah}
-                            onChange={(event: ChangeEvent<HTMLInputElement>) => setOhrZaruah(event.currentTarget.checked)}
-                        />
-                        <Text size="xs" c="dimmed" mt={5} ml={28}>
-                            Example: If your period started during the day, you would also separate the night before each veset.
-                        </Text>
-                    </div>
-
-                    <Divider />
-
-                    <div>
-                        <Checkbox
-                            label="Kreisi U'Pleisi"
-                            description="Observe both day and night on day 30 (24-hour Onah Beinonit)"
-                            checked={beinonit_24hr}
-                            onChange={(event: ChangeEvent<HTMLInputElement>) => setbeinonit_24hr(event.currentTarget.checked)}
-                        />
-                        <Text size="xs" c="dimmed" mt={5} ml={28}>
-                            In addition to the matching onah on day 30, also observe the opposite onah on day 30.
-                        </Text>
-                    </div>
-
-                    <Divider />
-
-                    <div>
-                        <Checkbox
-                            label="Beinonit 31"
-                            description="Also observe day 31 in addition to day 30"
-                            checked={beinonit_31}
-                            onChange={(event: ChangeEvent<HTMLInputElement>) => setbeinonit_31(event.currentTarget.checked)}
-                        />
-                        <Text size="xs" c="dimmed" mt={5} ml={28}>
-                            Observe the matching onah on both day 30 and day 31 from the start of your period.
-                        </Text>
-                    </div>
-
-                    <Divider />
-
-                    <div>
-                        <Radio.Group
-                            label="Minimum Niddah Days"
-                            description="Select based on your custom"
-                            value={String(minimumNiddahDays)}
-                            onChange={(value) => setMinimumNiddahDays(Number(value))}
-                        >
-                            <Stack mt="xs">
-                                <Radio value="4" label="4 days (Sephardi custom)" />
-                                <Radio value="5" label="5 days (Ashkenazi custom)" />
-                            </Stack>
-                        </Radio.Group>
-                        <Text size="xs" c="dimmed" mt={5}>
-                            This setting will prevent you from entering a Hefsek Tahara date that is too early.
-                        </Text>
-                    </div>
-
-                    <Button
-                        onClick={handleSave}
-                        loading={loading}
-                        color="pink"
-                        fullWidth
-                        mt="md"
-                    >
-                        Save Preferences
-                    </Button>
-                </Stack>
-            </Paper>
-
-            {/* Danger Zone - Delete Account Section */}
-            <Title order={3} my={15} c="red">Danger Zone</Title>
-            <Alert icon={<IconAlertTriangle size={16} />} color="red" mb={15}>
-                Deleting your account is permanent and cannot be undone. All your data, including cycles, settings, and personal information will be permanently deleted.
-            </Alert>
-
-            <Paper shadow="sm" p="lg" withBorder mb={30} style={{ borderColor: 'var(--mantine-color-red-6)' }}>
-                <Stack gap="md">
-                    <div>
-                        <Text size="sm" fw={600} c="red" mb={4}>Delete Account</Text>
-                        <Text size="xs" c="dimmed" mb="md">
-                            Once you delete your account, there is no going back. This action will:
-                        </Text>
-                        <Stack gap={4} ml="md">
-                            <Text size="xs" c="dimmed">• Permanently delete all your cycle data and history</Text>
-                            <Text size="xs" c="dimmed">• Remove all your personal information and settings</Text>
-                            <Text size="xs" c="dimmed">• Revoke access to your account immediately</Text>
-                            <Text size="xs" c="dimmed">• Delete all associated data from our servers</Text>
                         </Stack>
-                    </div>
+                    </Paper>
 
-                    <Button
-                        color="red"
-                        variant="light"
-                        leftSection={<IconTrash size={16} />}
-                        onClick={() => setDeleteModalOpened(true)}
-                    >
-                        Delete My Account
-                    </Button>
-                </Stack>
-            </Paper>
+                    {/* Danger Zone - Delete Account Section */}
+                    <Title order={3} my={15} c="red">Danger Zone</Title>
+                    <Alert icon={<IconAlertTriangle size={16} />} color="red" mb={15}>
+                        Deleting your account is permanent and cannot be undone. All your data, including cycles, settings, and personal information will be permanently deleted.
+                    </Alert>
+
+                    <Paper shadow="sm" p="lg" withBorder mb={30} style={{ borderColor: 'var(--mantine-color-red-6)' }}>
+                        <Stack gap="md">
+                            <div>
+                                <Text size="sm" fw={600} c="red" mb={4}>Delete Account</Text>
+                                <Text size="xs" c="dimmed" mb="md">
+                                    Once you delete your account, there is no going back. This action will:
+                                </Text>
+                                <Stack gap={4} ml="md">
+                                    <Text size="xs" c="dimmed">• Permanently delete all your cycle data and history</Text>
+                                    <Text size="xs" c="dimmed">• Remove all your personal information and settings</Text>
+                                    <Text size="xs" c="dimmed">• Revoke access to your account immediately</Text>
+                                    <Text size="xs" c="dimmed">• Delete all associated data from our servers</Text>
+                                </Stack>
+                            </div>
+
+                            <Button
+                                color="red"
+                                variant="light"
+                                leftSection={<IconTrash size={16} />}
+                                onClick={() => setDeleteModalOpened(true)}
+                            >
+                                Delete My Account
+                            </Button>
+                        </Stack>
+                    </Paper>
+                </Tabs.Panel>
+            </Tabs>
 
             {/* Location Update Modal */}
             <Modal

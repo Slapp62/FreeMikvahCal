@@ -23,7 +23,7 @@ const profileSchema = new Schema({
   // Halachic Custom Settings
   halachicCustom: {
     type: String,
-    enum: ['ashkenazi', 'sephardi', 'chabad', 'manual'],
+    enum: ['ashkenazi_EY', 'ashkenazi_CL', 'sephardi_ROY', 'sephard_RME', 'manual'],
     default: null
   },
 
@@ -32,6 +32,12 @@ const profileSchema = new Schema({
     ohrZaruah: { type: Boolean, default: false },      // Separate on preceding onah for all vesetim
     beinonit_24hr: { type: Boolean, default: false },  // 24-hour onah beinonit (day 30)
     beinonit_31: { type: Boolean, default: false },    // Also observe day 31
+    vesetHachodesh30thSkip29: { type: Boolean, default: false }, // If day 30 falls before 29-day month, skip that month
+    haflagahDualMode: {
+      type: String,
+      enum: ['latest_only', 'keep_both'],
+      default: 'latest_only'
+    },
     minimumNiddahDays: {                               // Minimum days before hefsek tahara allowed
       type: Number,
       default: 5,

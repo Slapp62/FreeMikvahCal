@@ -8,7 +8,7 @@ const createCycleSchema = Joi.object({
   // Onah time range (calculated on frontend using Hebcal)
   startTime: Joi.date()
     .iso()
-    .required()
+    .optional()
     .messages({
       'date.base': 'Period start time must be a valid date',
       'any.required': 'Period start time is required. Please select a date and onah type.'
@@ -16,13 +16,21 @@ const createCycleSchema = Joi.object({
 
   endTime: Joi.date()
     .iso()
-    .required()
+    .optional()
     .greater(Joi.ref('startTime'))
     .messages({
       'date.base': 'Period end time must be a valid date',
       'date.greater': 'Period end time must be after start time',
       'any.required': 'Period end time is required. This should be automatically calculated.'
     }),
+
+  dateString: Joi.string()
+    .pattern(/^\d{4}-\d{2}-\d{2}$/)
+    .optional()
+    .messages({
+      'string.pattern.base': 'Date must be in YYYY-MM-DD format'
+    }),
+  onah: Joi.string().valid('day', 'night').optional(),
 
   // Optional fields
   notes: Joi.string().max(500).allow('').messages({
@@ -31,7 +39,20 @@ const createCycleSchema = Joi.object({
   privateNotes: Joi.string().max(500).allow('').messages({
     'string.max': 'Private notes cannot exceed 500 characters'
   })
-});
+})
+  .or('dateString', 'startTime')
+  .when(Joi.object({ dateString: Joi.exist() }).unknown(), {
+    then: Joi.object({
+      onah: Joi.string().valid('day', 'night').required().messages({
+        'any.required': 'Onah is required when dateString is provided'
+      })
+    })
+  })
+  .when(Joi.object({ startTime: Joi.exist() }).unknown(), {
+    then: Joi.object({
+      endTime: Joi.date().iso().greater(Joi.ref('startTime')).required()
+    })
+  });
 
 /**
  * Update cycle schema

@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from 'react';
+import { FC, ReactNode, useEffect, useState } from 'react';
 import emailjs from '@emailjs/browser';
 import { IconBriefcase, IconUsers, IconWorld } from '../utils/icons';
 import { useLocation } from 'react-router-dom';
@@ -197,7 +197,7 @@ const AboutPage: FC = () => {
 };
 
 type StatProps = {
-  icon: React.ReactNode;
+  icon: ReactNode;
   label: string;
   value: string;
 };

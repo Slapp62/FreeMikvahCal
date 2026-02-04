@@ -15,12 +15,14 @@ const updateUserSchema = Joi.object({
     timezone: Joi.string()
   }),
 
-  halachicCustom: Joi.string().valid('ashkenazi', 'sephardi', 'chabad', 'manual', null),
+  halachicCustom: Joi.string().valid('ashkenazi_EY', 'ashkenazi_CL', 'sephardi_ROY', 'sephard_RME', 'manual', null),
 
   halachicPreferences: Joi.object({
     ohrZaruah: Joi.boolean(),
     beinonit_24hr: Joi.boolean(),
     beinonit_31: Joi.boolean(),
+    vesetHachodesh30thSkip29: Joi.boolean(),
+    haflagahDualMode: Joi.string().valid('latest_only', 'keep_both'),
     minimumNiddahDays: Joi.number().min(4).max(10).messages({
       'number.min': 'Minimum niddah days must be at least 4',
       'number.max': 'Minimum niddah days cannot exceed 10',

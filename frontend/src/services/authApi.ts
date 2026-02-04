@@ -4,7 +4,7 @@ import { User } from '../store/userStore';
 export interface RegisterData {
   email: string;
   password: string;
-  halachicCustom?: 'ashkenazi' | 'sephardi' | 'chabad' | 'manual';
+  halachicCustom?: 'ashkenazi_EY' | 'ashkenazi_CL' | 'sephardi_ROY' | 'sephard_RME' | 'manual';
   location?: {
     city?: string;
     timezone?: string;
@@ -21,6 +21,8 @@ export interface RegisterData {
     ohrZaruah?: boolean;
     beinonit_24hr?: boolean;
     beinonit_31?: boolean;
+    vesetHachodesh30thSkip29?: boolean;
+    haflagahDualMode?: 'latest_only' | 'keep_both';
     minimumNiddahDays?: number;
   };
 }
@@ -38,6 +40,15 @@ export interface AuthResponse {
 export interface SessionResponse {
   authenticated: boolean;
   user: User | null;
+}
+
+export interface ForgotPasswordData {
+  email: string;
+}
+
+export interface VerifyResetCodeData {
+  email: string;
+  code: string;
 }
 
 /**
@@ -92,6 +103,21 @@ export const linkGoogleAccount = async (googleId: string): Promise<AuthResponse>
   return response.data;
 };
 
+export const forgotPassword = async (data: ForgotPasswordData): Promise<{ message: string }> => {
+  const response = await axiosInstance.post('/auth/forgot-password', data);
+  return response.data;
+};
+
+export const verifyResetCode = async (data: VerifyResetCodeData): Promise<{ message: string; resetToken: string }> => {
+  const response = await axiosInstance.post('/auth/verify-reset-code', data);
+  return response.data;
+};
+
+export const resetPassword = async (resetToken: string, newPassword: string): Promise<{ message: string }> => {
+  const response = await axiosInstance.post('/auth/reset-password', { resetToken, newPassword });
+  return response.data;
+};
+
 export default {
   register,
   login,
@@ -99,4 +125,7 @@ export default {
   getSession,
   changePassword,
   linkGoogleAccount,
+  forgotPassword,
+  verifyResetCode,
+  resetPassword,
 };

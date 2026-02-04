@@ -2,8 +2,10 @@ import axiosInstance from '../utils/axiosConfig';
 import { Cycle } from '../store/cycleStore';
 
 export interface CreateCycleData {
-  startTime: string; // ISO date string (UTC)
-  endTime: string; // ISO date string (UTC)
+  dateString?: string; // YYYY-MM-DD in user's profile timezone
+  onah?: 'day' | 'night';
+  startTime?: string; // legacy: ISO date string (UTC)
+  endTime?: string; // legacy: ISO date string (UTC)
   notes?: string;
   privateNotes?: string;
 }

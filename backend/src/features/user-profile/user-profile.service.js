@@ -3,6 +3,7 @@ const Profiles = require('./models/profile.model');
 const { throwError } = require('../../shared/utils/error-handlers');
 const { normalizeUser } = require('../../shared/utils/normalize-responses');
 const { logDatabase, logError, logBusiness } = require('../../shared/utils/log-helpers');
+const { isValidTimezone } = require('../../shared/utils/hebrew-datetime');
 // Cross-feature import: allowed per user's preference (Option A)
 const { recalculateAllPeriodVestOnot } = require('../cycle-tracking/cycle.service');
 
@@ -31,6 +32,10 @@ const updateUser = async (userId, updateData) => {
     throwError(404, 'User not found');
   }
 
+  if (updateData.location?.timezone && !isValidTimezone(updateData.location.timezone)) {
+    throwError(400, 'Invalid IANA timezone');
+  }
+
   // Track if halachic preferences changed for cycle recalculation
   let halachicPreferencesChanged = false;
   if (updateData.halachicPreferences) {
@@ -41,7 +46,9 @@ const updateUser = async (userId, updateData) => {
     halachicPreferencesChanged =
       (newPrefs.ohrZaruah !== undefined && newPrefs.ohrZaruah !== oldPrefs.ohrZaruah) ||
       (newPrefs.beinonit_24hr !== undefined && newPrefs.beinonit_24hr !== oldPrefs.beinonit_24hr) ||
-      (newPrefs.beinonit_31 !== undefined && newPrefs.beinonit_31 !== oldPrefs.beinonit_31);
+      (newPrefs.beinonit_31 !== undefined && newPrefs.beinonit_31 !== oldPrefs.beinonit_31) ||
+      (newPrefs.vesetHachodesh30thSkip29 !== undefined && newPrefs.vesetHachodesh30thSkip29 !== oldPrefs.vesetHachodesh30thSkip29) ||
+      (newPrefs.haflagahDualMode !== undefined && newPrefs.haflagahDualMode !== oldPrefs.haflagahDualMode);
   }
 
   // Update allowed fields (includes merged preference fields)
