@@ -93,7 +93,7 @@ const changePassword = async (userId, currentPassword, newPassword) => {
 const requestPasswordReset = async (email) => {
   const auth = await Auths.findOne({ email: email.toLowerCase(), isActive: true });
 
-  if (!auth || !auth.password) {
+  if (!auth) {
     return { message: 'If an account exists for that email, a code has been sent.' };
   }
 
