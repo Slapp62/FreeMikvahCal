@@ -75,6 +75,18 @@ const vestosSchema = new Schema({
       dayOfWeek: Number,
       _id: false
     },
+    kavuah: {
+      type: {
+        type: String,
+        enum: ['chodesh', 'haflagah']
+      },
+      start: Date,
+      end: Date,
+      interval: Number,
+      hebrewDate: String,
+      dayOfWeek: Number,
+      _id: false
+    },
     _id: false
   },
 

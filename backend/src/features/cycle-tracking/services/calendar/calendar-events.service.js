@@ -59,6 +59,19 @@ const buildCalendarEvents = async (userId, cycles) => {
     }
 
     if (cycle.vestOnot) {
+      if (cycle.vestOnot.kavuah?.start) {
+        const typeLabel = cycle.vestOnot.kavuah.type === 'haflagah' ? 'Haflagah' : 'Chodesh';
+        events.push({
+          id: `${cycle._id}-kavuah`,
+          title: `📌 Kavuah - ${typeLabel}`,
+          start: cycle.vestOnot.kavuah.start,
+          allDay: false,
+          className: `vest-onah kavuah kavuah-${cycle.vestOnot.kavuah.type}`,
+          groupID: cycle._id,
+          extendedProps: { onahEnd: cycle.vestOnot.kavuah.end, hebrewDate: cycle.vestOnot.kavuah.hebrewDate }
+        });
+      }
+
       const vesetHachodeshEvents = Array.isArray(cycle.vestOnot.vesetHachodesh) ? cycle.vestOnot.vesetHachodesh : cycle.vestOnot.vesetHachodesh ? [cycle.vestOnot.vesetHachodesh] : [];
       vesetHachodeshEvents.forEach((veset, index) => { if (veset?.start) events.push({ id: `${cycle._id}-veset-${index}`, title: '📅 Veset HaChodesh', start: veset.start, allDay: false, className: 'vest-onah veset-hachodesh', groupID: cycle._id, extendedProps: { onahEnd: veset.end, hebrewDate: veset.hebrewDate } }); });
 

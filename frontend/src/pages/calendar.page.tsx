@@ -23,6 +23,9 @@ const EVENT_TOOLTIPS: Record<string, string> = {
     'veset-hachodesh': 'Veset HaChodesh - Monthly separation period based on Hebrew date',
     'haflagah': 'Haflagah - Interval-based separation period based on cycle length',
     'onah-beinonit': 'Onah Beinonit - Standard 30-day separation period',
+    'kavuah': 'Kavuah - Established fixed pattern based on repeated cycles',
+    'kavuah-chodesh': 'Kavuah Chodesh - Fixed monthly pattern based on Hebrew date',
+    'kavuah-haflagah': 'Kavuah Haflagah - Fixed interval pattern based on consistent gaps',
     'onah-beinonit-kreisi': 'Onah Beinonit (Kreisi) - 31-day variant for longer cycles',
     'onah-beinonit-sofer': 'Onah Beinonit (Sofer) - Alternative calculation method',
     'ohr-zaruah': 'Ohr Zaruah - Additional stringency period (day before main veset)',
@@ -34,6 +37,8 @@ const EVENT_TOOLTIPS: Record<string, string> = {
 
 // Helper function to get tooltip text from event class names
 const getTooltipText = (classNames: string[]): string => {
+    if (classNames.includes('kavuah-haflagah')) return EVENT_TOOLTIPS['kavuah-haflagah'];
+    if (classNames.includes('kavuah-chodesh')) return EVENT_TOOLTIPS['kavuah-chodesh'];
     for (const className of classNames) {
         if (EVENT_TOOLTIPS[className]) {
             return EVENT_TOOLTIPS[className];
@@ -104,6 +109,8 @@ const getEventAbbreviation = (title: string, isMobile: boolean): string => {
         'Onah Beinonit': 'OB-30',
         'Kreisi U\'Pleisi': 'OB-31',
         'Beinonit 31': 'OB-31',
+        'Kavuah - Chodesh': 'Kav-Ch',
+        'Kavuah - Haflagah': 'Kav-Haf',
         'Ohr Zaruah - Veset HaChodesh': 'OZ-VH',
         'Ohr Zaruah - Haflagah': 'OZ-Haf',
         'Ohr Zaruah - Onah Beinonit': 'OZ-OB',
@@ -195,6 +202,9 @@ export default function CalendarPage() {
             className === 'onah-beinonit' ||
             className === 'onah-beinonit-kreisi' ||
             className === 'onah-beinonit-sofer' ||
+            className === 'kavuah' ||
+            className === 'kavuah-chodesh' ||
+            className === 'kavuah-haflagah' ||
             className === 'ohr-zaruah' ||
             className === 'niddah-start' ||
             className === 'period-start'
@@ -349,6 +359,9 @@ export default function CalendarPage() {
             className === 'onah-beinonit' ||
             className === 'onah-beinonit-kreisi' ||
             className === 'onah-beinonit-sofer' ||
+            className === 'kavuah' ||
+            className === 'kavuah-chodesh' ||
+            className === 'kavuah-haflagah' ||
             className === 'ohr-zaruah' ||
             className === 'niddah-start' ||
             className === 'period-start'
@@ -376,6 +389,7 @@ export default function CalendarPage() {
                 .replaceAll('📏', '')
                 .replaceAll('🔄', '')
                 .replaceAll('⏱️', '')
+                .replaceAll('📌', '')
                 .trim();
 
             // Apply abbreviation on mobile
@@ -551,6 +565,8 @@ export default function CalendarPage() {
                     <Box>Mik = Mikvah</Box>
                     <Box>VH = Veset HaChodesh</Box>
                     <Box>Haf = Haflagah</Box>
+                    <Box>Kav-Ch = Kavuah Chodesh</Box>
+                    <Box>Kav-Haf = Kavuah Haflagah</Box>
                     <Box>OB30 = Onah Beinonit</Box>
                     <Box>OB31 = Kreisi U'Pleisi</Box>
                     <Box>OZ-VH, OZ-Haf, OZ-OB = Ohr Zaruah</Box>
@@ -566,6 +582,7 @@ export default function CalendarPage() {
                     <Box>🌙 Mikvah</Box>
                     <Box>Veset HaChodesh</Box>
                     <Box>Haflagah</Box>
+                    <Box>Kavuah</Box>
                     <Box>Onah Beinonit</Box>
                     <Box>☀️ Day Onah</Box>
                     <Box>🌙 Night Onah</Box>

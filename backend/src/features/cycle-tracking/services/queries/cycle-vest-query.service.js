@@ -26,13 +26,14 @@ const getUpcomingVestOnot = async (userId, daysAhead = 30) => {
       { 'vestOnot.vesetHachodesh.start': { $gte: new Date(), $lte: endDate } },
       { 'vestOnot.haflagah.0.start': { $gte: new Date(), $lte: endDate } },
       { 'vestOnot.haflagah.start': { $gte: new Date(), $lte: endDate } },
-      { 'vestOnot.onahBeinonit.start': { $gte: new Date(), $lte: endDate } }
+      { 'vestOnot.onahBeinonit.start': { $gte: new Date(), $lte: endDate } },
+      { 'vestOnot.kavuah.start': { $gte: new Date(), $lte: endDate } }
     ]
   }).populate('periodId');
 
   const upcomingVestOnotList = [];
   upcomingVestos.forEach((vestos) => {
-    ['vesetHachodesh', 'haflagah', 'onahBeinonit'].forEach((type) => {
+    ['vesetHachodesh', 'haflagah', 'onahBeinonit', 'kavuah'].forEach((type) => {
       const vestOnah = vestos.vestOnot[type];
       const entries = Array.isArray(vestOnah) ? vestOnah : vestOnah ? [vestOnah] : [];
       const periodId = String(vestos.periodId?._id || vestos.periodId);

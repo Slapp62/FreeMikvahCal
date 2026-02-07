@@ -54,7 +54,19 @@ export interface Cycle {
       hebrewDate?: string;
       dayOfWeek?: number;
     };
+    kavuah?: {
+      type: 'chodesh' | 'haflagah';
+      start: string;
+      end: string;
+      interval?: number;
+      hebrewDate?: string;
+      dayOfWeek?: number;
+    };
   };
+  kavuahStatus?: {
+    type: 'chodesh' | 'haflagah';
+    interval?: number;
+  } | null;
   appliedChumras?: {
     ohrZaruah: boolean;
     beinonit_24hr: boolean;

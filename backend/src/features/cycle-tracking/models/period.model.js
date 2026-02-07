@@ -41,6 +41,21 @@ const periodSchema = new Schema({
   // Cycle Measurements
   cycleLength: { type: Number },
   haflagah: { type: Number },
+  haflagahInclusive: { type: Number },
+
+  // Hebrew date at period start (sunset-aware) and onah type
+  hebrewDate: {
+    day: { type: Number },
+    month: { type: Number },
+    year: { type: Number },
+    monthName: { type: String },
+    dateString: { type: String },
+    _id: false
+  },
+  onahType: {
+    type: String,
+    enum: ['day', 'night']
+  },
 
   // Period voided tracking
   periodVoidedInfo: {

@@ -5,9 +5,10 @@ const { throwError } = require('../../../../shared/utils/error-handlers');
 const { normalizeCycle } = require('../../../../shared/utils/normalize-responses');
 const { createDateInTimezone, getOnahTimeRange } = require('../../../../shared/utils/hebrew-datetime');
 const { logDatabase, logBusiness } = require('../../../../shared/utils/log-helpers');
-const { calculateAllVestOnot } = require('../vest-calculator.service');
+const { calculateAllVestOnot, calculateHaflagah, calculateVesetHachodesh } = require('../vest-calculator.service');
 const { calculateCycleMetrics } = require('../cycle-metrics.service');
 const { normalizeVestEntries } = require('../core/cycle-shared.service');
+const { buildHebrewDateFields, calculateInclusiveIntervalDays, determineKavuahStatus, getOnahTypeForPeriod } = require('../kavuah.service');
 
 const removeSupersededHaflagahVestos = async (userId, currentPeriodId, newPeriodStart) => {
   const candidateVestos = await Vestos.find({
@@ -64,21 +65,66 @@ const createCycle = async (userId, cycleData) => {
   }
 
   const previousPeriods = await Periods.find({ userId, status: { $in: ['niddah', 'shiva_nekiyim', 'completed'] }, 'niddahOnah.start': { $lt: niddahOnahStart } })
-    .sort({ 'niddahOnah.start': -1 }).limit(3).select('niddahOnah cycleLength haflagah');
+    .sort({ 'niddahOnah.start': -1 }).limit(4).select('niddahOnah cycleLength haflagah haflagahInclusive hebrewDate onahType calculatedInTimezone');
 
   const metrics = calculateCycleMetrics({ niddahOnah: { start: niddahOnahStart }, mikvahDate: null }, previousPeriods[0] || null);
-  const period = new Periods({ userId, niddahOnah: { start: niddahOnahStart, end: niddahOnahEnd }, status: 'niddah', notes: notes || '', privateNotes: privateNotes || '', calculatedInTimezone: timezone, calculatedAtLat: profile.location.lat, calculatedAtLng: profile.location.lng, haflagah: metrics.haflagah, cycleLength: metrics.cycleLength });
+  const location = { lat: profile.location.lat, lng: profile.location.lng, timezone: profile.location.timezone };
+  const hebrewDateFields = buildHebrewDateFields(niddahOnahStart, location);
+  const onahType = getOnahTypeForPeriod({ niddahOnah: { start: niddahOnahStart, end: niddahOnahEnd } });
+  const haflagahInclusive = calculateInclusiveIntervalDays(
+    { niddahOnah: { start: niddahOnahStart }, calculatedInTimezone: timezone },
+    previousPeriods[0] || null
+  );
+  const period = new Periods({
+    userId,
+    niddahOnah: { start: niddahOnahStart, end: niddahOnahEnd },
+    status: 'niddah',
+    notes: notes || '',
+    privateNotes: privateNotes || '',
+    calculatedInTimezone: timezone,
+    calculatedAtLat: profile.location.lat,
+    calculatedAtLng: profile.location.lng,
+    haflagah: metrics.haflagah,
+    haflagahInclusive,
+    cycleLength: metrics.cycleLength,
+    hebrewDate: hebrewDateFields,
+    onahType
+  });
   await period.save();
 
-  const location = { lat: profile.location.lat, lng: profile.location.lng, timezone: profile.location.timezone };
-  const vestOnotData = calculateAllVestOnot(period, previousPeriods, location, halachicPreferences);
+  const periodsForKavuahCheck = [period, ...previousPeriods];
+  const kavuahStatus = determineKavuahStatus(periodsForKavuahCheck);
+  let vestOnotData;
+  if (kavuahStatus.type === 'chodesh') {
+    const isDayOnah = onahType === 'day';
+    const kavuahEntry = calculateVesetHachodesh(
+      period,
+      location,
+      isDayOnah,
+      halachicPreferences.ohrZaruah,
+      halachicPreferences.vesetHachodesh30thSkip29
+    )[0];
+    vestOnotData = { vestOnot: { kavuah: { type: 'chodesh', ...kavuahEntry } }, appliedChumras: { ohrZaruah: halachicPreferences.ohrZaruah || false, vesetHachodesh30thSkip29: halachicPreferences.vesetHachodesh30thSkip29 || false } };
+  } else if (kavuahStatus.type === 'haflagah') {
+    const isDayOnah = onahType === 'day';
+    const kavuahEntry = calculateHaflagah(
+      period,
+      previousPeriods,
+      location,
+      isDayOnah,
+      halachicPreferences.ohrZaruah
+    )[0];
+    vestOnotData = { vestOnot: { kavuah: { type: 'haflagah', ...kavuahEntry } }, appliedChumras: { ohrZaruah: halachicPreferences.ohrZaruah || false } };
+  } else {
+    vestOnotData = calculateAllVestOnot(period, previousPeriods, location, halachicPreferences);
+  }
   const vestos = new Vestos({ periodId: period._id, userId, vestOnot: vestOnotData.vestOnot, appliedChumras: vestOnotData.appliedChumras });
   await vestos.save();
   await removeSupersededHaflagahVestos(userId, period._id, period.niddahOnah.start);
 
   logDatabase('create', 'Periods', { userId, periodId: period._id });
   logBusiness('period_created', { userId, periodId: period._id, status: period.status, hasPreviousPeriods: previousPeriods.length > 0, haflagah: metrics.haflagah });
-  return normalizeCycle({ ...period.toObject(), vestOnot: vestos.vestOnot });
+  return normalizeCycle({ ...period.toObject(), vestOnot: vestos.vestOnot, kavuahStatus: kavuahStatus.type ? kavuahStatus : null });
 };
 
 module.exports = { createCycle, removeSupersededHaflagahVestos };

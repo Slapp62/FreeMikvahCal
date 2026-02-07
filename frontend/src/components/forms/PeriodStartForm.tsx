@@ -146,6 +146,14 @@ const PeriodStartForm = ({ close, dateClicked }: Props) => {
                 message: 'Period start event created successfully',
                 color: 'green',
             });
+            if (result.cycle?.kavuahStatus?.type) {
+                const kavuahTypeLabel = result.cycle.kavuahStatus.type === 'haflagah' ? 'Haflagah' : 'Chodesh';
+                notifications.show({
+                    title: 'Kavuah Established',
+                    message: `You have established a kavuah pattern (${kavuahTypeLabel}). Your next event will follow this kavuah.`,
+                    color: 'blue',
+                });
+            }
 
             triggerRefetch();
             close();
