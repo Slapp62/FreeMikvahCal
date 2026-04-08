@@ -20,7 +20,9 @@ import { IconBook2, IconInfoCircle } from '../utils/icons';
 
 const InformationPage: FC = () => {
   const computedColorScheme = useComputedColorScheme('light');
-  const pageBg = computedColorScheme === 'light' ? 'white' : 'rocketBlack.8';
+  const pageBg = computedColorScheme === 'light'
+    ? 'var(--mantine-color-white)'
+    : 'var(--mantine-color-dark-8)';
 
   return (
     <Box bg={pageBg} style={{ paddingBottom: '40px', minHeight: '100vh' }}>
@@ -60,7 +62,12 @@ const InformationPage: FC = () => {
 
         {/* Main Content - Accordion Sections */}
         <Paper shadow="sm" p="xl" radius="md" my="xl">
-          <Accordion variant="separated" radius="md" defaultValue="fundamental-concepts">
+          <Accordion
+            variant="separated"
+            radius="md"
+            multiple
+            defaultValue={['fundamental-concepts']}
+          >
             {/* FUNDAMENTAL CONCEPTS */}
             <Accordion.Item value="fundamental-concepts">
               <Accordion.Control icon={<IconInfoCircle size={20} />}>

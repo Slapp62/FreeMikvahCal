@@ -262,8 +262,8 @@ const EditUserSettings = () => {
                 <Tabs.Panel value="halachic" pt="md">
                     {/* Halachic Preferences Section */}
                     <Alert icon={<IconInfoCircle size={16} />} color="blue" mb={15}>
-                        These stringencies will automatically apply to all new cycles you create.
-                        Existing cycles will not be affected.
+                        These stringencies apply to future calculations and are also re-applied to your
+                        existing stored vest onot after you save.
                     </Alert>
 
                     <Paper shadow="sm" p="lg" withBorder>

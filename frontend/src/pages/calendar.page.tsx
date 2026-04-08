@@ -13,9 +13,11 @@ import { useMediaQuery } from '@mantine/hooks';
 import { getHebrewMonthRange } from '../utils/hebrewDates.ts';
 import { HDate, Location, Zmanim } from '@hebcal/core';
 import { useUserStore } from '../store/userStore.ts';
+import CalendarSidebar from '../components/calendar/CalendarSidebar.tsx';
+import { ICalendarEvent } from '../Types_Interfaces.ts';
 
 // Event type to tooltip text mapping for desktop hover tooltips
-const EVENT_TOOLTIPS: Record<string, string> = {
+    const EVENT_TOOLTIPS: Record<string, string> = {
     'niddah-start': 'Period Start - Beginning of niddah status',
     'period-start': 'Period Start - Beginning of niddah status',
     'hefsek-tahara': 'Hefsek Tahara - Internal examination to check for clean status',
@@ -26,8 +28,8 @@ const EVENT_TOOLTIPS: Record<string, string> = {
     'kavuah': 'Kavuah - Established fixed pattern based on repeated cycles',
     'kavuah-chodesh': 'Kavuah Chodesh - Fixed monthly pattern based on Hebrew date',
     'kavuah-haflagah': 'Kavuah Haflagah - Fixed interval pattern based on consistent gaps',
-    'onah-beinonit-kreisi': 'Onah Beinonit (Kreisi) - 31-day variant for longer cycles',
-    'onah-beinonit-sofer': 'Onah Beinonit (Sofer) - Alternative calculation method',
+    'onah-beinonit-kreisi': 'Kreisi U\'Pleisi - opposite onah around the standard day-30 Onah Beinonit',
+    'onah-beinonit-sofer': 'Beinonit 31 - additional matching onah on day 31',
     'ohr-zaruah': 'Ohr Zaruah - Additional stringency period (day before main veset)',
     'bedikah-clean': 'Bedikah - Internal examination with clean result',
     'bedikah-questionable': 'Bedikah - Questionable result, consult rabbinical authority',
@@ -107,8 +109,9 @@ const getEventAbbreviation = (title: string, isMobile: boolean): string => {
         'Veset HaChodesh': 'Chodesh',
         'Haflagah': 'Haf',
         'Onah Beinonit': 'OB-30',
-        'Kreisi U\'Pleisi': 'OB-31',
-        'Beinonit 31': 'OB-31',
+        'Kreisi U\'Pleisi': 'KUP',
+        'Beinonit 31': 'B31',
+        'Beinonit 31 (Opposite Onah)': 'B31+',
         'Kavuah - Chodesh': 'Kav-Ch',
         'Kavuah - Haflagah': 'Kav-Haf',
         'Ohr Zaruah - Veset HaChodesh': 'OZ-VH',
@@ -139,6 +142,8 @@ export default function CalendarPage() {
     const closeEventModal = () => setEventModalOpened(false);
     const [selectedEvent, setSelectedEvent] = useState<EventImpl | null>(null);
     const [selectedEventTooltip, setSelectedEventTooltip] = useState<string>('');
+    const [sidebarExpanded, setSidebarExpanded] = useState(true);
+    const [selectedSidebarEventId, setSelectedSidebarEventId] = useState<string | null>(null);
 
     const handleDatesSet = () => {
         const calendarApi = calendarRef.current?.getApi();
@@ -179,6 +184,14 @@ export default function CalendarPage() {
        setSelectedEvent(eventClicked);
        setSelectedEventTooltip(tooltipText);
        setEventModalOpened(true);
+    };
+
+    const handleSidebarEventSelect = (event: ICalendarEvent) => {
+        const calendarApi = calendarRef.current?.getApi();
+        if (!calendarApi) return;
+
+        calendarApi.gotoDate(event.start);
+        setSelectedSidebarEventId(event.id);
     };
 
     // const renderDayCell = (arg: DayCellContentArg) => {
@@ -498,97 +511,112 @@ export default function CalendarPage() {
     };
 
   return (
-    <Stack className="calendar" maw={{ base: '100%', md: '90%' }} px={{ base: 0, sm: 'md' }} mx='auto' align='center' justify='center'>
+    <Stack className="calendar" maw={{ base: '100%', md: '95%' }} px={{ base: 0, sm: 'md' }} mx='auto' align='stretch' justify='center'>
         <Text fw={500} fz={isMobile ? 'lg' : 'xl'} mt={10}>Click on a day to enter a new event. Click on an existing event to edit it.</Text>
         <Text fz={isMobile ? 'sm' : 'md'}>*Do not rely on the times provided until the last minute. They are estimates.</Text>
-        <FullCalendar
-            ref={calendarRef}
-            plugins={[dayGridPlugin, interactionPlugin]}
-            initialView="dayGridMonth"
-            headerToolbar={{
-              left: 'title',
-              center: '',
-              right: 'prev,next today'
-            }}
-            events={events}
-            dateClick={handleDateClick}
-            eventClick={handleEventClick}
-            selectable={true}
-            height='auto'
-            eventDisplay='block'
-            eventOrder='start'
-            timeZone='local'
-            displayEventTime={true}
-            eventContent={renderEventContent}
-            eventDidMount={eventDidMount}
-            datesSet={handleDatesSet}
-            dayCellContent={(arg) => {
-              const morningDate = new HDate(arg.date);
+        <Group align="flex-start" wrap="nowrap" style={{ width: '100%' }}>
+            <CalendarSidebar
+                events={events}
+                isDesktop={!isMobile}
+                expanded={isMobile ? true : sidebarExpanded}
+                selectedEventId={selectedSidebarEventId}
+                onToggleExpanded={() => setSidebarExpanded((prev) => !prev)}
+                onSelectEvent={handleSidebarEventSelect}
+            />
 
-              // Get the date for the following evening by adding 1 day
-              const eveningDate = new HDate(arg.date).next();
-
-              return (
-                <Box
-                  w="100%"
-                  style={{
-                    display: 'flex',
-                    flexDirection: isMobile ? 'column' : 'row',
-                    justifyContent: isMobile ? 'flex-start' : 'space-between',
-                    alignItems: 'flex-start',
-                    padding: isMobile ? '0.5px' : '5px'
-                  }}
-                >
-                  <Text className="gregorian-number" style={{ flex: '0 0 auto' }}>{arg.dayNumberText}</Text>
-                  <Text
-                    className="hebrew-dates"
-                    c="dimmed"
-                    style={{
-                      textAlign: isMobile ? 'left' : 'right',
-                      flex: '0 0 auto',
-                      marginTop: isMobile ? '0.5px' : '0'
+            <Box style={{ flex: 1, minWidth: 0 }}>
+                <FullCalendar
+                    ref={calendarRef}
+                    plugins={[dayGridPlugin, interactionPlugin]}
+                    initialView="dayGridMonth"
+                    headerToolbar={{
+                      left: 'title',
+                      center: '',
+                      right: 'prev,next today'
                     }}
-                  >
-                    {morningDate.getDate()}-{eveningDate.getDate()} {morningDate.getMonthName()}
-                  </Text>
-                </Box>
-              );
-            }}
-        />
-        <Stack gap="xs" mt={20} mb={10}>
-            <Text fw={600} size="sm" ta="center">Event Types</Text>
-            {isMobile ? (
-                // Mobile: Show abbreviations legend
-                <Group bd={'2px solid rgb(207, 207, 207)'} px={15} py={8} gap={8} justify="center" wrap="wrap">
-                    <Box>PS = Period Start</Box>
-                    <Box>HT = Hefsek Tahara</Box>
-                    <Box>Mik = Mikvah</Box>
-                    <Box>VH = Veset HaChodesh</Box>
-                    <Box>Haf = Haflagah</Box>
-                    <Box>Kav-Ch = Kavuah Chodesh</Box>
-                    <Box>Kav-Haf = Kavuah Haflagah</Box>
-                    <Box>OB30 = Onah Beinonit</Box>
-                    <Box>OB31 = Kreisi U'Pleisi</Box>
-                    <Box>OZ-VH, OZ-Haf, OZ-OB = Ohr Zaruah</Box>
-                    <Box>B-C = Bedikah Clean</Box>
-                    <Box>B-Q = Bedikah Questionable</Box>
-                    <Box>B-NC = Bedikah Not Clean</Box>
-                </Group>
-            ) : (
-                // Desktop: Keep icon legend
-                <Group bd={'2px solid rgb(207, 207, 207)'} px={15} py={8} gap={20} justify="center" wrap="wrap">
-                    <Box>🩸 Period Start</Box>
-                    <Box>✅ Hefsek Tahara</Box>
-                    <Box>🌙 Mikvah</Box>
-                    <Box>Veset HaChodesh</Box>
-                    <Box>Haflagah</Box>
-                    <Box>Kavuah</Box>
-                    <Box>Onah Beinonit</Box>
-                    <Box>☀️ Day Onah</Box>
-                    <Box>🌙 Night Onah</Box>
-                </Group>
-            )}
-        </Stack>
+                    events={events}
+                    dateClick={handleDateClick}
+                    eventClick={handleEventClick}
+                    selectable={true}
+                    height='auto'
+                    eventDisplay='block'
+                    eventOrder='start'
+                    timeZone='local'
+                    displayEventTime={true}
+                    eventContent={renderEventContent}
+                    eventDidMount={eventDidMount}
+                    datesSet={handleDatesSet}
+                    dayCellContent={(arg) => {
+                      const morningDate = new HDate(arg.date);
+
+                      // Get the date for the following evening by adding 1 day
+                      const eveningDate = new HDate(arg.date).next();
+
+                      return (
+                        <Box
+                          w="100%"
+                          style={{
+                            display: 'flex',
+                            flexDirection: isMobile ? 'column' : 'row',
+                            justifyContent: isMobile ? 'flex-start' : 'space-between',
+                            alignItems: 'flex-start',
+                            padding: isMobile ? '0.5px' : '5px'
+                          }}
+                        >
+                          <Text className="gregorian-number" style={{ flex: '0 0 auto' }}>{arg.dayNumberText}</Text>
+                          <Text
+                            className="hebrew-dates"
+                            c="dimmed"
+                            style={{
+                              textAlign: isMobile ? 'left' : 'right',
+                              flex: '0 0 auto',
+                              marginTop: isMobile ? '0.5px' : '0'
+                            }}
+                          >
+                            {morningDate.getDate()}-{eveningDate.getDate()} {morningDate.getMonthName()}
+                          </Text>
+                        </Box>
+                      );
+                    }}
+                />
+
+                <Stack gap="xs" mt={20} mb={10}>
+                    <Text fw={600} size="sm" ta="center">Event Types</Text>
+                    {isMobile ? (
+                        // Mobile: Show abbreviations legend
+                        <Group bd={'2px solid rgb(207, 207, 207)'} px={15} py={8} gap={8} justify="center" wrap="wrap">
+                            <Box>PS = Period Start</Box>
+                            <Box>HT = Hefsek Tahara</Box>
+                            <Box>Mik = Mikvah</Box>
+                            <Box>VH = Veset HaChodesh</Box>
+                            <Box>Haf = Haflagah</Box>
+                            <Box>Kav-Ch = Kavuah Chodesh</Box>
+                            <Box>Kav-Haf = Kavuah Haflagah</Box>
+                            <Box>OB30 = Onah Beinonit</Box>
+                            <Box>KUP = Kreisi U'Pleisi</Box>
+                            <Box>B31 = Beinonit 31</Box>
+                            <Box>OZ-VH, OZ-Haf, OZ-OB = Ohr Zaruah</Box>
+                            <Box>B-C = Bedikah Clean</Box>
+                            <Box>B-Q = Bedikah Questionable</Box>
+                            <Box>B-NC = Bedikah Not Clean</Box>
+                        </Group>
+                    ) : (
+                        // Desktop: Keep icon legend
+                        <Group bd={'2px solid rgb(207, 207, 207)'} px={15} py={8} gap={20} justify="center" wrap="wrap">
+                            <Box>🩸 Period Start</Box>
+                            <Box>✅ Hefsek Tahara</Box>
+                            <Box>🌙 Mikvah</Box>
+                            <Box>Veset HaChodesh</Box>
+                            <Box>Haflagah</Box>
+                            <Box>Kavuah</Box>
+                            <Box>Onah Beinonit</Box>
+                            <Box>☀️ Day Onah</Box>
+                            <Box>🌙 Night Onah</Box>
+                        </Group>
+                    )}
+                </Stack>
+            </Box>
+        </Group>
         <CalendarEventModal
             clicked={newEventModalOpened}
             close={closeNewEventModal}

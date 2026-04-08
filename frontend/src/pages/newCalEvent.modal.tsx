@@ -40,7 +40,7 @@ function CalendarEventModal({clicked, close, dateClicked} : ModalProps) {
                 radius="md"
                 fullScreen={isMobile}
             >
-            <Tabs defaultValue="period" orientation="horizontal" variant='pills'>
+            <Tabs defaultValue="period" orientation="horizontal" variant='pills' keepMounted={false}>
                 <Tabs.List grow={isMobile} justify="flex-start" >
                     <Tabs.Tab value="period" mb={10}>
                         Period Start

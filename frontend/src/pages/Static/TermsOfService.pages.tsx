@@ -26,7 +26,13 @@ const MikvahTerms: FC = () => {
           Last Updated: January 21, 2026
         </Text>
 
-        <Paper withBorder p="md" mb="xl" bg="gray.0" radius="md">
+        <Paper
+          withBorder
+          p="md"
+          mb="xl"
+          bg="light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6))"
+          radius="md"
+        >
           <Text size="sm" fw={500} mb="xs">PLEASE READ THIS CAREFULLY:</Text>
           <Text size="sm">
             This User Agreement governs your access to and use of FreeMikvahCal. By accessing or using 

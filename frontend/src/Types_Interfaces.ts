@@ -27,8 +27,14 @@ export interface ICalendarEvent {
     id: string,
     title: string,
     start: string | Date,
+    end?: string | Date,
     groupID?: string
-    className?: string
+    className?: string | string[]
+    extendedProps?: {
+        onahEnd?: string | Date;
+        hebrewDate?: string;
+        [key: string]: unknown;
+    };
     allDay?: boolean
 }
 

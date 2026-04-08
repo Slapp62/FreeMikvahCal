@@ -1,6 +1,10 @@
 import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
-import { MantineProvider, LoadingOverlay } from "@mantine/core";
+import {
+  MantineProvider,
+  LoadingOverlay,
+  localStorageColorSchemeManager,
+} from "@mantine/core";
 import { Notifications } from '@mantine/notifications';
 import { useEffect } from "react";
 import { BrowserRouter } from "react-router-dom";
@@ -11,6 +15,10 @@ import myTheme from "./styles/theme";
 import ErrorBoundary from "./components/ErrorCatching/ErrorBoundary";
 import { KofiDonationPopup } from "./components/KofiDonationPopup";
 import { useSessionRestore } from "./hooks/useSessionRestore";
+
+const colorSchemeManager = localStorageColorSchemeManager({
+  key: 'freemikvahcal-color-scheme',
+});
 
 export default function App() {
   // Restore session on app load (critical for OAuth flow)
@@ -39,7 +47,11 @@ export default function App() {
   // Show loading overlay while restoring session
   if (isRestoring) {
     return (
-      <MantineProvider theme={myTheme}>
+      <MantineProvider
+        theme={myTheme}
+        defaultColorScheme="light"
+        colorSchemeManager={colorSchemeManager}
+      >
         <LoadingOverlay visible={true} overlayProps={{ blur: 2 }} />
       </MantineProvider>
     );
@@ -47,7 +59,11 @@ export default function App() {
 
   return (
     <HelmetProvider>
-      <MantineProvider theme={myTheme}>
+      <MantineProvider
+        theme={myTheme}
+        defaultColorScheme="light"
+        colorSchemeManager={colorSchemeManager}
+      >
         <Notifications />
         <ErrorBoundary useMantineFallback={true}>
           <BrowserRouter>

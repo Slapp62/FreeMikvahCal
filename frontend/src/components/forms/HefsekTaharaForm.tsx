@@ -4,7 +4,7 @@ import { useForm, Controller } from "react-hook-form"
 import { useCycleStore } from "../../store/cycleStore"
 import { useUserStore } from "../../store/userStore"
 import { updateCycle, getCycles } from "../../services/cycleApi"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Cycle } from "../../store/cycleStore"
 import { IconAlertTriangle, IconInfoCircle } from "../../utils/icons"
 import { Location, Zmanim } from "@hebcal/core"
@@ -32,6 +32,7 @@ const HefsekTaharaForm = ({ close, dateClicked }: Props) => {
     const [shabbatWarningMessage, setShabbatWarningMessage] = useState('');
     const [showOldDateWarning, setShowOldDateWarning] = useState(false);
     const [sunsetTime, setSunsetTime] = useState<string>('');
+    const hasFetchedCycles = useRef(false);
 
     const { register, handleSubmit, control, setValue } = useForm<HefsekTaharaValues>({
         defaultValues: {
@@ -41,6 +42,9 @@ const HefsekTaharaForm = ({ close, dateClicked }: Props) => {
 
     // Fetch only cycles in niddah status from server
     useEffect(() => {
+        if (hasFetchedCycles.current) return;
+        hasFetchedCycles.current = true;
+
         const fetchActiveCycles = async () => {
             try {
                 const response = await getCycles({ status: 'niddah' });

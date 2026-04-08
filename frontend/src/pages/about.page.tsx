@@ -16,7 +16,6 @@ import {
   TextInput,
   ThemeIcon,
   Title,
-  useComputedColorScheme,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
@@ -24,10 +23,6 @@ import { notifications } from '@mantine/notifications';
 const AboutPage: FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const location = useLocation();
-  const computedColorScheme = useComputedColorScheme('light');
-
-  // Theme-aware colors
-  const pageBg = computedColorScheme === 'light' ? 'white' : 'rocketBlack.8';
 
   // Scroll to contact form if hash is present in URL
   useEffect(() => {
@@ -89,7 +84,13 @@ const AboutPage: FC = () => {
   };
 
   return (
-    <Box bg={pageBg} style={{ paddingBottom: '40px' }}>
+    <Box
+      style={{
+        paddingBottom: '40px',
+        minHeight: '100vh',
+        backgroundColor: 'light-dark(var(--mantine-color-white), var(--mantine-color-dark-8))',
+      }}
+    >
       <Container size="md" py="xl">
         <Paper shadow="sm" p="xl" radius="md" my="xl">
           <Stack gap="md">
@@ -123,13 +124,25 @@ const AboutPage: FC = () => {
               necessary to provide accurate calculations based on your location's timezone and
               Jewish calendar dates.
             </Text>
+
+            <Paper
+              p="md"
+              radius="md"
+              bg="light-dark(var(--mantine-color-pink-0), var(--mantine-color-dark-6))"
+            >
+              <Text size="sm" c="dimmed">
+                <strong>Religious Note:</strong> FreeMikvahCal is a calculation and tracking aid.
+                It is not a substitute for personal halachic guidance. For practical questions or
+                rulings, consult a qualified rabbi or yoetzet halacha.
+              </Text>
+            </Paper>
           </Stack>
         </Paper>
         
         <Flex direction={{ base: 'column', md: 'row' }} gap="lg" justify="center" align="stretch">
-          <Stat icon={<IconBriefcase size={24} />} label="AI-Powered Matching" value="Smart" />
-          <Stat icon={<IconUsers size={24} />} label="Job Seekers & Employers" value="Connected" />
-          <Stat icon={<IconWorld size={24} />} label="Intuitive & Easy to Use" value="Interface" />
+          <Stat icon={<IconBriefcase size={24} />} label="Halachic Calculations" value="Purpose-Built" />
+          <Stat icon={<IconUsers size={24} />} label="Private Cycle Tracking" value="Discreet" />
+          <Stat icon={<IconWorld size={24} />} label="Timezone Accuracy" value="Location-Aware" />
         </Flex>
         <form onSubmit={form.onSubmit(handleSubmit)} id="contact">
           <Title
@@ -203,27 +216,20 @@ type StatProps = {
 };
 
 const Stat: FC<StatProps> = ({ icon, label, value }) => {
-  const computedColorScheme = useComputedColorScheme('light');
-  const cardBg = computedColorScheme === 'light' ? 'rocketGray.2' : 'rocketBlack.9';
-
   return (
     <Paper
       shadow="xs"
       p="md"
       radius="md"
       withBorder
-      bg={cardBg}
+      bg="light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7))"
       style={{
-        border:
-          computedColorScheme === 'light'
-            ? '1px solid lightgray'
-            : '2px solid var(--mantine-color-rocketBlack-9)',
         borderRadius: '10px',
         boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
       }}
     >
       <Group>
-        <ThemeIcon variant="light" size="lg" radius="xl" color="rocketOrange">
+        <ThemeIcon variant="light" size="lg" radius="xl" color="pink">
           {icon}
         </ThemeIcon>
         <div>

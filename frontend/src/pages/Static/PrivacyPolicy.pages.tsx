@@ -95,7 +95,12 @@ const PrivacyPolicy: FC = () => {
               We implement industry-standard security measures, including SSL/TLS encryption for 
               data in transit and at-rest encryption for database fields. 
             </Text>
-            <Paper p="md" withBorder bg="red.0" mb="md">
+            <Paper
+              p="md"
+              withBorder
+              bg="light-dark(var(--mantine-color-red-0), var(--mantine-color-dark-6))"
+              mb="md"
+            >
               <Text fw={700} size="sm" color="red.9">SECURITY WARNING:</Text>
               <Text size="sm" mt="xs">
                 No method of transmission over the Internet, or method of electronic storage, 

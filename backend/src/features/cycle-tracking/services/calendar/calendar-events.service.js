@@ -20,6 +20,22 @@ const buildCalendarEvents = async (userId, cycles) => {
   const location = profile?.location;
   const events = [];
 
+  const pushVestEvent = (cycle, idSuffix, title, className, entry) => {
+    if (!entry?.start) return;
+    events.push({
+      id: `${cycle._id}-${idSuffix}`,
+      title,
+      start: entry.start,
+      allDay: false,
+      className,
+      groupID: cycle._id,
+      extendedProps: {
+        onahEnd: entry.end,
+        hebrewDate: entry.hebrewDate
+      }
+    });
+  };
+
   cycles.forEach((cycle) => {
     if (cycle.niddahOnah && cycle.niddahOnah.start) {
       events.push({ id: `${cycle._id}-niddah`, title: '🩸 Period Start', start: cycle.niddahOnah.start, allDay: false, className: 'niddah-start', groupID: cycle._id, extendedProps: { onahEnd: cycle.niddahOnah.end } });
@@ -73,16 +89,29 @@ const buildCalendarEvents = async (userId, cycles) => {
       }
 
       const vesetHachodeshEvents = Array.isArray(cycle.vestOnot.vesetHachodesh) ? cycle.vestOnot.vesetHachodesh : cycle.vestOnot.vesetHachodesh ? [cycle.vestOnot.vesetHachodesh] : [];
-      vesetHachodeshEvents.forEach((veset, index) => { if (veset?.start) events.push({ id: `${cycle._id}-veset-${index}`, title: '📅 Veset HaChodesh', start: veset.start, allDay: false, className: 'vest-onah veset-hachodesh', groupID: cycle._id, extendedProps: { onahEnd: veset.end, hebrewDate: veset.hebrewDate } }); });
+      vesetHachodeshEvents.forEach((veset, index) => {
+        pushVestEvent(cycle, `veset-${index}`, '📅 Veset HaChodesh', 'vest-onah veset-hachodesh', veset);
+        pushVestEvent(cycle, `veset-${index}-oz`, '📏 Ohr Zaruah - Veset HaChodesh', 'vest-onah ohr-zaruah', veset?.ohrZaruah);
+      });
 
       const haflagahEvents = Array.isArray(cycle.vestOnot.haflagah) ? cycle.vestOnot.haflagah : cycle.vestOnot.haflagah ? [cycle.vestOnot.haflagah] : [];
       const nextCycleStart = nextCycleStartById.get(String(cycle._id));
       const activeHaflagahEvents = haflagahEvents.filter((h) => h?.start && (!nextCycleStart || new Date(h.start).getTime() < nextCycleStart.getTime()));
       const hasDual = activeHaflagahEvents.length > 1;
-      activeHaflagahEvents.forEach((h, index) => events.push({ id: `${cycle._id}-haflagah-${index}`, title: hasDual ? (index === 0 ? '⏱️ Haflagah (new interval)' : '⏱️ Haflagah (previous interval)') : '⏱️ Haflagah', start: h.start, allDay: false, className: 'vest-onah haflagah', groupID: cycle._id, extendedProps: { onahEnd: h.end, hebrewDate: h.hebrewDate } }));
+      activeHaflagahEvents.forEach((h, index) => {
+        const title = hasDual
+          ? (index === 0 ? '⏱️ Haflagah (new interval)' : '⏱️ Haflagah (previous interval)')
+          : '⏱️ Haflagah';
+        pushVestEvent(cycle, `haflagah-${index}`, title, 'vest-onah haflagah', h);
+        pushVestEvent(cycle, `haflagah-${index}-oz`, '📏 Ohr Zaruah - Haflagah', 'vest-onah ohr-zaruah', h?.ohrZaruah);
+      });
 
       if (cycle.vestOnot.onahBeinonit?.start) {
-        events.push({ id: `${cycle._id}-beinonit`, title: '🔄 Onah Beinonit', start: cycle.vestOnot.onahBeinonit.start, allDay: false, className: 'vest-onah onah-beinonit', groupID: cycle._id, extendedProps: { onahEnd: cycle.vestOnot.onahBeinonit.end, hebrewDate: cycle.vestOnot.onahBeinonit.hebrewDate } });
+        pushVestEvent(cycle, 'beinonit', '🔄 Onah Beinonit', 'vest-onah onah-beinonit', cycle.vestOnot.onahBeinonit);
+        pushVestEvent(cycle, 'beinonit-kreisi', "🔄 Kreisi U'Pleisi", 'vest-onah onah-beinonit-kreisi', cycle.vestOnot.onahBeinonit.beinonit_24hr);
+        pushVestEvent(cycle, 'beinonit-31', '🔄 Beinonit 31', 'vest-onah onah-beinonit-sofer', cycle.vestOnot.onahBeinonit.beinonit_31);
+        pushVestEvent(cycle, 'beinonit-31-opposite', '🔄 Beinonit 31 (Opposite Onah)', 'vest-onah onah-beinonit-sofer', cycle.vestOnot.onahBeinonit.beinonit_31_opposite);
+        pushVestEvent(cycle, 'beinonit-oz', '📏 Ohr Zaruah - Onah Beinonit', 'vest-onah ohr-zaruah', cycle.vestOnot.onahBeinonit.ohrZaruah);
       }
     }
   });

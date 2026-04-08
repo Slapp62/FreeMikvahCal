@@ -4,7 +4,7 @@ import { notifications } from "@mantine/notifications"
 import { useForm, Controller } from "react-hook-form"
 import { useCycleStore, Cycle } from "../../store/cycleStore"
 import { addBedika, getCycles } from "../../services/cycleApi"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 
 type BedikahValues = {
     cycleId: string;
@@ -25,6 +25,7 @@ const BedikahForm = ({ close, dateClicked }: Props) => {
     const triggerRefetch = useCycleStore((state) => state.triggerRefetch);
     const [activeCycles, setActiveCycles] = useState<Cycle[]>([]);
     const [loading, setLoading] = useState(true);
+    const hasFetchedCycles = useRef(false);
 
     const { register, handleSubmit, control, setValue } = useForm<BedikahValues>({
         defaultValues: {
@@ -40,6 +41,9 @@ const BedikahForm = ({ close, dateClicked }: Props) => {
 
     // Fetch only cycles in shiva_nekiyim status from server
     useEffect(() => {
+        if (hasFetchedCycles.current) return;
+        hasFetchedCycles.current = true;
+
         const fetchActiveCycles = async () => {
             try {
                 const response = await getCycles({ status: 'shiva_nekiyim' });
